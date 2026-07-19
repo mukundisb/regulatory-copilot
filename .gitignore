@@ -1,0 +1,25 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+.idea/
+
+# Model artifacts — large binaries don't belong in plain git history.
+# Remove this block if you'd rather track the model via Git LFS instead.
+*.joblib
+*.pkl
+*.pt
+*.h5
