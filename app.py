@@ -46,19 +46,6 @@ def classify(data: ClassifyRequest):
     result = predict_single(ml_models["maude_pipeline"], cleaned)
     return ClassifyResponse(**result)
 
-@app.post("/classify", status_code = status.HTTP_200_OK)
-async def classify_narrative(request: ClassifyRequest):
-    model = ml_models['maude_pipeline']
-    try:
-        prediction = model.predict(request.narrative)
-        return {"prediction": prediction}
-    except ValueError as e:
-        raise HTTPException(
-            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail = "An error occurred while processing the narrative."
-        )
-
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8000)
