@@ -46,8 +46,9 @@ def classify(data: ClassifyRequest):
     result = predict_single(ml_models["maude_pipeline"], cleaned)
     return ClassifyResponse(**result)
 
-@app.post("classify", status_code = status.HTTP_200_OK)
+@app.post("/classify", status_code = status.HTTP_200_OK)
 async def classify_narrative(request: ClassifyRequest):
+    model = ml_models['maude_pipeline']
     try:
         prediction = model.predict(request.narrative)
         return {"prediction": prediction}
