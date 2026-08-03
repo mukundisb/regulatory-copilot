@@ -3,3 +3,4 @@ uvicorn
 pydantic
 scikit-learn==1.8.0
 joblib>=1.3.2
+pytest==9.1.1

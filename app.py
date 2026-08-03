@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, field_validator
 
 from maude_classifier.classifier import load_model, predict_single
@@ -45,6 +45,17 @@ def classify(data: ClassifyRequest):
     cleaned = clean_text(data.narrative)
     result = predict_single(ml_models["maude_pipeline"], cleaned)
     return ClassifyResponse(**result)
+
+@app.post("classify", status_code = status.HTTP_200_OK)
+async def classify_narrative(request: ClassifyRequest):
+    try:
+        prediction = model.predict(request.narrative)
+        return {"prediction": prediction}
+    except ValueError as e:
+        raise HTTPException(
+            status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail = "An error occurred while processing the narrative."
+        )
 
 
 if __name__ == "__main__":
