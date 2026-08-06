@@ -23,3 +23,6 @@ env/
 *.pkl
 *.pt
 *.h5
+
+# Coaching/progress-tracking files — local only, never pushed to the public repo.
+coaching/

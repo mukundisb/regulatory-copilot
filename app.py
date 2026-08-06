@@ -1,3 +1,7 @@
+import logging
+import sys
+import time
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, status
@@ -5,19 +9,26 @@ from pydantic import BaseModel, field_validator
 
 from maude_classifier.classifier import load_model, predict_single
 from maude_classifier.text_cleaner import clean_text
+from config import settings
+
+logging.basicConfig(
+    level = logging.INFO,
+    format = "%(asctime)s [%(levelname)s] %(message)s",
+    handlers = [logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("regulatory_copilot")
 
 ml_models = {}
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    ml_models["maude_pipeline"] = load_model()
+    ml_models["maude_pipeline"] = load_model(settings.model_path)
+    logger.info("Loaded model binary from {settings.model_path}")
     yield
     ml_models.clear()
 
 
-app = FastAPI(lifespan=lifespan)
-
+app = FastAPI(title = settings.app_name, lifespan = lifespan)
 
 class ClassifyRequest(BaseModel):
     narrative: str
@@ -42,10 +53,18 @@ def health():
 
 @app.post("/classify", response_model=ClassifyResponse)
 def classify(data: ClassifyRequest):
+    start_time = time.perf_counter()
     cleaned = clean_text(data.narrative)
     result = predict_single(ml_models["maude_pipeline"], cleaned)
-    return ClassifyResponse(**result)
+
+    latency_ms = (time.perf_counter() - start_time) * 1000
+
+    logger.info(
+        f"event = classify_success narrative_len = {len(data.narrative)} "
+        f"label = {result['predicted_label']} latency_ms = {latency_ms:.2f}"
+    )
+    return result
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("app:app", host=settings.host, port=settings.port, reload=True)
