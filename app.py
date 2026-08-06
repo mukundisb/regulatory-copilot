@@ -23,7 +23,7 @@ ml_models = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ml_models["maude_pipeline"] = load_model(settings.model_path)
-    logger.info("Loaded model binary from {settings.model_path}")
+    logger.info(f"Loaded model binary from {settings.model_path}")
     yield
     ml_models.clear()
 

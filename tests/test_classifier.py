@@ -1,6 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
+from fastapi import FastAPI
 from app import app
+from config import settings
+from app import lifespan
 
 @pytest.fixture
 def client():
@@ -33,3 +36,17 @@ def test_classify_malformed_input(client):
 
     assert response.status_code == 422
     assert "detail" in response.json()
+
+def test_missing_model_file_fails_startup(monkeypatch):
+    """Verify application startup fails when model path points to a missing file."""
+    # Temporarily change the model path to a non-existent file
+    monkeypatch.setattr(settings, "model_path", "invalid/path/non_existent_model.joblib")
+
+    test_app = FastAPI(lifespan = lifespan)
+
+    # Assert that instantiating the TestClient context raises FileNotFoundError (or Exception)
+    with pytest.raises(Exception) as exc_info:
+        with TestClient(test_app):
+            pass  # The context manager will attempt to start the app and load the model
+
+    assert exc_info.typename in ['FileNotFoundError', 'NoSuchFileError'] or "No such file or directory" in str(exc_info.value)
