@@ -4,7 +4,7 @@ import time
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from pydantic import BaseModel, field_validator
 
 from maude_classifier.classifier import load_model, predict_single

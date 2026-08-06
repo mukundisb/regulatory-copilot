@@ -31,11 +31,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables
-```bash
-cp .env.example .env
-```
-- Ensure MODEL_PATH points to your model binary location (default: maude_classifier/model.joblib).
+### 3. Environment Variables (optional)
+The app runs out of the box using the defaults in `config.py` — no `.env` file is required.
+
+To override any setting (e.g. a different model file location, or a different host/port for deployment), create a `.env` file in the project root:
+
+MODEL_PATH=maude_classifier/model/maude_classifier.joblib
+HOST=127.0.0.1
+PORT=8000
+APP_NAME=Regulatory Co-pilot API
+
+Only the variables you want to change need to be set — anything omitted falls back to its default.
 
 ### 4. Running the API
 Start the server using Uvicorn CLI:
