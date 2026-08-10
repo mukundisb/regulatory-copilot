@@ -26,3 +26,7 @@ env/
 
 # Coaching/progress-tracking files — local only, never pushed to the public repo.
 coaching/
+
+# Vector Database & Extracted Artifacts
+chroma_db/
+eu_mdr_text.txt
