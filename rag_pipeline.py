@@ -3,6 +3,15 @@ import re
 import chromadb
 from chromadb.utils import embedding_functions
 
+# Explicit parameter decisions:
+# CHUNK_SIZE = 350 words (~450 tokens): EU-MDR legal clauses average 200–300 words. 
+#   A 350-word window captures full statutory obligations (e.g., Art 10(9) QMS requirements) 
+#   without mixing unrelated articles or diluting dense legal terms.
+# - OVERLAP = 50 words (~15%): Preserves conditional sub-clauses (e.g., exceptions in 
+#   paragraph 2) if a split lands across paragraph boundaries.
+DEFAULT_CHUNK_SIZE = 350
+DEFAULT_OVERLAP = 50
+
 # 1. Initialize local embedding function (Sentence-Transformers)
 embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name="all-MiniLM-L6-v2"
@@ -19,7 +28,7 @@ collection = client.get_or_create_collection(
 )
 
 # 3. Chunking utility
-def chunk_text(text: str, chunk_size: int = 350, overlap: int = 50) -> list[str]:
+def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int = DEFAULT_OVERLAP) -> list[str]:
     words = text.split()
     if not words:
         return []
@@ -60,7 +69,7 @@ def ingest_document(file_path: str):
 
     ids, documents, metadatas = [], [], []
     for label, body in sections:
-        for chunk in chunk_text(body, chunk_size=350, overlap=50):
+        for chunk in chunk_text(body, chunk_size=DEFAULT_CHUNK_SIZE, overlap=DEFAULT_OVERLAP):
             chunk_id = len(ids)
             ids.append(f"doc_chunk_{chunk_id}")
             documents.append(f"[{label}]\n{chunk}")
@@ -98,12 +107,40 @@ def query_store(query_string: str, top_k: int = 3):
         print(f"Text Snippet:\n{doc[:200]}...")
 
 if __name__ == "__main__":
-    # Specify your local file
     DOC_PATH = "eu_mdr_text.txt"
     
-    # Ingest if collection is empty
-    if collection.count() == 0 and os.path.exists(DOC_PATH):
-        ingest_document(DOC_PATH)
+    if os.path.exists(DOC_PATH):
+        # -------------------------------------------------------------
+        # PRE-INSTANTIATION CHECK: Evaluate sections before ChromaDB runs
+        # -------------------------------------------------------------
+        with open(DOC_PATH, "r", encoding="utf-8") as f:
+            raw_text = f.read()
+
+        pre_check_sections = split_into_sections(raw_text)
+        distinct_sections = set(label for label, _ in pre_check_sections)
+
+        print("\n================ PRE-INGESTION REPORT ================")
+        print(f"Raw Document Character Count : {len(raw_text)}")
+        print(f"Total Structural Sections    : {len(pre_check_sections)}")
+        print(f"Distinct Section Headings   : {len(distinct_sections)}")
+        print("======================================================\n")
+
+        # Sanity Check Guardrail
+        if len(distinct_sections) == 1 and list(distinct_sections)[0] == "Document":
+            print("[WARNING] Regex matched 0 section headers! Every chunk will be tagged as 'Document'.")
+            print("[WARNING] Check your SECTION_HEADER_RE pattern against 'eu_mdr_text.txt'.\n")
+        else:
+            print("[SUCCESS] Regex matched structural headers successfully. Proceeding to database setup.\n")
+
+        # -------------------------------------------------------------
+        # CHROMADB INSTANTIATION & INGESTION
+        # -------------------------------------------------------------
+        # Only ingest if the collection is currently empty
+        if collection.count() == 0:
+            ingest_document(DOC_PATH)
+
+    else:
+        print(f"[ERROR] Source file '{DOC_PATH}' not found.")
 
     # Execution Query
     test_query = "In what language must device labels, packaging information, and instructions for use be provided?"

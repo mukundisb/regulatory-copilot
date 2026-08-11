@@ -28,3 +28,6 @@ threadpoolctl==3.6.0
 typing-inspection==0.4.2
 typing_extensions==4.16.0
 uvicorn==0.51.0
+chromadb==0.4.0
+sentence-transformers==2.2.0
+pdfplumber==0.10.0
