@@ -87,7 +87,7 @@ def ingest_document(file_path: str):
     print(f"Ingested {len(documents)} chunks across {len(sections)} sections into ChromaDB at '{DB_PATH}'.")
 
 # 5. Query Function
-def query_store(query_string: str, top_k: int = 3):
+def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45) -> list[dict[str, str]]:
     results = collection.query(
         query_texts=[query_string],
         n_results=top_k,
@@ -95,6 +95,10 @@ def query_store(query_string: str, top_k: int = 3):
     )
 
     print(f"\n--- Top {top_k} Results for Query: '{query_string}' ---")
+    output = []
+    if not results["ids"] or not results ["ids"][0]:
+        return []
+    
     for idx in range(len(results["ids"][0])):
         chunk_id = results["ids"][0][idx]
         distance = results["distances"][0][idx]
@@ -102,9 +106,20 @@ def query_store(query_string: str, top_k: int = 3):
         doc = results["documents"][0][idx]
         meta = results["metadatas"][0][idx]
 
+        if similarity_score < min_similarity:
+            continue  # Skip low-similarity results
+
         print(f"\nRank {idx + 1} | Chunk ID: {chunk_id} | Similarity Score: {similarity_score:.4f}")
         print(f"Metadata: {meta}")
         print(f"Text Snippet:\n{doc[:200]}...")
+
+        output.append({
+            "chunk_id": chunk_id,
+            "similarity_score": f"{similarity_score:.4f}",
+            "section": meta.get("section", ""),
+            "text": doc,
+        })
+    return output
 
 if __name__ == "__main__":
     DOC_PATH = "eu_mdr_text.txt"
@@ -143,5 +158,5 @@ if __name__ == "__main__":
         print(f"[ERROR] Source file '{DOC_PATH}' not found.")
 
     # Execution Query
-    test_query = "In what language must device labels, packaging information, and instructions for use be provided?"
+    test_query = " "
     query_store(test_query, top_k=3)

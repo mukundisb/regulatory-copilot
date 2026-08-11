@@ -65,6 +65,20 @@ def classify(data: ClassifyRequest):
     )
     return result
 
+@app.post("/retrieve", response_model=list[dict[str, str]])
+def retrieve(data: ClassifyRequest):
+    from rag_pipeline import query_store
+
+    start_time = time.perf_counter()
+    results = query_store(data.narrative, top_k=3)
+    latency_ms = (time.perf_counter() - start_time) * 1000
+
+    logger.info(
+        f"event = retrieve_success narrative_len = {len(data.narrative)} "
+        f"num_results = {len(results)} latency_ms = {latency_ms:.2f}"
+    )
+    return results                      
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host=settings.host, port=settings.port, reload=True)
