@@ -12,20 +12,26 @@ from chromadb.utils import embedding_functions
 DEFAULT_CHUNK_SIZE = 350
 DEFAULT_OVERLAP = 50
 
-# 1. Initialize local embedding function (Sentence-Transformers)
-embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
-)
+client = None
+collection = None
 
-# 2. Set up local persistent Chroma client
-DB_PATH = "./chroma_db"
-client = chromadb.PersistentClient(path=DB_PATH)
-
-collection = client.get_or_create_collection(
-    name="document_collection",
-    embedding_function=embedding_fn,
-    metadata={"hnsw:space": "cosine"}  # Using Cosine distance for standard normalized scoring
-)
+# 1. Initialize embedding function (Sentence-Transformers)
+def init_store():
+    """Initializes the embedding model and Chroma collection at server startup."""
+    global client, collection
+    if collection is not None:
+        return
+    # 2. Set up persistent Chroma client
+    DB_PATH = "./chroma_db"
+    embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name="all-MiniLM-L6-v2"
+    )
+    client = chromadb.PersistentClient(path=DB_PATH)
+    collection = client.get_or_create_collection(
+        name="document_collection",
+        embedding_function=embedding_fn,
+        metadata={"hnsw:space": "cosine"} # Using Cosine distance for standard normalized scoring
+    )
 
 # 3. Chunking utility
 def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int = DEFAULT_OVERLAP) -> list[str]:
@@ -87,7 +93,10 @@ def ingest_document(file_path: str):
     print(f"Ingested {len(documents)} chunks across {len(sections)} sections into ChromaDB at '{DB_PATH}'.")
 
 # 5. Query Function
-def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45) -> list[dict[str, str]]:
+def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45) -> list[dict]:
+    if collection is None:
+        init_store()  # Ensure the collection is initialized
+
     results = collection.query(
         query_texts=[query_string],
         n_results=top_k,
@@ -115,7 +124,7 @@ def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45)
 
         output.append({
             "chunk_id": chunk_id,
-            "similarity_score": f"{similarity_score:.4f}",
+            "similarity_score": similarity_score,
             "section": meta.get("section", ""),
             "text": doc,
         })

@@ -10,6 +10,7 @@ from pydantic import BaseModel, field_validator
 from maude_classifier.classifier import load_model, predict_single
 from maude_classifier.text_cleaner import clean_text
 from config import settings
+from rag_pipeline import init_store, query_store
 
 logging.basicConfig(
     level = logging.INFO,
@@ -24,6 +25,7 @@ ml_models = {}
 async def lifespan(app: FastAPI):
     ml_models["maude_pipeline"] = load_model(settings.model_path)
     logger.info(f"Loaded model binary from {settings.model_path}")
+    init_store()  # Initialize ChromaDB collection
     yield
     ml_models.clear()
 
@@ -40,6 +42,11 @@ class ClassifyRequest(BaseModel):
             raise ValueError("narrative must not be empty")
         return value
 
+class RetrieveResult(BaseModel):
+    chunk_id: str
+    section: str
+    text: str
+    similarity_score: float
 
 class ClassifyResponse(BaseModel):
     predicted_label: str
@@ -65,7 +72,7 @@ def classify(data: ClassifyRequest):
     )
     return result
 
-@app.post("/retrieve", response_model=list[dict[str, str]])
+@app.post("/retrieve", response_model=list[RetrieveResult])
 def retrieve(data: ClassifyRequest):
     from rag_pipeline import query_store
 

@@ -115,7 +115,24 @@ def test_retrieve_valid_query_mocked(client, monkeypatch):
     assert response.status_code == 200
     data = response.json()
 
-    assert isinstance(data, list)
+    assert isinstance(data[0]['similarity_score'], float)
+    assert data[0]['similarity_score'] == 0.6947
+    assert isinstance(data,list)
     assert len(data) == 2
-    assert data[0]["chunk_id"] == "doc_chunk_283"
+    assert data[0]['chunk_id'] == "doc_chunk_283"
     assert "ANNEX I" in data[0]["section"]
+
+def test_retrieve_e2e_real_store(client):
+    """Real end-to-end test exercising sentence-transformers and ChromaDB."""
+    payload = {
+        "narrative": "In what language must device labels, packaging information, and instructions for use be provided?"
+    }
+    response = client.post("/retrieve", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+    
+    assert len(data) > 0
+    top_result = data[0]
+    assert isinstance(top_result["similarity_score"], float)
+    assert any(header in top_result["section"] for header in ["ANNEX I", "Article"])
