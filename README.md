@@ -50,6 +50,8 @@ uvicorn app:app --reload
 ```
 Interactive API documentation will be available at http://127.0.0.1:8000/docs.
 
+For a full written reference — request/response examples and design notes for `/classify`, `/retrieve`, and `/assess` — see [`docs/API.md`](docs/API.md).
+
 ### 5. Running tests
 Execute the pytest suite from project root:
 ```bash
