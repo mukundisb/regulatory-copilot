@@ -121,13 +121,18 @@ curl -X POST "http://127.0.0.1:8000/retrieve" \
 ```
 ## 3. `POST /assess`
 
-Executes an orchestration pipeline where the classification output functions as an agentic decision point to dynamically formulate targeted regulatory queries against the vector store before synthesizing a deterministic compliance recommendation.
+Orchestrates classification, dynamic query routing, quality-checked retrieval, and rule-based recommendation drafting into an actionable regulatory assessment.
 
-| Predicted Label | Event Type | Query Formulation Strategy | Target EU-MDR Framework |
+#### Two-Stage Agentic Workflow
+
+1. **Decision Point 1 (Dynamic Steering):** Upstream classification predicts event reporting category (`D`, `I`, `M`, `O`) and reformulates the primary vector search query with regulatory criteria.
+2. **Decision Point 2 (Adaptive Fallback):** Evaluates the top chunk's similarity score against an empirical threshold (`0.55`). If the primary steered query produces a weak match (`< 0.55`), the orchestrator triggers a fallback retrieval using the raw unmodified narrative and selects whichever candidate set yields the stronger match.
+
+| Category | Primary Steering Strategy | Target Framework | Fallback Trigger Condition |
 | :--- | :--- | :--- | :--- |
-| D / I | Death / Injury | Serious incident reporting vigilance timelines manufacturer obligations <narrative> | Article 87 (Vigilance reporting timelines & statutory obligations) |
-| M | Malfunction | Device malfunction root cause analysis trend reporting corrective action <narrative> | "Articles 88 & 89 (Trend reporting, CAPA & FSCA investigations)" |
-| O | Other / Inquiry | <narrative> (Unmodified) | Annex I (GSPR) & Article 16 (General translation/labeling) |
+| **`D` / `I`** | `serious incident reporting vigilance timelines manufacturer obligations <narrative>` | Article 87 (Vigilance reporting timelines) | Primary Top Score < `0.55` |
+| **`M`** | `device malfunction root cause analysis trend reporting corrective action <narrative>` | Articles 88 & 89 (Trend reporting & CAPA) | Primary Top Score < `0.55` |
+| **`O`** | `<narrative>` (Unmodified) | Annex I (GSPR) & Article 16 (General provisions) | Primary Top Score < `0.55` |
 
 _Note: retrieval is similarity-based (via ChromaDB embeddings), not a hard-coded mapping — the query is steered toward the relevant EU-MDR area, but the exact article/section returned can vary by narrative and isn't guaranteed. This endpoint is a decision-support aid, not a certified legal or regulatory compliance determination; outputs should be reviewed by qualified personnel before use in an actual regulatory submission._
 
@@ -160,7 +165,8 @@ _Note: retrieval is similarity-based (via ChromaDB embeddings), not a hard-coded
       "similarity_score": "float"
     }
   ],
-  "recommendation": "string"
+  "recommendation": "string",
+  "fallback_triggered": "boolean"
 }
 ```
 ### Example
@@ -185,13 +191,12 @@ curl -X POST "http://127.0.0.1:8000/assess" \
       "text": "[Article 87 - Reporting of serious incidents and field safety corrective actions]\n1. Manufacturers of devices made available on the Union market... shall report to the relevant competent authorities: (a) any serious incident involving devices made available on the Union market, except expected side-effects which are clearly documented in the product information...",
       "similarity_score": 0.7412
     },
-    {
-      "chunk_id": "doc_chunk_181",
-      "section": "Article 87 - Reporting of serious incidents and field safety corrective actions",
-      "text": "[Article 87]\n3. Manufacturers shall report any serious incident immediately after they have established the causal relationship between the device and the incident or that a causal relationship is reasonably possible and, in the event of a serious public health threat, not later than 2 days...",
-      "similarity_score": 0.6835
-    }
   ],
-  "recommendation": "Event classified as 'D' (confidence: 94.28%). Primary regulatory basis: Article 87 - Reporting of serious incidents and field safety corrective actions. Recommended Action: Mandatory vigilance reporting required. Initiate immediate risk assessment and submit report within strict statutory timelines (within 2 to 10 days depending on public health threat severity)."
+  "recommendation": "Event classified as 'D' (confidence: 94.28%). Primary regulatory basis: Article 87 - Reporting of serious incidents and field safety corrective actions. Recommended Action: Mandatory vigilance reporting required. Initiate immediate risk assessment and submit report within strict statutory timelines (within 2 to 10 days depending on public health threat severity.",
+  "fallback_triggered": false
 }
 ```
+
+## Design Notes: Agentic Orchestration & Adaptive Retrieval
+
+The `/assess` endpoint implements a two-stage agentic workflow rather than a static pipeline. The **first decision point** uses the classification model's predicted label (`D`, `I`, `M`, `O`) to dynamically steer the primary vector query toward statutory frameworks (e.g., injecting vigilance timeline criteria for serious incidents or CAPA root-cause keywords for malfunctions). The **second decision point** evaluates the retrieval quality of the primary pass against an empirical similarity threshold (`0.55`, calibrated against observed true matches ranging between `0.6117` and `0.7412` versus semantic noise at `< 0.45`). If the steered query produces weak similarity scores, the orchestrator triggers a fallback pass using the raw, unmodified narrative and selects the candidate set with the superior top score. Encapsulating this branching into dedicated helper functions (`build_retrieval_query` and `retrieve_with_fallback`) preserves clean unit testability, isolates failure domains, and ensures the system adaptively recovers from over-constrained prompt steering.

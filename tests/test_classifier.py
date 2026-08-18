@@ -281,7 +281,9 @@ def test_assess_decision_branch_reformulation(client, monkeypatch, mock_label, e
     data = response.json()
 
     # 3. Assert the exact query string constructed
-    assert len(captured_queries) == 1
+    assert len(captured_queries) == 1, (
+        f"Fallback triggered unexpectedly! Captured {len(captured_queries)} queries: {captured_queries}"
+    )
     actual_query = captured_queries[0]
 
     if expected_query_prefix:
@@ -291,3 +293,151 @@ def test_assess_decision_branch_reformulation(client, monkeypatch, mock_label, e
     else:
         assert actual_query == raw_narrative
         assert data["retrieval_query_used"] == raw_narrative
+
+def test_assess_triggers_fallback_when_steered_query_scores_low(client, monkeypatch):
+    """Verifies that Decision Point 2 triggers fallback if primary query score is below 0.55."""
+    monkeypatch.setattr(
+        "app.predict_single",
+        lambda *args, **kwargs: {
+            "predicted_label": "M",
+            "probabilities": {"M": 0.90, "D": 0.03, "I": 0.04, "O": 0.03}
+        }
+    )
+
+    recorded_calls = []
+    # Primary steered query returns weak results (< 0.55); Fallback returns strong results (0.72)
+    def mock_query_store(query_string, top_k=3):
+        recorded_calls.append({"query": query_string, "top_k": top_k})
+        if "device malfunction root cause analysis" in query_string:
+            return [{
+                "chunk_id": "doc_chunk_low",
+                "section": "Article 88 - Trend reporting",
+                "text": "Low match text",
+                "similarity_score": 0.4800  # Below 0.55 threshold
+            }]
+        else:
+            return [{
+                "chunk_id": "doc_chunk_high",
+                "section": "ANNEX I - General Requirements",
+                "text": "High match fallback text",
+                "similarity_score": 0.7200
+            }]
+
+    monkeypatch.setattr("app.query_store", mock_query_store)
+
+    raw_narrative = "Custom stepper motor failed self test."
+    response = client.post("/assess", json={"narrative": raw_narrative})
+
+    assert response.status_code == 200
+    data = response.json()
+
+    # 1. Assert exactly two query_store calls were made
+    assert len(recorded_calls) == 2, (
+        f"Expected 2 queries (primary + fallback), got {len(recorded_calls)}: {recorded_calls}"
+    )
+
+    # 2. Assert exact call arguments in order
+    assert "device malfunction root cause analysis" in recorded_calls[0]["query"]
+    assert recorded_calls[1]["query"] == raw_narrative
+
+    # 3. Assert response metadata reflects the fallback selection
+    assert data["fallback_triggered"] is True
+    assert data["retrieval_query_used"] == raw_narrative
+    assert data["retrieved_chunks"][0]["chunk_id"] == "doc_chunk_high"
+    assert data["retrieved_chunks"][0]["similarity_score"] == 0.7200
+
+def test_assess_fallback_bypassed_on_strong_primary_score(client, monkeypatch):
+    """Mocked Test: Proves fallback does NOT trigger when the primary query returns >= 0.55."""
+    monkeypatch.setattr(
+        "app.predict_single",
+        lambda *args, **kwargs: {
+            "predicted_label": "D",
+            "probabilities": {"D": 0.95, "I": 0.02, "M": 0.02, "O": 0.01}
+        }
+    )
+
+    recorded_calls = []
+
+    def mock_query_store(query_string, top_k=3):
+        recorded_calls.append({"query": query_string, "top_k": top_k})
+        return [{
+            "chunk_id": "doc_chunk_vigilance",
+            "section": "Article 87 - Reporting of serious incidents",
+            "text": "Manufacturers shall report serious incidents...",
+            "similarity_score": 0.7412  # >= 0.55 threshold
+        }]
+
+    monkeypatch.setattr("app.query_store", mock_query_store)
+
+    raw_narrative = "Patient died following balloon catheter rupture."
+    response = client.post("/assess", json={"narrative": raw_narrative})
+
+    assert response.status_code == 200
+    data = response.json()
+
+    # 1. Assert only 1 query was executed (fallback was bypassed)
+    assert len(recorded_calls) == 1, (
+        f"Expected exactly 1 query, but fallback was called! Calls: {recorded_calls}"
+    )
+
+    # 2. Assert response flags
+    assert data["fallback_triggered"] is False
+    assert "serious incident reporting vigilance" in data["retrieval_query_used"]
+    assert data["retrieved_chunks"][0]["chunk_id"] == "doc_chunk_vigilance"
+
+# ============================================================================
+# REAL / LIVE NON-MOCKED FALLBACK TEST
+# ============================================================================
+
+def test_assess_e2e_real_fallback_evaluation(client):
+    """
+    Live E2E test verifying Decision Point 2 against the real pipeline.
+    
+    Explicit Note on Real Embedding Data:
+    Regulatory prefixes ('serious incident...', 'device malfunction...') match EU-MDR
+    articles with high baseline cosine similarity (typically >= 0.60).
+    
+    Rather than asserting an arbitrary hardcoded boolean, this test verifies the
+    actual runtime invariant:
+      - fallback_triggered reports whether the primary (label-steered) query missed
+        the 0.55 quality gate, regardless of which pass's chunks are ultimately
+        returned.
+      - If fallback_triggered is False, the primary query must have met the gate,
+        so the top chunk score must be >= 0.55.
+      - If fallback_triggered is True, the primary query missed the gate. The
+        returned result is then whichever of the primary/fallback passes scored
+        higher, so EITHER the raw narrative was used (fallback won) OR the top
+        score is still below 0.55 (fallback didn't improve on a failing primary).
+    """
+    payload = {
+        "narrative": "During procedure, ventilator display flashed error code E-102 and stopped oxygen delivery."
+    }
+    response = client.post("/assess", json=payload)
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["predicted_label"] in ["D", "I", "M", "O"]
+    assert len(data["retrieved_chunks"]) > 0
+
+    top_chunk = data["retrieved_chunks"][0]
+    top_score = top_chunk["similarity_score"]
+    fallback_triggered = data["fallback_triggered"]
+
+    # Verify the decision point contract against the live result
+    if fallback_triggered:
+        # Gate failure was reported: either the fallback pass won (raw narrative
+        # was used) or it didn't improve on a primary score that was itself
+        # below threshold.
+        used_raw_narrative = data["retrieval_query_used"] == payload["narrative"]
+        assert used_raw_narrative or top_score < 0.55, (
+            f"Fallback was marked True, but retrieval_query_used was not the raw narrative "
+            f"('{data['retrieval_query_used']}') and top chunk score {top_score:.4f} still met "
+            f"the 0.55 threshold -- the primary query should have been accepted without a gate failure."
+        )
+    else:
+        # If fallback was bypassed, the top score must have satisfied the threshold
+        assert top_score >= 0.55, (
+            f"Fallback was bypassed (fallback_triggered=False), but top chunk score was "
+            f"{top_score:.4f}, which is below the 0.55 threshold!"
+        )

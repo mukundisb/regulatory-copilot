@@ -19,6 +19,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("regulatory_copilot")
 
+# Empricially calibrated threshold based on true match distribution (0.6117 - 0.7412)
+RETRIEVAL_QUALITY_THRESHOLD = 0.55
+
 ml_models = {}
 
 @asynccontextmanager
@@ -58,6 +61,38 @@ class AssessResponse(BaseModel):
     retrieval_query_used: str
     retrieved_chunks: list[RetrieveResult]
     recommendation: str
+    fallback_triggered: bool = False
+
+def build_retrieval_query(predicted_label: str, raw_narrative: str) -> str:
+    """Decision Point 1: Steer retrieval based on classifier label."""
+    if predicted_label in ["D", "I"]:
+        return f"serious incident reporting vigilance timelines manufacturer obligations {raw_narrative}"
+    elif predicted_label == "M":
+        return f"device malfunction root cause analysis trend reporting corrective action {raw_narrative}"
+    return raw_narrative
+
+def retrieve_with_fallback(primary_query: str, fallback_query: str, top_k: int = 3) -> tuple[list[dict], str, bool]:
+    """
+    Decision Point 2: Evaluate retrieval quality and conditionally fallback.
+    Returns (chunks, query_used, fallback_triggered).
+    """
+    primary_chunks = query_store(primary_query, top_k=top_k)
+    primary_top_score = primary_chunks[0]["similarity_score"] if primary_chunks and "similarity_score" in primary_chunks[0] else 0.0
+
+    # If primary query returns strong matches, accept it
+    if primary_top_score >= RETRIEVAL_QUALITY_THRESHOLD:
+        return primary_chunks, primary_query, False
+
+    # Primary query missed the quality gate: execute secondary evaluation pass
+    # with the raw narrative. The gate failure itself is what fallback_triggered
+    # reports, independent of which pass ends up producing the better match.
+    fallback_chunks = query_store(fallback_query, top_k=top_k)
+    fallback_top_score = fallback_chunks[0]["similarity_score"] if fallback_chunks and "similarity_score" in fallback_chunks[0] else 0.0
+
+    # Retain whichever pass produced the higher-confidence top match
+    if fallback_top_score > primary_top_score:
+        return fallback_chunks, fallback_query, True
+    return primary_chunks, primary_query, True
 
 def generate_recommendation(label: str, top_section: str, confidence: float) -> str:
     """Generates a deterministic regulatory guidance summary based on label and top retrieved section."""
@@ -111,26 +146,22 @@ def retrieve(data: ClassifyRequest):
 def assess(data: ClassifyRequest):
     start_time = time.perf_counter()
 
-    # 1. Step 1: Access ing clean input and run loaded model pipeline
+    # 1. Step 1: Upstream ML inference
     cleaned = clean_text(data.narrative)
     clf_result = predict_single(ml_models["maude_pipeline"], cleaned)
 
     predicted_label = clf_result["predicted_label"]
     confidence = float(clf_result['probabilities'][predicted_label])
 
-    # 2. Step 2: Decision Branching - Formulate retrieval query based on predicted category
-    if predicted_label in ["D", "I"]:
-        # Severe safety event: steer retrieval towards vigilance reporting and incident timelines
-        retrieval_query = f"serious incident reporting vigilance timelines manufacturer obligations {data.narrative}"
-    elif predicted_label == "M":
-        # Malfunction: steer retrieval towards CAPA, trend analysis, and investigation
-        retrieval_query = f"device malfunction root cause analysis trend reporting corrective action {data.narrative}"
-    else:
-        # Default / Other: retrieve against general regulatory requirements
-        retrieval_query = data.narrative
+    # 2. Step 2: Label-driven query synthesis
+    primary_query = build_retrieval_query(predicted_label, data.narrative)
 
-    # 3. Step 3: Vector retrieval
-    chunks = query_store(retrieval_query, top_k=3)
+    # 3. Step 3: Adaptive retrieval with quality evaluation and fallback
+    chunks, query_used, fallback_triggered = retrieve_with_fallback(
+        primary_query=primary_query,
+        fallback_query=data.narrative,
+        top_k=3
+    )
 
     # 4. Step 4: Deterministic guidance templating
     top_section = chunks[0]["section"] if chunks else "General EU-MDR Provisions"
@@ -139,15 +170,16 @@ def assess(data: ClassifyRequest):
     latency_ms = (time.perf_counter() - start_time) * 1000
     logger.info(
         f"event = assess_success predicted_label = {predicted_label} confidence = {confidence:.4f} "
-        f"num_results = {len(chunks)} latency_ms = {latency_ms:.2f}"
+        f"num_results = {len(chunks)} fallback_triggered = {fallback_triggered} latency_ms = {latency_ms:.2f}"
     )
 
     return AssessResponse(
         predicted_label=predicted_label,
         confidence=confidence,
-        retrieval_query_used=retrieval_query,
+        retrieval_query_used=query_used,
         retrieved_chunks=chunks,
-        recommendation=recommendation
+        recommendation=recommendation,
+        fallback_triggered=fallback_triggered
     )                      
 
 if __name__ == "__main__":
