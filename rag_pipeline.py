@@ -11,6 +11,8 @@ from chromadb.utils import embedding_functions
 #   paragraph 2) if a split lands across paragraph boundaries.
 DEFAULT_CHUNK_SIZE = 350
 DEFAULT_OVERLAP = 50
+DB_PATH = "./chroma_db"
+COLLECTION_NAME = "document_collection"
 
 client = None
 collection = None
@@ -20,18 +22,18 @@ def init_store():
     """Initializes the embedding model and Chroma collection at server startup."""
     global client, collection
     if collection is not None:
-        return
-    # 2. Set up persistent Chroma client
-    DB_PATH = "./chroma_db"
+        return collection
+
     embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
         model_name="all-MiniLM-L6-v2"
     )
     client = chromadb.PersistentClient(path=DB_PATH)
     collection = client.get_or_create_collection(
-        name="document_collection",
+        name=COLLECTION_NAME,
         embedding_function=embedding_fn,
         metadata={"hnsw:space": "cosine"} # Using Cosine distance for standard normalized scoring
     )
+    return collection
 
 # 3. Chunking utility
 def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int = DEFAULT_OVERLAP) -> list[str]:
@@ -68,6 +70,10 @@ def split_into_sections(text: str) -> list[tuple[str, str]]:
 
 # 4. Ingestion Workflow
 def ingest_document(file_path: str):
+    global collection
+    if collection is None:
+        init_store()
+
     with open(file_path, "r", encoding="utf-8") as f:
         raw_text = f.read()
 
@@ -94,8 +100,9 @@ def ingest_document(file_path: str):
 
 # 5. Query Function
 def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45) -> list[dict]:
+    global collection
     if collection is None:
-        init_store()  # Ensure the collection is initialized
+        init_store()
 
     results = collection.query(
         query_texts=[query_string],
@@ -105,7 +112,7 @@ def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45)
 
     print(f"\n--- Top {top_k} Results for Query: '{query_string}' ---")
     output = []
-    if not results["ids"] or not results ["ids"][0]:
+    if not results["ids"] or not results["ids"][0]:
         return []
     
     for idx in range(len(results["ids"][0])):
@@ -159,13 +166,18 @@ if __name__ == "__main__":
         # -------------------------------------------------------------
         # CHROMADB INSTANTIATION & INGESTION
         # -------------------------------------------------------------
+        # Initialize store first so collection is not None
+        init_store()
+
         # Only ingest if the collection is currently empty
         if collection.count() == 0:
+            print("[INFO] Collection empty. Ingesting documents...")
             ingest_document(DOC_PATH)
+        else:
+            print(f"[INFO] Collection already contains {collection.count()} chunks.")
 
+        # Test verification query
+        test_query = "serious incident reporting vigilance timelines manufacturer obligations"
+        query_store(test_query, top_k=3)
     else:
         print(f"[ERROR] Source file '{DOC_PATH}' not found.")
-
-    # Execution Query
-    test_query = " "
-    query_store(test_query, top_k=3)

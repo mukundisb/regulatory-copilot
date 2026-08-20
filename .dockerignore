@@ -1,0 +1,28 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git Metadata
+.git/
+.gitignore
+
+# Testing and Development Artifacts
+tests/
+docs/
+*.md
+.vscode/
+.idea/
+
+# Large Raw Source Assets
+*.pdf
+data/raw/
