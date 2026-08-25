@@ -200,3 +200,62 @@ curl -X POST "http://127.0.0.1:8000/assess" \
 ## Design Notes: Agentic Orchestration & Adaptive Retrieval
 
 The `/assess` endpoint implements a two-stage agentic workflow rather than a static pipeline. The **first decision point** uses the classification model's predicted label (`D`, `I`, `M`, `O`) to dynamically steer the primary vector query toward statutory frameworks (e.g., injecting vigilance timeline criteria for serious incidents or CAPA root-cause keywords for malfunctions). The **second decision point** evaluates the retrieval quality of the primary pass against an empirical similarity threshold (`0.55`, calibrated against observed true matches ranging between `0.6117` and `0.7412` versus semantic noise at `< 0.45`). If the steered query produces weak similarity scores, the orchestrator triggers a fallback pass using the raw, unmodified narrative and selects the candidate set with the superior top score. Encapsulating this branching into dedicated helper functions (`build_retrieval_query` and `retrieve_with_fallback`) preserves clean unit testability, isolates failure domains, and ensures the system adaptively recovers from over-constrained prompt steering.
+
+## Continuous Integration & Test Suite Design Note
+
+### 1. Architectural Motivation
+The CI pipeline (`.github/workflows/ci.yml`) serves as an automated quality and regression gate across pull requests and pushes to `main`. Machine Learning and RAG systems present unique CI challenges—specifically large binary weight footprints (`.joblib` models), heavyweight embedding models (`sentence-transformers`), and persistent local vector indices (`chroma_db/`).
+
+Rather than committing gigabytes of static binaries to version control or triggering expensive external asset downloads on every test run, the test harness relies on **deterministic synthetic fixtures** and **ephemeral test-state bootstrapping**.
+
+---
+
+### 2. Artifact & Dependency Strategy
+
+| Component | Production Runtime | CI Test Strategy | Rationale |
+| :--- | :--- | :--- | :--- |
+| **Classifier Model** | Pre-trained Scikit-Learn pipeline (`maude_classifier.joblib`) | Session-scoped synthetic `Pipeline` generated on-the-fly via `tests/conftest.py` | Avoids storing multi-megabyte binary artifacts in Git while verifying end-to-end FastAPI lifespan loading, inference schema, and class probability distribution invariants (`D`, `I`, `M`, `O`). |
+| **PyTorch Runtime** | Containerized CPU-only wheel | CPU-only wheel via PyTorch index (`--index-url https://download.pytorch.org/whl/cpu`) | Prevents downloading default 2GB+ CUDA dependencies, cutting runner setup time by ~75%. |
+| **Vector Index (`ChromaDB`)** | Persistent disk store (`chroma_db/`) seeded from EU-MDR corpus | In-process initialized store seeded with domain-anchored text chunks during test setup | Validates real distance metric calculations and similarity threshold gates (`1 - cosine_distance >= 0.45`) without coupling tests to external disk states. |
+
+---
+
+### 3. Core Decision Invariants Tested
+
+The CI suite validates critical runtime contracts across the four primary endpoints (`/health`, `/classify`, `/retrieve`, `/assess`):
+
+1. **Lifespan Startup Resilience (`test_missing_model_file_fails_startup`):**
+   * Verifies that the FastAPI application fails fast with a clean `FileNotFoundError` if the configured model artifact path is invalid.
+2. **Payload Schema Validation (Pydantic V2):**
+   * Enforces 422 Unprocessable Entity responses on empty strings, non-string payloads, and malformed JSON bodies across all ingress routes.
+3. **Decision Point 1: Label-Steered Query Reformulation:**
+   * Validates that predicted class branches dynamically inject regulatory keyword anchors:
+     * **Death (`D`) / Injury (`I`):** `serious incident reporting vigilance timelines manufacturer obligations`
+     * **Malfunction (`M`):** `device malfunction root cause analysis trend reporting corrective action`
+     * **Other (`O`):** Bypasses prefix injection and retains raw user narrative.
+4. **Decision Point 2: Similarity Score Quality Gate & Fallback Evaluation:**
+   * Asserts the minimum similarity cutoff ($0.55$) behavior:
+     * If primary query similarity $\ge 0.55$, fallback search is bypassed (`fallback_triggered=False`).
+     * If primary query similarity $< 0.55$, fallback raw narrative query is executed and the higher-scoring chunk set is returned.
+5. **Real Store & E2E Integration:**
+   * Exercises sentence-transformers vector generation, Chroma querying, distance-to-similarity conversion, and structural header parsing (`ANNEX I`, `Article 87`, `Article 88`) on live execution graphs.
+
+---
+
+### 4. Running the Suite Locally vs. CI
+
+* **Run all tests locally:**
+  ```bash
+  pytest tests/ -v
+  ```
+
+* **Run with captured logging / stdout:**
+  ```bash
+  pytest tests/ -v -s
+  ```
+
+* **Run specific branch unit tests:**
+  ```bash
+  pytest tests/test_classifier.py -k "test_assess_decision_branch_reformulation" -v
+  ```
+
