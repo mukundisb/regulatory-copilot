@@ -2,70 +2,48 @@ import os
 import shutil
 import pytest
 import joblib
-import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
 import chromadb
-from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 
 MODEL_DIR = "maude_classifier/model"
 MODEL_FILE = os.path.join(MODEL_DIR, "maude_classifier.joblib")
 CHROMA_DIR = "chroma_db"
 
 
-# 1. Deterministic Local Embedding Function (Zero Hugging Face Downloads)
-class DeterministicTestEmbeddingFunction(EmbeddingFunction):
-    """
-    Generates deterministic, normalized 384-dim embeddings based on 
-    keyword hashing to avoid model weight downloads and ensure reproducible scores.
-    """
-    def __call__(self, input: Documents) -> Embeddings:
-        embeddings = []
-        for text in input:
-            t = text.lower()
-            vec = np.zeros(384, dtype=np.float32)
-            # Encode semantic clusters onto specific orthogonal dimensions
-            if "serious incident" in t or "vigilance" in t or "death" in t or "cardiac" in t:
-                vec[0] = 1.0
-            elif "malfunction" in t or "root cause" in t or "balloon rupture" in t:
-                vec[1] = 1.0
-            elif "unrelated" in t or "fallback" in t:
-                vec[2] = 1.0
-            else:
-                vec[3] = 1.0
-            
-            # Unit-normalize vector for cosine/L2 distance consistency
-            norm = np.linalg.norm(vec)
-            if norm > 0:
-                vec = vec / norm
-            embeddings.append(vec.tolist())
-        return embeddings
-
-
-# 2. Fixture: Dummy Classifier Model
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_classifier_model():
-    """Builds and serializes a lightweight model to satisfy startup checks."""
+    """Builds and serializes a robust dummy classifier for all decision branches."""
     created = False
     if not os.path.exists(MODEL_FILE):
         os.makedirs(MODEL_DIR, exist_ok=True)
+        
         pipe = Pipeline([
-            ("tfidf", TfidfVectorizer()),
-            ("clf", LogisticRegression())
+            ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
+            ("clf", LogisticRegression(C=10.0))
         ])
         
-        # Train on texts matching the 4 decision classes
+        # Explicit, heavily anchored training samples for D, I, M, O
         X_train = [
-            "acute cardiac arrest catheter balloon rupture death",
-            "severe patient injury during procedure",
-            "device malfunction alert component failure",
-            "routine inquiry non-serious general event"
+            # Death (D)
+            "acute cardiac arrest patient died fatal outcome death mortality expired fatal rupture",
+            "patient deceased during surgery cardiac arrest following catheter rupture",
+            # Injury (I)
+            "patient sustained serious injury severe physical trauma required medical intervention hospitalization",
+            "blood loss hemorrhage emergency resuscitation severe injury deterioration",
+            # Malfunction (M)
+            "device malfunction mechanical failure balloon burst component crack software error unexpected shutdown",
+            "catheter balloon rupture failed deployment device defect malfunction without patient injury",
+            "pump stopped working sensor error calibration fault malfunction",
+            # Other (O)
+            "routine inquiry packaging issue question regarding label user manual",
+            "general question periodic review maintenance query other"
         ]
-        y_train = ["D", "I", "M", "O"]
-        pipe.fit(X_train, y_train)
+        y_train = ["D", "D", "I", "I", "M", "M", "M", "O", "O"]
         
+        pipe.fit(X_train, y_train)
         joblib.dump(pipe, MODEL_FILE)
         created = True
 
@@ -78,52 +56,46 @@ def setup_test_classifier_model():
             pass
 
 
-# 3. Fixture: Seeded Chroma DB Collection
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_chroma_db():
     """
-    Creates and seeds the local Chroma DB directory with documents matching
-    the exact query steering and threshold assertions.
+    Creates persistent Chroma collections seeded with documents matching all search paths.
     """
     created = False
     if not os.path.exists(CHROMA_DIR):
         os.makedirs(CHROMA_DIR, exist_ok=True)
         client = chromadb.PersistentClient(path=CHROMA_DIR)
         
-        # Initialize or fetch default collection
-        embed_fn = DeterministicTestEmbeddingFunction()
-        collection = client.get_or_create_collection(
-            name="regulatory_docs",
-            embedding_function=embed_fn,
-            metadata={"hnsw:space": "cosine"}
-        )
-        
-        # Seeded documents matching the parameterized test signatures
         seeded_docs = [
-            # D / I Branch Document
-            "serious incident reporting vigilance timelines manufacturer obligations for adverse death and injury events",
-            # M Branch Document
-            "device malfunction root cause analysis trend reporting corrective action and preventive vigilance",
-            # Fallback Reference Document
-            "general regulatory vigilance fallback procedures when specific criteria are ambiguous",
-            # Unrelated Baseline Document
-            "unrelated general device operating manual and standard packaging details"
+            "Serious incident reporting vigilance timelines manufacturer obligations for adverse events and mortality.",
+            "Device malfunction root cause analysis trend reporting corrective action and preventive vigilance CAPA.",
+            "Catheter balloon rupture during angioplasty procedure guidance and vigilance reporting.",
+            "General regulatory vigilance fallback procedures when specific criteria are ambiguous."
         ]
         
         seeded_metadatas = [
-            {"branch": "D_I", "regulation": "MDR Article 87", "confidence_level": "high"},
-            {"branch": "M", "regulation": "FDA 21 CFR 803", "confidence_level": "high"},
-            {"branch": "fallback", "regulation": "Standard Guidance", "confidence_level": "medium"},
-            {"branch": "unrelated", "regulation": "None", "confidence_level": "low"}
+            {"source": "MDR_Art_87", "category": "vigilance", "topic": "death_injury"},
+            {"source": "FDA_21CFR803", "category": "malfunction", "topic": "malfunction"},
+            {"source": "Clinical_Guidance", "category": "procedure", "topic": "angioplasty"},
+            {"source": "Fallback_Guidance", "category": "fallback", "topic": "fallback"}
         ]
         
-        seeded_ids = ["doc_vigilance_di", "doc_malfunction_m", "doc_fallback_general", "doc_unrelated_01"]
+        seeded_ids = ["doc_1", "doc_2", "doc_3", "doc_4"]
+
+        # Seed across all common collection names used by regulatory copilot architectures
+        candidate_collections = ["regulatory_docs", "fda_guidance", "maude_index", "documents", "default"]
         
-        collection.add(
-            documents=seeded_docs,
-            metadatas=seeded_metadatas,
-            ids=seeded_ids
-        )
+        for col_name in candidate_collections:
+            try:
+                col = client.get_or_create_collection(name=col_name)
+                col.add(
+                    documents=seeded_docs,
+                    metadatas=seeded_metadatas,
+                    ids=seeded_ids
+                )
+            except Exception:
+                pass
+
         created = True
 
     yield
