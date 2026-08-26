@@ -1,59 +1,121 @@
-REGULATORY CO-PILOT
+# Regulatory Co-Pilot: AI Adverse Event Classifier & EU-MDR Retrieval Engine
 
-This project is a RAG + Agentic-AI assistant over the FDA MAUDE/ ADVERSE event data project built.
+[![CI Test Suite](https://github.com/mukundisb/regulatory-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/mukundisb/regulatory-copilot/actions/workflows/ci.yml)
+[![Cloud Run Deployment](https://img.shields.io/badge/GCP-Cloud%20Run%20Deployed-blue?logo=googlecloud)](https://cloud.google.com/run)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://www.python.org/)
 
-Existing project for the MAUDE-NLP data adverse event portfolio present at https://github.com/mukundisb/maude-nlp-classifier
+An automated regulatory triage and decision-support API built for medical device post-market surveillance. The system classifies unstructured FDA MAUDE adverse event narratives into statutory reporting tiers, dynamically steers regulatory vector queries across Regulation (EU) 2017/745 (EU-MDR), and applies quality gates with adaptive fallback retrieval.
 
-# Regulatory Copilot API
+---
 
-A FastAPI backend service that wraps a fine-tuned MAUDE (Manufacturer and User Facility Device Experience) machine learning pipeline to classify adverse medical device event narratives.
+## Architectural Problem & Context
 
-## Features
-- **Pydantic Validation:** Rejects empty or malformed narrative payloads with HTTP 422 errors.
-- **Lifespan Context Management:** Efficiently loads joblib ML model binary into memory once at application boot.
-- **Environment Configuration:** Managed via `pydantic-settings` (`.env` integration).
-- **Structured Logging:** Standardized request tracing and execution latency reporting.
-- **Unit Test Suite:** Pytest coverage across validation, classification pipeline, and startup error contracts.
+Pharma and MedTech AI engineering roles require systems that bridge statistical ML with deterministic statutory requirements. A pure LLM or generic RAG pipeline risks hallucinating compliance timelines or missing critical reporting triggers. 
 
-## Setup Instructions
+This engine implements a **two-stage agentic workflow**:
+1. **Upstream Classification:** Multi-class classification of medical device adverse events into MAUDE categories: **Death (`D`)**, **Injury (`I`)**, **Malfunction (`M`)**, or **Other (`O`)**.
+2. **Dynamic Query Steering:** Reformulates statutory vector search queries with regulatory criteria (e.g., EU-MDR Article 87 vigilance timelines vs. Article 88 trend reporting/CAPA).
+3. **Adaptive Quality Gate:** Evaluates retrieval confidence against an empirical cosine similarity cutoff ($0.55$) and triggers an automatic fallback pass if steered search underperforms.
 
-### 1. Prerequisites
-- Python 3.12+
+                              +-----------------------+
+                              | Raw Adverse Narrative |
+                              +-----------------------+
+                                          |
+                                          v
+                               [ POST /classify ]
+                     (TF-IDF + Calibrated Logistic Regression)
+                                          |
+                 +------------------------+------------------------+
+                 |                        |                        |
+             Label: D / I              Label: M                 Label: O
+                 |                        |                        |
+                 v                        v                        v
+         [ Article 87 Prefix ]    [ Article 88 Prefix ]     [ Raw Narrative ]
+         "vigilance timelines"    "malfunction root cause"      (No prefix)
+                 \                        |                        /
+                  \                       |                       /
+                   +----------------------+----------------------+
+                                          |
+                                          v
+                                [ Primary ChromaDB Query ]
+                                (all-MiniLM-L6-v2 Embeddings)
+                                          |
+                               { Score >= 0.55 Gate? }
+                                 /                 \
+                         YES    /                   \   NO
+                               v                     v
+                     [ Accept Primary ]     [ Fallback Raw Query ]
+                               \                     /
+                                \                   /
+                                 v                 v
+                           +-----------------------------+
+                           |      [ POST /assess ]       |
+                           | Recommendation + Citations  |
+                           +-----------------------------+
 
-### 2. Virtual Environment & Dependencies
+---
+
+## Documentation Links
+
+* **[API Reference (`docs/API.md`)](docs/API.md):** Complete OpenAPI request/response schemas, sample curl commands, and agentic orchestration design notes.
+* **[Regulatory Mapping (`docs/REGULATORY_MAPPING.md`)](docs/REGULATORY_MAPPING.md):** Mapping codebase artifacts to **IEC 62304** (Medical Device Software Lifecycle) and FDA **PCCP** (Predetermined Change Control Plan) frameworks.
+* **[Interview Defense Notes (`docs/INTERVIEW_NOTES.md`)](docs/INTERVIEW_NOTES.md):** Engineering rationale, debugging logs, cold-start analyses, and architectural trade-offs.
+
+---
+
+## Core API Endpoints
+
+| Method | Endpoint | Function |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Liveness and readiness probe verifying model artifacts and vector store state. |
+| `POST` | `/classify` | Classifies raw adverse event narratives into `D`, `I`, `M`, or `O` with calibrated probabilities. |
+| `POST` | `/retrieve` | Executes dense semantic search across indexed EU-MDR regulatory text. |
+| `POST` | `/assess` | End-to-end orchestration: classification $\rightarrow$ dynamic query steering $\rightarrow$ threshold validation $\rightarrow$ structured regulatory recommendation. |
+
+---
+
+## Local Development & Setup
+
+### Prerequisites
+* Python 3.12+
+* Docker (optional for containerized execution)
+
+#### 1. Clone & Environment Setup
 ```bash
-python -m venv venv
-# On Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-# On macOS/Linux:
-source venv/bin/activate
+git clone https://github.com/mukundisb/regulatory-copilot.git
+cd regulatory-copilot
 
+python -m venv venv
+source venv/bin/activate   # Linux/macOS
+# or: .\venv\Scripts\activate  # Windows
+
+pip install --upgrade pip
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 ```
-
-### 3. Environment Variables (optional)
-The app runs out of the box using the defaults in `config.py` — no `.env` file is required.
-
-To override any setting (e.g. a different model file location, or a different host/port for deployment), create a `.env` file in the project root:
-
-MODEL_PATH=maude_classifier/model/maude_classifier.joblib
-HOST=127.0.0.1
-PORT=8000
-APP_NAME=Regulatory Co-pilot API
-
-Only the variables you want to change need to be set — anything omitted falls back to its default.
-
-### 4. Running the API
-Start the server using Uvicorn CLI:
+#### 2. Run Test Suite
 ```bash
-uvicorn app:app --reload
+pytest tests/ -v
 ```
-Interactive API documentation will be available at http://127.0.0.1:8000/docs.
-
-For a full written reference — request/response examples and design notes for `/classify`, `/retrieve`, and `/assess` — see [`docs/API.md`](docs/API.md).
-
-### 5. Running tests
-Execute the pytest suite from project root:
+#### 3. Launch Local Server
 ```bash
-pytest -v
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+## Containerized Deployment (GCP Cloud Run)
+
+The repository includes a production-ready Dockerfile optimized for CPU inference and dynamic $PORT evaluation.
+
+```bash
+# Build and run locally
+docker build -t regulatory-copilot .
+docker run -p 8000:8000 -e PORT=8000 regulatory-copilot
+
+# Deploy to Google Cloud Run
+gcloud run deploy regulatory-copilot \
+    --image=asia-south1-docker.pkg.dev/<PROJECT_ID>/<REPO>/regulatory-copilot:latest \
+    --region=asia-south1 \
+    --memory=2Gi \
+    --cpu=2 \
+    --allow-unauthenticated
 ```
