@@ -11,6 +11,7 @@ from maude_classifier.classifier import load_model, predict_single
 from maude_classifier.text_cleaner import clean_text
 from config import settings
 from rag_pipeline import init_store, query_store
+from fastapi.middleware.cors import CORSMiddleware
 
 logging.basicConfig(
     level = logging.INFO,
@@ -34,6 +35,20 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title = settings.app_name, lifespan = lifespan)
+
+# Allow Vite development server
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ClassifyRequest(BaseModel):
     narrative: str
@@ -111,7 +126,7 @@ def generate_recommendation(label: str, top_section: str, confidence: float) -> 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", 'service': settings.app_name}
 
 
 @app.post("/classify", response_model=ClassifyResponse)

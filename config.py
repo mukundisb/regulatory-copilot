@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings,SettingsConfigDict
 
 class Settings(BaseSettings):
-    app_name: str = "Regulatory Co-pilot API"
+    app_name: str = "Regulatory Co-pilot"
     model_path: str = "maude_classifier/model/maude_classifier.joblib"
     host: str = "127.0.0.1"
     port: int = 8000
