@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+import os
 
 from contextlib import asynccontextmanager
 
@@ -36,15 +37,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title = settings.app_name, lifespan = lifespan)
 
-# Allow Vite development server
 origins = [
     "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://regulatory-copilot.netlify.app",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.netlify\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
