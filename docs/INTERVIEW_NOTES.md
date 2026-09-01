@@ -58,7 +58,7 @@ This document captures candid engineering decisions, operational debugging lesso
 * **Asynchronous Lifespan Model Warming:** Instead of on-demand first-inference model evaluation, execute a synthetic forward pass during FastAPI's `@asynccontextmanager` startup lifecycle to pre-warm CPU caches before opening traffic ingress.
 * **Asynchronous Task Queue for Assessment:** While `/classify` is sub-50ms, `/assess` executes two sequential retrieval calls and LLM formatting. In high-throughput hospital reporting feeds, this should be backed by Celery/Redis or Google Cloud Tasks with webhook callbacks.
 
-### Q10: Why did updating `frontend/.env` fail to update the live production site until a rebuild occurred, and why didn't pushing a CORS fix in `app.py` automatically fix Cloud Run?
+### Q7: Why did updating `frontend/.env` fail to update the live production site until a rebuild occurred, and why didn't pushing a CORS fix in `app.py` automatically fix Cloud Run?
 
 * **Vite's Build-Time Substitution vs. Runtime Environment Variables:**
   * In a Vite single-page application (SPA), there is no Node.js runtime executing in the client's browser.

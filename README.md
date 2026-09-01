@@ -2,6 +2,7 @@
 
 [![CI Test Suite](https://github.com/mukundisb/regulatory-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/mukundisb/regulatory-copilot/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Netlify-success?logo=netlify)](https://regulatory-copilot.netlify.app)
+[![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Netlify-success?logo=netlify)](https://regulatory-copilot.netlify.app)
 [![Cloud Run Deployment](https://img.shields.io/badge/GCP-Cloud%20Run%20Deployed-blue?logo=googlecloud)](https://cloud.google.com/run)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://www.python.org/)
 
@@ -12,7 +13,28 @@ An automated regulatory triage and decision-support API built for medical device
 🔗 **Live Frontend Application:** [https://regulatory-copilot.netlify.app](https://regulatory-copilot.netlify.app)  
 *(Backend hosted serverless on Google Cloud Run)*
 
+## Two-Service Architecture & Deployment Topology
 
+The system is split into two independently versioned, built, and deployed services:
+
+[ Developer / CI ]
+|
++---> (Git Push main) ---------> GitHub Actions (Pytest Unit + Invariant Gates)
+|
++---> (Manual / Webhook) ------> Netlify Build Step (Vite Static Bundle Generation)
+|                                       |
+|                                       v
+|                            [ Frontend Client (SPA) ]
+|                            (Hosted on Netlify CDN)
+|                                       |
+|                                       | HTTPS Cross-Origin REST Calls
+|                                       | (CORS: *.netlify.app allowed)
+|                                       v
++---> (gcloud builds / deploy) -> [ Backend Engine (FastAPI) ]
+(GCP Cloud Run - Serverless Container)
+|-- Scikit-Learn Classifier (Lifespan Loaded)
+|-- ChromaDB Vector Store (EU-MDR Index)
+-- Deterministic Agentic Fallback Logic
 
 ## Architectural Problem & Context
 
@@ -79,6 +101,39 @@ This engine implements a **two-stage agentic workflow**:
 | `POST` | `/assess` | End-to-end orchestration: classification $\rightarrow$ dynamic query steering $\rightarrow$ threshold validation $\rightarrow$ structured regulatory recommendation. |
 
 ---
+## Local Development & Setup
+
+### 1. Backend Service (GCP Cloud Run)
+```bash
+git clone https://github.com/mukundisb/regulatory-copilot.git
+cd regulatory-copilot
+
+python -m venv venv
+source venv/bin/activate   # Linux/macOS
+# or: .\venv\Scripts\activate  # Windows
+
+pip install --upgrade pip
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+```
+#### 2. Run Test Suite
+```bash
+pytest tests/ -v
+```
+#### 3. Launch Local Server
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
+## Local Container Test (Optional)
+
+The repository includes a production-ready Dockerfile optimized for CPU inference and dynamic $PORT evaluation.
+
+```bash
+# Build and run locally
+docker build -t regulatory-copilot .
+docker run -p 8000:8000 -e PORT=8000 regulatory-copilot
+```
 
 ## Deployment & Operations
 
@@ -90,17 +145,18 @@ gcloud builds submit --tag asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-co
 # 2. Deploy service revision
 gcloud run deploy regulatory-copilot \
     --image=asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest \
+    --image=asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest \
     --region=asia-south1 \
     --memory=4Gi \
     --cpu=2 \
     --allow-unauthenticated
 ```
-#### 2. Frontend Clinet (Netlify/Vite)
+#### 2. Frontend Client (Netlify/Vite)
 ```bash
 cd frontend
 # Set production backend URL in .env or Netlify Build Environment:
-# VITE_API_URL=[https://regulatory-copilot-xxxxxxxx-el.a.run.app](https://regulatory-copilot-xxxxxxxx-el.a.run.app)
+# VITE_API_URL=https://regulatory-copilot-xxxxxxxx-el.a.run.app
 
-nom run build
+npm run build
 # dist/ contains static HTML/JS/CSS assets ready for CDN deployment
 ```
