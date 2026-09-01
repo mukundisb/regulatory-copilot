@@ -69,3 +69,15 @@ This document captures candid engineering decisions, operational debugging lesso
   * Pushing a commit containing the `app.py` CORS update to `main` triggered our GitHub Actions workflow (`.github/workflows/ci.yml`), but that workflow is strictly a **Continuous Integration (CI) test gate**, not a Continuous Deployment (CD) pipeline.
   * The production Cloud Run instance runs an immutable container image hosted in GCP Artifact Registry. 
   * Unless an automated deployment step (e.g., `google-github-actions/deploy-cloudrun`) is explicitly configured in GitHub Actions, Cloud Run continues serving the older container revision until a developer manually executes `gcloud builds submit` and `gcloud run deploy`. Recognizing the boundary between CI verification and CD release automation is essential for diagnosing stale cloud deployments.
+
+ ### Q8: What did you measure for the Cloud Run cold-start latency, and why configure `--min-instances=1` over a purely UI-side mitigation despite the cost trade-off?
+
+* **Measured Telemetry & Latency Profile:**
+  * When scaling from absolute zero, cold-start latency measured **~12–15 seconds** for the initial `/assess` invocation (dominated by container image pull, Python runtime initialization, PyTorch weight loading, and on-demand `sentence-transformers` embedding graph construction). Subsequent warm requests execute consistently in **95.55ms/100ms** for /assess, **5.06ms/9ms** for /classify.
+* **Architectural Decision (Server-Side Provisioning vs. UI Skeleton/Spinner):**
+  * The cold-start bottleneck was confirmed fully fixable via server-side container provisioning (`--min-instances=1`), but keeping an instance permanently warm is an irresponsible baseline posture for a personal portfolio architecture.
+  * The standing operational default is **true scale-to-zero (`--min-instances=0`)**. Setting `--min-instances=1` is treated as an intentional, ephemeral toggle executed via a single `gcloud run services update --min-instances=1` command right before active live demo or interview windows, and flipped back to 0 immediately afterward.
+  *Operational toggle command:* `gcloud run services update regulatory-copilot --region=asia-south1 --min-instances=1` (and `--min-instances=0` after the session).
+* **Cost vs. Availability Trade-off:**
+  * Maintaining a continuous 24/7 warm instance with a 2-vCPU / 2Gi footprint costs approximately **₹10,054/month ($120/month)** (GCP Pricing Calculator estimate, asia-south1, priced [31 Aug 2026]) on Cloud Run. For a portfolio system with bursty, on-demand evaluation traffic, paying ₹10,000+ per month is unnecessary overhead.
+  * Toggling min-instances only for scheduled demonstration windows yields the exact same zero-latency, sub-100ms evaluator experience during live reviews while reducing monthly idle spend to effectively **₹0**.

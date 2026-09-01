@@ -2,7 +2,6 @@
 
 [![CI Test Suite](https://github.com/mukundisb/regulatory-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/mukundisb/regulatory-copilot/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Netlify-success?logo=netlify)](https://regulatory-copilot.netlify.app)
-[![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Netlify-success?logo=netlify)](https://regulatory-copilot.netlify.app)
 [![Cloud Run Deployment](https://img.shields.io/badge/GCP-Cloud%20Run%20Deployed-blue?logo=googlecloud)](https://cloud.google.com/run)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://www.python.org/)
 
@@ -145,9 +144,8 @@ gcloud builds submit --tag asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-co
 # 2. Deploy service revision
 gcloud run deploy regulatory-copilot \
     --image=asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest \
-    --image=asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest \
     --region=asia-south1 \
-    --memory=4Gi \
+    --memory=2Gi \
     --cpu=2 \
     --allow-unauthenticated
 ```
