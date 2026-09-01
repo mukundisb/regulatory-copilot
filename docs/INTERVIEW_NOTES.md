@@ -57,3 +57,15 @@ This document captures candid engineering decisions, operational debugging lesso
 * **Hybrid Search over Pure Dense Retrieval:** Pure vector search on `all-MiniLM-L6-v2` occasionally blurs precise regulatory alphanumeric references (e.g., distinguishing "Article 87(1)(a)" from "Article 87(1)(b)"). I would implement **hybrid search (BM25 keyword search + Dense Cosine Embeddings)** with reciprocal rank fusion (RRF).
 * **Asynchronous Lifespan Model Warming:** Instead of on-demand first-inference model evaluation, execute a synthetic forward pass during FastAPI's `@asynccontextmanager` startup lifecycle to pre-warm CPU caches before opening traffic ingress.
 * **Asynchronous Task Queue for Assessment:** While `/classify` is sub-50ms, `/assess` executes two sequential retrieval calls and LLM formatting. In high-throughput hospital reporting feeds, this should be backed by Celery/Redis or Google Cloud Tasks with webhook callbacks.
+
+### Q10: Why did updating `frontend/.env` fail to update the live production site until a rebuild occurred, and why didn't pushing a CORS fix in `app.py` automatically fix Cloud Run?
+
+* **Vite's Build-Time Substitution vs. Runtime Environment Variables:**
+  * In a Vite single-page application (SPA), there is no Node.js runtime executing in the client's browser.
+  * During `vite build`, Vite uses static analysis to find all references to `import.meta.env.VITE_*` and **statically inlines the literal string values into the compiled JavaScript bundle** (`dist/assets/index-*.js`).
+  * Changing `.env` on disk or modifying hosting dashboard environment variables post-build does not modify already-compiled static JavaScript files on the CDN. A **full rebuild (`npm run build`) is strictly required** for the bundler to inject the new API endpoint string into the output assets.
+
+* **Decoupled Deployment: CI Gate vs. Continuous Deployment (CD):**
+  * Pushing a commit containing the `app.py` CORS update to `main` triggered our GitHub Actions workflow (`.github/workflows/ci.yml`), but that workflow is strictly a **Continuous Integration (CI) test gate**, not a Continuous Deployment (CD) pipeline.
+  * The production Cloud Run instance runs an immutable container image hosted in GCP Artifact Registry. 
+  * Unless an automated deployment step (e.g., `google-github-actions/deploy-cloudrun`) is explicitly configured in GitHub Actions, Cloud Run continues serving the older container revision until a developer manually executes `gcloud builds submit` and `gcloud run deploy`. Recognizing the boundary between CI verification and CD release automation is essential for diagnosing stale cloud deployments.
