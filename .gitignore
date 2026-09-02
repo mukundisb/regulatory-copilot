@@ -37,3 +37,5 @@ eu_mdr_text.txt
 data/raw/
 data/*.json
 data/*.csv
+data/processed/*.csv
+data/processed/*.json
