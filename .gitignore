@@ -32,3 +32,8 @@ chroma_db/
 eu_mdr_text.txt
 # Local Netlify folder
 .netlify
+
+# Ingestion data dumps
+data/raw/
+data/*.json
+data/*.csv
