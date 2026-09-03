@@ -18,8 +18,8 @@ env/
 .idea/
 
 # Model artifacts — large binaries don't belong in plain git history.
-# Remove this block if you'd rather track the model via Git LFS instead.
-*.joblib
+maude_classifier/model/*.joblib
+!maude_classifier/model/maude_classifier.joblib
 *.pkl
 *.pt
 *.h5
