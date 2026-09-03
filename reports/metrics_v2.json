@@ -1,0 +1,53 @@
+{
+  "model_version": "v2",
+  "dataset_path": "data\\processed\\maude_train.csv",
+  "train_samples": 7998,
+  "test_samples": 2000,
+  "accuracy": 0.934,
+  "balanced_accuracy": 0.7579513852722216,
+  "classes": [
+    "D",
+    "I",
+    "M",
+    "O"
+  ],
+  "classification_report": {
+    "D": {
+      "precision": 0.48148148148148145,
+      "recall": 0.7647058823529411,
+      "f1-score": 0.5909090909090909,
+      "support": 17.0
+    },
+    "I": {
+      "precision": 0.8930555555555556,
+      "recall": 0.9225251076040172,
+      "f1-score": 0.9075511644318984,
+      "support": 697.0
+    },
+    "M": {
+      "precision": 0.969551282051282,
+      "recall": 0.9445745511319282,
+      "f1-score": 0.9568999604586793,
+      "support": 1281.0
+    },
+    "O": {
+      "precision": 0.4,
+      "recall": 0.4,
+      "f1-score": 0.4,
+      "support": 5.0
+    },
+    "accuracy": 0.934,
+    "macro avg": {
+      "precision": 0.6860220797720797,
+      "recall": 0.7579513852722216,
+      "f1-score": 0.7138400539499171,
+      "support": 2000.0
+    },
+    "weighted avg": {
+      "precision": 0.93732004985755,
+      "recall": 0.934,
+      "f1-score": 0.9351987327510279,
+      "support": 2000.0
+    }
+  }
+}
