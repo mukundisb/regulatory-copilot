@@ -17,7 +17,6 @@ class Settings(BaseSettings):
     vertex_endpoint_id: str = "8682713582174994432"
 
     # Vertex AI Scale-To-Zero Backoff & Cold Start Tuning
-    vertex_retry_max_attempts: int = 6
     vertex_retry_backoff_base_seconds: float = 3.0
     vertex_cold_start_timeout_seconds: float = 90.0
 

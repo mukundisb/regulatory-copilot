@@ -1,0 +1,79 @@
+{
+  "timestamp_utc": "2026-09-07T10:10:32.448862+00:00",
+  "random_seed": 42,
+  "input_source": "data\\raw\\maude_raw.csv",
+  "hygiene_pipeline": {
+    "raw_records_loaded": 160000,
+    "valid_statutory_labels": 160000,
+    "sufficient_text_retained": 158441,
+    "duplicate_narratives_removed": 29019,
+    "clean_unique_records_retained": 129422
+  },
+  "overall_distribution": {
+    "counts": {
+      "M": 60858,
+      "I": 58975,
+      "O": 5756,
+      "D": 3833
+    },
+    "proportions": {
+      "M": 0.470229,
+      "I": 0.45568,
+      "O": 0.044475,
+      "D": 0.029616
+    }
+  },
+  "partitions": {
+    "train": {
+      "count": 103537,
+      "ratio": 0.8,
+      "counts_by_label": {
+        "M": 48686,
+        "I": 47180,
+        "O": 4605,
+        "D": 3066
+      },
+      "proportions_by_label": {
+        "M": 0.470228,
+        "I": 0.455683,
+        "O": 0.044477,
+        "D": 0.029613
+      },
+      "path": "data\\processed\\train.parquet"
+    },
+    "validation": {
+      "count": 12942,
+      "ratio": 0.1,
+      "counts_by_label": {
+        "M": 6086,
+        "I": 5897,
+        "O": 575,
+        "D": 384
+      },
+      "proportions_by_label": {
+        "M": 0.470252,
+        "I": 0.455648,
+        "O": 0.044429,
+        "D": 0.029671
+      },
+      "path": "data\\processed\\val.parquet"
+    },
+    "test": {
+      "count": 12943,
+      "ratio": 0.1,
+      "counts_by_label": {
+        "M": 6086,
+        "I": 5898,
+        "O": 576,
+        "D": 383
+      },
+      "proportions_by_label": {
+        "M": 0.470216,
+        "I": 0.45569,
+        "O": 0.044503,
+        "D": 0.029591
+      },
+      "path": "data\\processed\\test.parquet"
+    }
+  }
+}

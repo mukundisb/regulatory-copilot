@@ -60,7 +60,7 @@ class VertexClassifierClient:
         attempt = 0
         current_delay = settings.vertex_retry_backoff_base_seconds
 
-        while attempt < settings.vertex_retry_max_attempts:
+        while True:
             elapsed = time.time() - start_time
             if elapsed > settings.vertex_cold_start_timeout_seconds:
                 break
@@ -68,7 +68,7 @@ class VertexClassifierClient:
             try:
                 attempt += 1
                 logger.info(
-                    f"Invoking Vertex Endpoint (Attempt {attempt}/{settings.vertex_retry_max_attempts}, elapsed {elapsed:.1f}s)..."
+                    f"Invoking Vertex Endpoint (Attempt {attempt}, elapsed {elapsed:.1f}s)..."
                 )
 
                 response = self._endpoint.predict(instances=[{"inputs": narrative_text}])
@@ -101,7 +101,14 @@ class VertexClassifierClient:
                 }
 
             except ResourceExhausted as e:
-                # 429: Scale-to-zero container spinning up
+                elapsed = time.time() - start_time
+                if elapsed + current_delay > settings.vertex_cold_start_timeout_seconds:
+                    logger.warning(
+                        f"Next backoff delay ({current_delay}s) would breach timeout "
+                        f"({settings.vertex_cold_start_timeout_seconds}s). Aborting backoff loop."
+                    )
+                    break
+
                 logger.warning(
                     f"Vertex AI returned 429 (Container Cold Starting). Sleeping for {current_delay}s... (Error: {e.message})"
                 )
@@ -113,6 +120,6 @@ class VertexClassifierClient:
                 raise e
 
         raise VertexColdStartException(
-            f"Vertex AI endpoint {self.endpoint_id} is still warming up after {elapsed:.1f}s. "
+            f"Vertex AI endpoint {self.endpoint_id} is still warming up after {time.time() - start_time:.1f}s. "
             "Model is provisioning from 0 replicas; please retry shortly."
         )

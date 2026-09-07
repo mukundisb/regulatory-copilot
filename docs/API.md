@@ -259,3 +259,30 @@ The CI suite validates critical runtime contracts across the four primary endpoi
   pytest tests/test_classifier.py -k "test_assess_decision_branch_reformulation" -v
   ```
 
+## Empirical Scale-to-Zero Latency Telemetry
+
+Empirical profiling conducted on a live Vertex AI endpoint deployed to `asia-south1` on an `n1-standard-4` node serving `Bio_ClinicalBERT` via the official Hugging Face PyTorch CPU container.
+
+### 1. Measured Performance States
+
+| System State | Observed Latency | Mechanism & Observations |
+|---|---|---|
+| **True Cold Start (0 Replicas)** | **~65–75 seconds** | VM allocation, Docker container pull, and PyTorch weight initialization. First request was rejected with 429 across 6 backoff cycles ($3\text{s} \rightarrow 6\text{s} \rightarrow 12\text{s} \rightarrow 20\text{s} \rightarrow 20\text{s} \rightarrow 20\text{s} = 64.1\text{s}$) and completed successfully at $t \approx 68\text{s}$. |
+| **Quasi-Warm (Container Active, JIT Compiling)** | **~4.2–4.9 seconds** | Per-request client re-instantiation, TLS handshakes, and unpinned connection overhead. |
+| **True Warm (Lifespan Persistent gRPC)** | **310 ms** | Pre-warmed `VertexClassifierClient` with pooled gRPC channel inside FastAPI process memory. |
+| **Failover Fallback** | **~3 ms** | Local scikit-learn TF-IDF model served instantly if Vertex AI exceeds the 90.0s deadline. |
+
+### 2. Architectural Takeaways
+* A 20–25s target was a speculative underestimate; full container provisioning in `asia-south1` requires a **90.0s backoff budget**.
+* Capping backoff at 6 attempts prematurely terminated the client right before the container finished spinning up.
+* **Option A Fallback Validation:** The automated failover to local TF-IDF is strictly required for consumer-facing availability during the 70s provisioning window.
+
+### 3. Server-Side Execution Telemetry (Cloud Logging)
+
+Extracted from container logs on `asia-south1`:
+* **Model Download (HF Hub):** ~14.0 s
+* **PyTorch Graph & CPU Init:** ~1.56 s
+* **Container Ready Timestamp:** `05:13:38 UTC`
+* **Server-Side Forward Pass Duration (`POST /predict`):** **239.04 ms**
+* **Total Warm Client Round-Trip:** **310.03 ms** (Delta: ~71 ms transit/serialization)
+* **Head Verification:** Confirmed `BertForSequenceClassification` requires fine-tuned weights (`mukundisb/maude-clinicalbert`) to replace the default randomly-initialized binary head (`['classifier.weight', 'classifier.bias']`).

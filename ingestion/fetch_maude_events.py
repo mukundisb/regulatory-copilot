@@ -1,14 +1,20 @@
 """
 openFDA MAUDE API Client
-Ingests Medical Device Adverse Event (MAUDE) reports from the openFDA API.
+Ingests Medical Device Adverse Event (MAUDE) reports from the openFDA API
+using search_after cursor pagination to bypass the 26,000 skip limit.
 
-Docs: https://open.fda.gov/apis/device/event/
+Docs: https://open.fda.gov/apis/paging/
 """
 
 import os
+import re
+import sys
 import time
+import json
 import logging
-from typing import Optional
+import argparse
+from pathlib import Path
+from typing import Optional, Union, List, Any
 
 import requests
 import pandas as pd
@@ -20,9 +26,16 @@ try:
 except ImportError:
     pass
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("maude_fetcher")
 
 BASE_URL = os.getenv("OPENFDA_BASE_URL", "https://api.fda.gov/device/event.json")
+DEFAULT_TARGET_RECORDS = 160_000
+PAGE_LIMIT = 1000  # openFDA maximum batch size
 
 # Severity label mapping based on MAUDE event_type field
 EVENT_TYPE_SEVERITY = {
@@ -47,7 +60,7 @@ SEVERITY_RANK = {
     "UNKNOWN": 0,
 }
 
-# Reverse lookup for event_type naming (keeps column consistent)
+# Reverse lookup for event_type naming
 LABEL_TO_EVENT_TYPE = {
     "D": "Death",
     "I": "Injury",
@@ -56,20 +69,36 @@ LABEL_TO_EVENT_TYPE = {
     "UNKNOWN": "Other",
 }
 
-def _build_params(
-    query: str,
-    limit: int,
-    skip: int,
-    api_key: Optional[str] = None,
-) -> dict:
-    params = {
-        "search": query,
-        "limit": min(limit, 1000),
-        "skip": skip,
-    }
-    if api_key:
-        params["api_key"] = api_key
-    return params
+
+def resolve_severity_label(raw_event_type: Union[List[Any], str, None]) -> Optional[str]:
+    """
+    Resolves raw event_type (single string, list of strings, or None) into a
+    statutory severity label ('D', 'I', 'M', 'O') using the worst-case escalation
+    hierarchy: Death (D) > Injury (I) > Malfunction (M) > Other (O).
+    Returns None if no candidate maps to a valid statutory label.
+    """
+    if raw_event_type is None:
+        return None
+
+    if isinstance(raw_event_type, list):
+        event_type_candidates = raw_event_type
+    elif isinstance(raw_event_type, str):
+        event_type_candidates = [raw_event_type]
+    else:
+        event_type_candidates = [str(raw_event_type)]
+
+    mapped_labels = [
+        EVENT_TYPE_SEVERITY.get(str(t).strip(), "UNKNOWN")
+        for t in event_type_candidates
+    ]
+
+    highest_severity_label = max(
+        mapped_labels,
+        key=lambda label: SEVERITY_RANK.get(label, 0),
+        default="UNKNOWN"
+    )
+
+    return highest_severity_label if highest_severity_label != "UNKNOWN" else None
 
 
 def _parse_record(r: dict) -> Optional[dict]:
@@ -90,34 +119,11 @@ def _parse_record(r: dict) -> Optional[dict]:
             d = devices[0]
             device_name = d.get("brand_name", "") or d.get("generic_name", "")
 
-        # 3. Hierarchical Worst-Case Severity Resolution
-        raw_event_type = r.get("event_type")
-
-        # Normalize into an iterable of strings
-        if isinstance(raw_event_type, list):
-            event_type_candidates = raw_event_type
-        elif isinstance(raw_event_type, str):
-            event_type_candidates = [raw_event_type]
-        else:
-            event_type_candidates = ["Other"]
-
-        # Map all candidate strings to their statutory codes ('D', 'I', 'M', 'O', 'UNKNOWN')
-        mapped_labels = [
-            EVENT_TYPE_SEVERITY.get(str(t).strip(), "UNKNOWN")
-            for t in event_type_candidates
-        ]
-
-        # Select the label with highest severity rank (Death > Injury > Malfunction > Other)
-        highest_severity_label = max(
-            mapped_labels, 
-            key=lambda label: SEVERITY_RANK.get(label, 0),
-            default="UNKNOWN"
-        )
-
-        if highest_severity_label == "UNKNOWN":
+        # 3. Canonical Hierarchical Severity Resolution (D > I > M > O)
+        highest_severity_label = resolve_severity_label(r.get("event_type"))
+        if not highest_severity_label:
             return None
 
-        # Clean string representation for event_type column
         canonical_event_type = LABEL_TO_EVENT_TYPE.get(highest_severity_label, "Other")
 
         return {
@@ -133,94 +139,125 @@ def _parse_record(r: dict) -> Optional[dict]:
         return None
 
 
-def _fetch_natural(
-    total: int,
-    api_key: Optional[str],
-    delay: float,
-    page_size: int = 500,
-) -> list[dict]:
-    """Fetch records with pagination and rate limit resilience."""
-    query = "_exists_:mdr_text"
-    records = []
-    skip = 0
+def extract_next_url(link_header: Optional[str]) -> Optional[str]:
+    """
+    Parses openFDA HTTP Link header:
+    <https://api.fda.gov/device/event.json?...search_after=...>; rel="next"
+    """
+    if not link_header:
+        return None
+    match = re.search(r'<([^>]+)>;\s*rel="next"', link_header)
+    return match.group(1) if match else None
 
-    # Guard against openFDA window limits
-    max_allowed_skip = 24000 if api_key else 4500
 
-    while len(records) < total:
-        if skip >= max_allowed_skip:
-            logger.warning(
-                f"Reached openFDA pagination ceiling (skip={skip}). Stopping fetch loop."
-            )
-            break
+def fetch_maude_dataset(
+    target_count: int,
+    output_path: Path,
+    api_key: Optional[str] = None,
+    delay: float = 0.1,
+) -> int:
+    """
+    Fetches records using search_after cursor pagination, streaming results directly
+    to a JSONL file to prevent memory exhaustion.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        remaining = total - len(records)
-        fetch_limit = min(page_size, remaining)
-        params = _build_params(query, fetch_limit, skip, api_key)
+    # Initial query requirements for search_after:
+    # 1. Do NOT include 'skip'
+    # 2. Must include 'sort' parameter
+    params = {
+        "search": "_exists_:mdr_text",
+        "limit": PAGE_LIMIT,
+        "sort": "date_received:asc",
+    }
+    if api_key:
+        params["api_key"] = api_key
 
-        try:
-            response = requests.get(BASE_URL, params=params, timeout=30)
-            if response.status_code == 404:
-                logger.warning("No more results available (404). Stopping.")
-                break
-            if response.status_code == 429:
-                logger.warning("Rate limit exceeded (429). Backing off for 60s...")
-                time.sleep(60)
-                continue
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            logger.error(f"HTTP request failed: {e}")
-            raise
+    next_url: Optional[str] = BASE_URL
+    total_valid = 0
+    batch_num = 0
 
-        results = response.json().get("results", [])
-        if not results:
-            break
+    logger.info(f"Initiating openFDA cursor extraction. Target: {target_count:,} valid records.")
+    logger.info(f"Writing parsed records to: {output_path}")
 
-        for r in results:
-            record = _parse_record(r)
-            if record:
-                records.append(record)
-                if len(records) >= total:
+    with open(output_path, "w", encoding="utf-8") as f_out:
+        while total_valid < target_count and next_url:
+            batch_num += 1
+            start_batch = time.perf_counter()
+
+            try:
+                if next_url == BASE_URL:
+                    response = requests.get(BASE_URL, params=params, timeout=30)
+                else:
+                    # Subsequent cursor pages use the full extracted next URL
+                    response = requests.get(next_url, timeout=30)
+
+                if response.status_code == 429:
+                    logger.warning("Rate limit reached (429). Sleeping for 30s...")
+                    time.sleep(30)
+                    continue
+
+                if response.status_code == 404:
+                    logger.info("No further records available (404). Cursor pagination complete.")
                     break
 
-        skip += len(results)
-        logger.info(f"Progress: {len(records)} / {total} valid records fetched.")
-        time.sleep(delay)
+                response.raise_for_status()
+                data = response.json()
+                results = data.get("results", [])
 
-    return records
+                if not results:
+                    logger.info("Empty results array. Extraction complete.")
+                    break
 
+                # Parse and stream directly to disk
+                batch_valid = 0
+                for raw_item in results:
+                    parsed = _parse_record(raw_item)
+                    if parsed:
+                        f_out.write(json.dumps(parsed) + "\n")
+                        batch_valid += 1
+                        total_valid += 1
+                        if total_valid >= target_count:
+                            break
 
-def fetch_maude_records(
-    total_records: Optional[int] = None,
-    api_key: Optional[str] = None,
-    delay: float = 0.3,
-) -> pd.DataFrame:
-    """Fetch natural distribution of MAUDE records."""
-    if total_records is None:
-        total_records = int(os.getenv("OPENFDA_LIMIT", "100"))
-    if api_key is None:
-        api_key = os.getenv("OPENFDA_API_KEY")
+                batch_latency_ms = (time.perf_counter() - start_batch) * 1000
 
-    logger.info(f"Initiating fetch for {total_records} records.")
-    all_records = _fetch_natural(total_records, api_key, delay)
-    df = pd.DataFrame(all_records)
-    logger.info(f"Extraction complete. Retained {len(df)} structured records.")
-    return df
+                # Extract cursor for next batch
+                link_header = response.headers.get("Link")
+                next_url = extract_next_url(link_header)
 
+                # Ensure api_key is retained on the cursor URL if needed
+                if next_url and api_key and "api_key=" not in next_url:
+                    delimiter = "&" if "?" in next_url else "?"
+                    next_url = f"{next_url}{delimiter}api_key={api_key}"
 
-def save_raw_data(df: pd.DataFrame, path: Optional[str] = None) -> None:
-    """Persist structured records to CSV."""
-    if path is None:
-        path = os.getenv("OPENFDA_OUTPUT_PATH", "data/raw/maude_raw.csv")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    df.to_csv(path, index=False)
-    logger.info(f"Persisted data to {path}")
+                logger.info(
+                    f"Batch {batch_num:03d} | Valid: +{batch_valid:,} | "
+                    f"Progress: {total_valid:,}/{target_count:,} ({(total_valid/target_count)*100:.1f}%) | "
+                    f"Batch Time: {batch_latency_ms:.0f}ms"
+                )
+
+                time.sleep(delay)
+
+            except requests.exceptions.RequestException as e:
+                logger.error(f"HTTP error on batch {batch_num}: {e}. Retrying in 5s...")
+                time.sleep(5)
+
+    logger.info(f"Extraction complete. Successfully wrote {total_valid:,} records to {output_path}")
+    return total_valid
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    df = fetch_maude_records()
-    if not df.empty:
-        print("\n--- Distribution Summary ---")
-        print(df["severity_label"].value_counts())
-        save_raw_data(df)
+    parser = argparse.ArgumentParser(description="Fetch openFDA MAUDE records via search_after cursor.")
+    parser.add_argument("--target", type=int, default=int(os.getenv("OPENFDA_LIMIT", str(DEFAULT_TARGET_RECORDS))))
+    parser.add_argument("--output", type=Path, default=Path(os.getenv("OPENFDA_OUTPUT_PATH", "data/raw/maude_raw.jsonl")))
+    parser.add_argument("--api-key", type=str, default=os.getenv("OPENFDA_API_KEY", None))
+    parser.add_argument("--delay", type=float, default=0.1 if os.getenv("OPENFDA_API_KEY") else 0.3)
+    args = parser.parse_args()
+
+    fetch_maude_dataset(
+        target_count=args.target,
+        output_path=args.output,
+        api_key=args.api_key,
+        delay=args.delay,
+    )

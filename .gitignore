@@ -38,3 +38,4 @@ data/*.json
 data/*.csv
 data/processed/*.csv
 data/processed/*.json
+data/processed/*.parquet
