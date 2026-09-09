@@ -57,7 +57,7 @@ def test_retrieve_db_crash(client, monkeypatch):
         raise RuntimeError("ChromaDB database connection lost")
 
     # Override query_store using pytest's built-in monkeypatch fixture
-    monkeypatch.setattr("rag_pipeline.query_store", mock_crash)
+    monkeypatch.setattr("app.query_store", mock_crash)
 
     payload = {"narrative": "What are the language requirements for device labels?"}
     with pytest.raises(RuntimeError) as exc_info:
@@ -78,7 +78,7 @@ def test_retrieve_empty_query_string(client):
 def test_retrieve_unrelated_input_query(client, monkeypatch):
     """Test /retrieve with an out-of-domain query string that yields no vector matches."""
     # Monkeypatch query_store to return an empty list without external mock libraries
-    monkeypatch.setattr("rag_pipeline.query_store", lambda *args, **kwargs: [])
+    monkeypatch.setattr("app.query_store", lambda *args, **kwargs: [])
 
     payload = {"narrative": "How do I bake a double chocolate sourdough bread at home?"}
     response = client.post("/retrieve", json=payload)
@@ -105,7 +105,7 @@ def test_retrieve_valid_query_mocked(client, monkeypatch):
         }
     ]
 
-    monkeypatch.setattr("rag_pipeline.query_store", lambda *args, **kwargs: mock_results)
+    monkeypatch.setattr("app.query_store", lambda *args, **kwargs: mock_results)
 
     payload = {
         "narrative": "In what language must device labels and packaging information be provided?"
@@ -139,7 +139,7 @@ def test_retrieve_e2e_real_store(client):
 
 def test_assess_death_branch_orchestration(client, monkeypatch):
     """Verifies that predicted label 'D' branches into a vigilance query and returns structured advice."""
-    monkeypatch.setattr("app.predict_single", lambda pipeline, text: {"predicted_label": "D", "probabilities": {"D": 0.94, "I": 0.03, "M": 0.02, "O": 0.01}})
+    monkeypatch.setattr("app.predict_tfidf", lambda pipeline, text: {"predicted_label": "D", "probabilities": {"D": 0.94, "I": 0.03, "M": 0.02, "O": 0.01}})
     
     mock_chunks = [{
         "chunk_id": "doc_chunk_180",
@@ -164,7 +164,7 @@ def test_assess_death_branch_orchestration(client, monkeypatch):
 
 def test_assess_malfunction_branch_orchestration(client, monkeypatch):
     """Verifies that predicted label 'M' branches into a CAPA/trend analysis query."""
-    monkeypatch.setattr("app.predict_single", lambda pipeline, text: {"predicted_label": "M", "probabilities": {"D": 0.01, "I": 0.04, "M": 0.88, "O": 0.07}})
+    monkeypatch.setattr("app.predict_tfidf", lambda pipeline, text: {"predicted_label": "M", "probabilities": {"D": 0.01, "I": 0.04, "M": 0.88, "O": 0.07}})
     
     mock_chunks = [{
         "chunk_id": "doc_chunk_182",
@@ -254,7 +254,7 @@ def test_assess_decision_branch_reformulation(client, monkeypatch, mock_label, e
     """Unit Test: Proves the decision point dynamically generates the exact intended retrieval query."""
     # 1. Mock classifier to force specific label
     monkeypatch.setattr(
-        "app.predict_single",
+        "app.predict_tfidf",
         lambda *args, **kwargs: {
             "predicted_label": mock_label,
             "probabilities": {mock_label: 0.95, "other": 0.05}
@@ -297,7 +297,7 @@ def test_assess_decision_branch_reformulation(client, monkeypatch, mock_label, e
 def test_assess_triggers_fallback_when_steered_query_scores_low(client, monkeypatch):
     """Verifies that Decision Point 2 triggers fallback if primary query score is below 0.55."""
     monkeypatch.setattr(
-        "app.predict_single",
+        "app.predict_tfidf",
         lambda *args, **kwargs: {
             "predicted_label": "M",
             "probabilities": {"M": 0.90, "D": 0.03, "I": 0.04, "O": 0.03}
@@ -349,7 +349,7 @@ def test_assess_triggers_fallback_when_steered_query_scores_low(client, monkeypa
 def test_assess_fallback_bypassed_on_strong_primary_score(client, monkeypatch):
     """Mocked Test: Proves fallback does NOT trigger when the primary query returns >= 0.55."""
     monkeypatch.setattr(
-        "app.predict_single",
+        "app.predict_tfidf",
         lambda *args, **kwargs: {
             "predicted_label": "D",
             "probabilities": {"D": 0.95, "I": 0.02, "M": 0.02, "O": 0.01}
