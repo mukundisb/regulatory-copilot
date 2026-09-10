@@ -1,0 +1,79 @@
+{
+  "model_dir": "maude_classifier\\model",
+  "test_dataset": "data\\processed\\test.parquet",
+  "num_samples": 12943,
+  "total_inference_time_seconds": 4145.15,
+  "test_macro_f1": 0.7346,
+  "test_weighted_f1": 0.8372,
+  "classification_report": {
+    "D": {
+      "precision": 0.7074235807860262,
+      "recall": 0.8459530026109661,
+      "f1-score": 0.7705112960760999,
+      "support": 383.0
+    },
+    "I": {
+      "precision": 0.8496721035816378,
+      "recall": 0.8567310952865378,
+      "f1-score": 0.8531869987336429,
+      "support": 5898.0
+    },
+    "M": {
+      "precision": 0.8999642729546267,
+      "recall": 0.8278015116661189,
+      "f1-score": 0.8623758986648408,
+      "support": 6086.0
+    },
+    "O": {
+      "precision": 0.3648936170212766,
+      "recall": 0.5954861111111112,
+      "f1-score": 0.4525065963060686,
+      "support": 576.0
+    },
+    "accuracy": 0.8311828787761725,
+    "macro avg": {
+      "precision": 0.7054883935858919,
+      "recall": 0.7814929301686835,
+      "f1-score": 0.7346451974451631,
+      "support": 12943.0
+    },
+    "weighted avg": {
+      "precision": 0.8475369378792907,
+      "recall": 0.8311828787761725,
+      "f1-score": 0.8372298743471135,
+      "support": 12943.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      324,
+      33,
+      20,
+      6
+    ],
+    [
+      81,
+      5053,
+      449,
+      315
+    ],
+    [
+      45,
+      727,
+      5038,
+      276
+    ],
+    [
+      8,
+      134,
+      91,
+      343
+    ]
+  ],
+  "target_names": [
+    "D",
+    "I",
+    "M",
+    "O"
+  ]
+}

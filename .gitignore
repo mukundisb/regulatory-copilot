@@ -19,6 +19,7 @@ env/
 
 # Model artifacts — large binaries don't belong in plain git history.
 maude_classifier/model/*.joblib
+maude_classifier/model/
 *.pkl
 *.pt
 *.h5
