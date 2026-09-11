@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModel, AutoConfig
 
-# Statutory label indexing
+# Actual label indexing
 LABEL2ID: Dict[str, int] = {"D": 0, "I": 1, "M": 2, "O": 3}
 ID2LABEL: Dict[int, str] = {0: "D", 1: "I", 2: "M", 3: "O"}
 NUM_LABELS: int = len(LABEL2ID)

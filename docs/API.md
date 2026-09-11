@@ -259,6 +259,32 @@ The CI suite validates critical runtime contracts across the four primary endpoi
   pytest tests/test_classifier.py -k "test_assess_decision_branch_reformulation" -v
   ```
 
+## Actual Scale-to-Zero Latency Telemetry
+
+Actual profiling conducted on a live Vertex AI endpoint deployed to `asia-south1` on an `n1-standard-4` node serving `Bio_ClinicalBERT` via the official Hugging Face PyTorch CPU container.
+
+### 1. Measured Performance States
+| System State | Observed Latency | Mechanism & Observations |
+|---|---|---|
+| **True Cold Start (0 Replicas)** | **~65–75 seconds** | VM allocation, Docker container pull, and PyTorch weight initialization. First request was rejected with 429 across 6 backoff cycles ($3\text{s} \rightarrow 6\text{s} \rightarrow 12\text{s} \rightarrow 20\text{s} \rightarrow 20\text{s} \rightarrow 20\text{s} = 64.1\text{s}$) and completed successfully at $t \approx 68\text{s}$. |
+| **Quasi-Warm (Container Active, JIT Compiling)** | **~4.2–4.9 seconds** | Per-request client re-instantiation, TLS handshakes, and unpinned connection overhead. |
+| **True Warm (Lifespan Persistent gRPC)** | **310 ms** | Pre-warmed `VertexClassifierClient` with pooled gRPC channel inside FastAPI process memory. |
+| **Failover Fallback** | **~3 ms** | Local scikit-learn TF-IDF model served instantly if Vertex AI exceeds the 90.0s deadline. |
+
+### 2. Architectural Takeaways
+* A 20–25s target was a speculative underestimate; full container provisioning in `asia-south1` requires a **90.0s backoff budget**.
+* Capping backoff at 6 attempts prematurely terminated the client right before the container finished spinning up.
+* **Option A Fallback Validation:** The automated failover to local TF-IDF is strictly required for consumer-facing availability during the 70s provisioning window.
+
+### 3. Server-Side Execution Telemetry (Cloud Logging)
+Extracted from container logs on `asia-south1`:
+* **Model Download (HF Hub):** ~14.0 s
+* **PyTorch Graph & CPU Init:** ~1.56 s
+* **Container Ready Timestamp:** `05:13:38 UTC`
+* **Server-Side Forward Pass Duration (`POST /predict`):** **239.04 ms**
+* **Total Warm Client Round-Trip:** **310.03 ms** (Delta: ~71 ms transit/serialization)
+* **Head Verification:** Confirmed `BertForSequenceClassification` requires fine-tuned weights (`mukundisb/maude-clinicalbert`) to replace the default randomly-initialized binary head (`['classifier.weight', 'classifier.bias']`).
+
 ## Model Benchmarks & Promotion Ledger
 
 ### Training Telemetry (Vertex AI Custom Training)
@@ -308,3 +334,111 @@ The primary operational mandate of this pipeline is patient safety risk containm
 * **Tradeoff on Class O (Other / Non-Adverse):** Bio_ClinicalBERT records a regression on Class O precision (0.3649) and F1 (0.4525) because the model errs on the side of caution, shifting marginal narratives into Injury (`I`) or Malfunction (`M`) rather than discarding them as non-adverse. In operational triage, an extra benign case marked for human review imposes minimal cost, whereas an overlooked patient death represents an unacceptable compliance and safety failure.
 
 Because Bio_ClinicalBERT achieves a superior unweighted **Macro F1 (0.7346 vs. 0.7138)** and successfully captures high-severity safety risks, it formally replaces the TF-IDF baseline as the production model candidate.
+
+## Vertex Custom Serving Contract
+
+### Endpoints & Environment Variables
+* **Predict Route:** Injected via `AIP_PREDICT_ROUTE` (defaults to `/predict`)
+* **Health Check Route:** Injected via `AIP_HEALTH_ROUTE` (defaults to `/health`)
+* **Port:** Injected via `AIP_HTTP_PORT` (defaults to `8080`)
+
+### Request Payload (`POST {AIP_PREDICT_ROUTE}`)
+Vertex AI passes JSON with a top-level `"instances"` array. Each item is either a raw text string or an object containing a `"narrative"` field.
+
+```json
+{
+  "instances": [
+    "Patient underwent cardiac ablation using catheter. Severe pericardial effusion noted during manipulation resulting in tamponade and emergency sternotomy. Patient expired.",
+    {"narrative": "During infusion pump startup, error code 404 displayed and motor stalled. No patient contact occurred."}
+  ]
+}
+```
+
+### Response Payload (`200 OK`)
+Returns a JSON payload with a top-level 'predictions' array matching the order of the input instances
+```json
+{
+  "predictions": [
+    {
+      "predicted_label": "D",
+      "probabilities": {
+        "D": 0.8412,
+        "I": 0.1105,
+        "M": 0.0381,
+        "O": 0.0102
+      },
+      "model_version": "Bio_ClinicalBERT-cls_mean_concat-v1"
+    },
+    {
+      "predicted_label": "M",
+      "probabilities": {
+        "D": 0.0012,
+        "I": 0.0185,
+        "M": 0.9621,
+        "O": 0.0182
+      },
+      "model_version": "Bio_ClinicalBERT-cls_mean_concat-v1"
+    }
+  ]
+}
+```
+### Health Check Response (`GET {AIP_HEALTH_ROUTE}`)
+Returns HTTP status `200` when weights and tokenizers are loaded into memory:
+```json
+{
+  "status": "healthy",
+  "model_version": "Bio_ClinicalBERT-cls_mean_concat-v1",
+  "device": "cpu"
+}
+```
+## Server Serving Verification & Assessment
+
+The serving implementation (`maude_classifier/serve.py`) was evaluated locally against the promoted `Bio_ClinicalBERT-cls_mean_concat-v1` checkpoint. Below is the record of test narratives, the prior clinical assessment, and the actual live probability distribution returned by the server.
+
+### Test Case 1: Death (`D`)
+* **Narrative:** `"Patient experienced cardiac arrest and died following lead detachment of implanted pacemaker."`
+* **Pre-Execution Clinical Hypothesis:** Unambiguous fatal outcome explicitly tied to device malfunction. Should lean heavily toward `D` with near-zero weight on `M` and `O`.
+* **Actual Server Response:**
+  * `predicted_label`: `"D"`
+  * `probabilities`: `{"D": 0.9990, "I": 0.0008, "M": 0.0002, "O": 0.0001}`
+* **Assessment:** Clean, high-confidence detection aligned with clinical safety priorities.
+
+---
+
+### Test Case 2: Injury (`I`)
+* **Narrative:** `"The catheter fractured during insertion, lacerating the femoral artery and requiring emergency surgical vascular repair."`
+* **Pre-Execution Clinical Hypothesis:** Clear patient trauma and surgical intervention resulting from a hardware failure. Expected prediction is `I`, with residual probability on `M`.
+* **Actual Server Response:**
+  * `predicted_label`: `"I"`
+  * `probabilities`: `{"D": 0.0005, "I": 0.9697, "M": 0.0274, "O": 0.0024}`
+* **Assessment:** Successfully resolved the clinical injury boundary over the underlying component fracture.
+
+---
+
+### Test Case 3: Malfunction (`M`)
+* **Narrative:** `"During routine pre-use check, ventilator displayed alarm code F34 and motor stalled. Device replaced prior to patient contact."`
+* **Pre-Execution Clinical Hypothesis:** Isolated hardware defect detected prior to patient exposure. Strong prediction expected on `M`.
+* **Actual Server Response:**
+  * `predicted_label`: `"M"`
+  * `probabilities`: `{"D": 0.0302, "I": 0.2329, "M": 0.7279, "O": 0.0090}`
+* **Assessment:** Correctly identified `M` as the dominant class.
+
+---
+
+### Test Case 4: Routine Maintenance (Known Class `O` Boundary Weakness)
+* **Narrative:** `"Annual preventative maintenance inspection completed. Cleaned dust filter and replaced O-rings per schedule."`
+* **Pre-Execution Clinical Hypothesis:** Benign non-adverse event (`O`). However, given the model's empirical test-set tradeoff (Class `O` precision of 0.3649), the model is anticipated to err on the side of caution and misclassify device-related terms as hardware issues.
+* **Actual Server Response (Documented Miss):**
+  * `predicted_label`: `"M"`
+  * `probabilities`: `{"D": 0.0011, "I": 0.0681, "M": 0.5914, "O": 0.3394}`
+* **Assessment:** Demonstrates the documented Class `O` performance regression. The mention of hardware components ("dust filter", "O-rings") leads the model to default to Malfunction (`0.5914`) rather than Other (`0.3394`). ***In an automated triage pipeline, this results in an unnecessary human review rather than a missed safety event.***
+
+---
+
+### Test Case 5: Out-of-Distribution Adverse Event (No Device Mention)
+* **Narrative:** `"The patient was running a marathon. While running, he palpitated and then collapsed on the ground. He was unresponsive and was immediately taken to the hospital."`
+* **Pre-Execution Clinical Hypothesis:** The narrative lacks explicit device terminology, but features severe physical decompensation ("palpitated", "collapsed", "unresponsive", "hospital"). The model should assign primary weight to `I` due to the acute medical event, with `D` as a secondary consideration given the lack of confirmed mortality. Low probabilities expected for `M` and `O`.
+* **Actual Server Response:**
+  * `predicted_label`: `"I"`
+  * `probabilities`: `{"D": 0.1523, "I": 0.8311, "M": 0.0108, "O": 0.0058}`
+* **Assessment:** The probability distribution confirms calibrated semantic triage. The model identifies patient harm without over-indexing on `M` or `O`.

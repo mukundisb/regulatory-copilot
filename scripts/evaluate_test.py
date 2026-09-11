@@ -1,7 +1,7 @@
 """
 scripts/evaluate_test.py
 
-Statutory test-set evaluation script for MAUDE regulatory classification.
+Actual test-set evaluation script for MAUDE regulatory classification.
 Evaluates the fine-tuned Bio_ClinicalBERT cls_mean_concat model against
 the held-out test split (data/processed/test.parquet) and outputs canonical
 metrics to disk and stdout.
@@ -169,7 +169,7 @@ def main():
     total_eval_time = time.time() - start_time
     target_names = [ID2LABEL[i] for i in range(NUM_LABELS)]
 
-    # Compute statutory metrics
+    # Compute actual metrics
     macro_f1 = f1_score(all_targets, all_preds, average="macro")
     weighted_f1 = f1_score(all_targets, all_preds, average="weighted")
     report_dict = classification_report(
@@ -181,11 +181,11 @@ def main():
     conf_mat = confusion_matrix(all_targets, all_preds).tolist()
 
     logger.info("\n" + "=" * 60)
-    logger.info("FINAL STATUTORY TEST EVALUATION REPORT")
+    logger.info("FINAL TEST EVALUATION REPORT")
     logger.info("=" * 60)
     logger.info(f"\n{report_str}")
     logger.info(f"Total Test Wall-Clock: {total_eval_time:.2f}s")
-    logger.info(f"Empirical Test Macro F1: {macro_f1:.4f}")
+    logger.info(f" Test Macro F1: {macro_f1:.4f}")
 
     # Serialize results
     results_payload = {
