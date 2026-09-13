@@ -442,3 +442,20 @@ The serving implementation (`maude_classifier/serve.py`) was evaluated locally a
   * `predicted_label`: `"I"`
   * `probabilities`: `{"D": 0.1523, "I": 0.8311, "M": 0.0108, "O": 0.0058}`
 * **Assessment:** The probability distribution confirms calibrated semantic triage. The model identifies patient harm without over-indexing on `M` or `O`.
+
+## Container Architecture & Packaging Strategy
+
+### Multi-Stage Build (`Dockerfile`)
+A single, reproducible multi-stage `Dockerfile` defines two distinct service targets:
+
+1. **Target `cloudrun` (`docker build --target cloudrun ...`):**
+   * **Scope:** Hosts the public web interface and API routing layer (`app:app`).
+   * **Port Contract:** Dynamically binds to `${PORT:-8000}`.
+   * **Artifact Isolation:** Whitelists only `*.joblib` models via `.dockerignore`. Excludes heavy PyTorch binaries (`*.bin`, `*.pt`, `*.safetensors`), tokenizer configuration files, and internal logs (`coaching/`).
+   * **Fallback Role:** Uses the bundled TF-IDF models for low-latency heuristic inference when upstream services are unreachable.
+
+2. **Target `vertex` (`docker buildx build --secret id=gcp-creds ... --target vertex ...`):**
+   * **Scope:** Custom inference microservice adhering to the Vertex AI prediction specification.
+   * **Port & Routing Contract:** Exposes and binds to `AIP_HTTP_PORT` (8080), handling `AIP_HEALTH_ROUTE` (`/health`) and `AIP_PREDICT_ROUTE` (`/predict`).
+   * **Build Pipeline:** Uses an authenticated `model-fetcher` stage (`google/cloud-sdk:slim`) with `gcloud storage cp` and `--mount=type=secret,id=gcp-creds` to pull the promoted checkpoint from `gs://regulatory-copilot-506507-vertex-training/models/maude-clinicalbert/model/`.
+   * **Offline Determinism:** Configured with `TRANSFORMERS_OFFLINE=1` and `HF_HUB_OFFLINE=1`, ensuring all tokenizer and transformer weights initialize locally without Hugging Face Hub calls.

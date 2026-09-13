@@ -12,18 +12,26 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Git Metadata
+# Git, IDE & Internal Workspace Metadata
 .git/
 .gitignore
-
-# Testing and Development Artifacts
-tests/
-docs/
-*.md
 .vscode/
 .idea/
+coaching/
 
-# Large Raw Source Assets
-*.pdf
-data/raw/
+# Testing, Documentation & Notebooks
+tests/
+docs/
+notebooks/
+*.md
+
+# Large Data Assets & Training Logs
 data/
+reports/
+*.pdf
+
+# Model Weights Boundary:
+# Block all model files except the specific TF-IDF fallback artifacts needed by Cloud Run
+maude_classifier/model/*
+!maude_classifier/model/*.joblib
+models/

@@ -6,6 +6,8 @@ Adheres to AIP_PREDICT_ROUTE, AIP_HEALTH_ROUTE, and AIP_HTTP_PORT environment va
 """
 
 import os
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
 import sys
 from pathlib import Path
 from typing import List, Union, Dict, Any
@@ -50,9 +52,9 @@ async def lifespan(app: FastAPI):
         raise RuntimeError(f"Weights artifact not found at {weights_path}")
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
-    model = ClinicalBERTConcatClassifier(pretrained_model_name="emilyalsentzer/Bio_ClinicalBERT")
+    model = ClinicalBERTConcatClassifier(pretrained_model_name=MODEL_DIR) # Point directly to MODEL_DIR so AutoModel uses local config.json without contacting HF Hub
     
-    saved_weights = torch.load(str(weights_path), map_location=device)
+    saved_weights = torch.load(str(weights_path), map_location=device, weights_only = True)
     model.load_state_dict(saved_weights)
     model.to(device)
     model.eval()
