@@ -3,12 +3,13 @@ import sys
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
+import joblib
 
 from config import settings
-from maude_classifier.classifier import load_model, predict_single as predict_tfidf
+from maude_classifier.classifier import predict_single as predict_tfidf
 from maude_classifier.text_cleaner import clean_text
 from maude_classifier.vertex_client import VertexClassifierClient, VertexColdStartException
 from rag_pipeline import init_store, query_store
@@ -25,14 +26,29 @@ RETRIEVAL_QUALITY_THRESHOLD = 0.55
 
 ml_models = {}
 
+def get_maude_pipeline():
+    """Retrieve the preloaded TF-IDF pipeline or lazy-load if uninitialized."""
+    if "maude_pipeline" not in ml_models or ml_models["maude_pipeline"] is None:
+        logger.warning(f"Standby pipeline missing from cache. Lazy loading from {settings.model_path}...")
+        try:
+            ml_models["maude_pipeline"] = joblib.load(settings.model_path)
+        except Exception as e:
+            logger.critical(f"FATAL: Standby TF-IDF model could not be loaded: {e}")
+            raise RuntimeError(f"Standby TF-IDF model unavailable at {settings.model_path}") from e
+    return ml_models["maude_pipeline"]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Always load local TF-IDF model as primary or resilient fallback
-    ml_models["maude_pipeline"] = load_model(settings.model_path)
-    logger.info(f"Loaded local model binary from {settings.model_path}")
+    # 1. Fail-Fast: Standby TF-IDF model MUST exist and load cleanly
+    logger.info(f"Loading mandatory standby TF-IDF pipeline from {settings.model_path}...")
+    try:
+        ml_models["maude_pipeline"] = joblib.load(settings.model_path)
+        logger.info("Standby TF-IDF pipeline successfully cached.")
+    except Exception as e:
+        logger.critical(f"FATAL: Could not load standby TF-IDF model from {settings.model_path}: {e}")
+        raise RuntimeError(f"Startup aborted: Standby model missing or corrupt at {settings.model_path}") from e
 
-    # 2. Pre-warm Vertex AI client at startup if configured as backend
+    # 2. Pre-warm Vertex AI client at startup if configured as backend (non-fatal; retried on demand)
     if settings.classifier_backend == "clinicalbert_vertex":
         if not settings.vertex_endpoint_id:
             logger.warning("CLASSIFIER_BACKEND is 'clinicalbert_vertex' but VERTEX_ENDPOINT_ID is empty!")
@@ -43,7 +59,7 @@ async def lifespan(app: FastAPI):
                 ml_models["vertex_client"] = VertexClassifierClient()
                 logger.info("Vertex AI persistent client successfully initialized.")
             except Exception as e:
-                logger.error(f"Failed to pre-warm Vertex AI client on startup: {e}")
+                logger.warning(f"Pre-warming Vertex AI client failed on startup ({e}). Will retry on demand.")
                 ml_models["vertex_client"] = None
     else:
         ml_models["vertex_client"] = None
@@ -118,43 +134,54 @@ def _classify_narrative(raw_narrative: str) -> dict:
     (Availability Over Fidelity):
     Attempts inference against Vertex AI ClinicalBERT first. On ANY failure 
     (cold start timeout, network disruption, authentication failure, or gRPC error),
-    it logs an internal error with stack trace and gracefully fails over to the 
-    in-memory TF-IDF model so the caller always receives a complete response.
+    it logs an internal error and gracefully fails over to the standby TF-IDF model,
+    returning an explicit warning field.
     """
     cleaned = clean_text(raw_narrative)
 
     if settings.classifier_backend == "clinicalbert_vertex":
         vertex_client = ml_models.get("vertex_client")
+
+        # Retry-on-None: attempt lazy re-instantiation if boot pre-warming failed
         if vertex_client is None and settings.vertex_endpoint_id:
             try:
+                logger.info("Vertex client uninitialized. Attempting on-demand instantiation...")
                 vertex_client = VertexClassifierClient()
                 ml_models["vertex_client"] = vertex_client
+                logger.info("On-demand Vertex AI client instantiation succeeded.")
             except Exception as e:
-                logger.error(f"Failed to lazily instantiate VertexClassifierClient: {e}", exc_info=True)
+                logger.error(f"On-demand Vertex AI client instantiation failed: {e}")
+                vertex_client = None
 
-        if vertex_client:
+        if vertex_client is not None:
             try:
                 return vertex_client.predict_with_backoff(cleaned)
             except VertexColdStartException as e:
-                logger.warning(f"Vertex cold start timeout: {e} - Degrading to TF-IDF fallback.")
-                fallback_res = predict_tfidf(ml_models["maude_pipeline"], cleaned)
-                fallback_res["backend_used"] = "tfidf_fallback"
-                fallback_res["warning"] = "Vertex AI container warming up; served via local TF-IDF fallback."
-                return fallback_res
+                warning_msg = f"Vertex AI cold start timeout exceeded ({e})"
+                logger.warning(f"{warning_msg}. Degrading to standby TF-IDF.")
+                return _degrade_to_tfidf(cleaned, warning_msg)
             except Exception as e:
-                logger.error(
-                    f"Vertex AI inference error ({type(e).__name__}: {e}). Failing over to TF-IDF.",
-                    exc_info=True,
-                )
-                fallback_res = predict_tfidf(ml_models["maude_pipeline"], cleaned)
-                fallback_res["backend_used"] = "tfidf_fallback"
-                fallback_res["warning"] = f"Vertex AI unavailable ({type(e).__name__}); served via local TF-IDF fallback."
-                return fallback_res
+                warning_msg = f"Vertex AI inference error: {e}"
+                logger.error(f"{warning_msg}. Degrading to standby TF-IDF.")
+                return _degrade_to_tfidf(cleaned, warning_msg)
+        else:
+            warning_msg = "Vertex AI client unavailable (failed instantiation)"
+            logger.warning(f"{warning_msg}. Degrading to standby TF-IDF.")
+            return _degrade_to_tfidf(cleaned, warning_msg)
+    else:
+        pipeline = get_maude_pipeline()
+        return predict_tfidf(pipeline, cleaned)
 
-    # Default: Local TF-IDF model
-    result = predict_tfidf(ml_models["maude_pipeline"], cleaned)
-    result["backend_used"] = "tfidf"
-    return result
+
+def _degrade_to_tfidf(cleaned: str, reason: str) -> dict:
+    """Helper to run fallback inference and attach standard audit/warning fields."""
+    pipeline = get_maude_pipeline()
+    fallback_res = predict_tfidf(pipeline, cleaned)
+    return {
+        **fallback_res,
+        "backend_used": "tfidf_fallback",
+        "warning": f"Degraded to TF-IDF fallback: {reason}",
+    }
 
 
 def build_retrieval_query(predicted_label: str, raw_narrative: str) -> str:

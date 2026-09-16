@@ -33,7 +33,16 @@ from maude_classifier.model import (
 MODEL_VERSION = "Bio_ClinicalBERT-cls_mean_concat-v1"
 HEALTH_ROUTE = os.getenv("AIP_HEALTH_ROUTE", "/health")
 PREDICT_ROUTE = os.getenv("AIP_PREDICT_ROUTE", "/predict")
-MODEL_DIR = os.getenv("AIP_STORAGE_URI", "maude_classifier/model")
+# Ensure MODEL_DIR resolves to the container's baked path if AIP_STORAGE_URI is missing or empty
+DEFAULT_MODEL_DIR = Path(__file__).resolve().parent / "model"
+storage_uri = os.getenv("AIP_STORAGE_URI", "").strip()
+
+if storage_uri and Path(storage_uri).exists():
+    MODEL_DIR = Path(storage_uri)
+else:
+    MODEL_DIR = DEFAULT_MODEL_DIR
+
+weights_path = (MODEL_DIR / "pytorch_model.bin").resolve()
 
 state: Dict[str, Any] = {
     "model": None,
@@ -48,8 +57,12 @@ async def lifespan(app: FastAPI):
     state["device"] = device
     
     weights_path = Path(MODEL_DIR) / "pytorch_model.bin"
-    if not weights_path.exists():
-        raise RuntimeError(f"Weights artifact not found at {weights_path}")
+    if not weights_path.is_file():
+        raise RuntimeError(
+        f"Weights artifact not found at {weights_path}. "
+        f"Directory contents of {MODEL_DIR}: "
+        f"{list(MODEL_DIR.iterdir()) if MODEL_DIR.exists() else 'DIR_DOES_NOT_EXIST'}"
+    )
 
     tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
     model = ClinicalBERTConcatClassifier(pretrained_model_name=MODEL_DIR) # Point directly to MODEL_DIR so AutoModel uses local config.json without contacting HF Hub

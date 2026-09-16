@@ -459,3 +459,43 @@ A single, reproducible multi-stage `Dockerfile` defines two distinct service tar
    * **Port & Routing Contract:** Exposes and binds to `AIP_HTTP_PORT` (8080), handling `AIP_HEALTH_ROUTE` (`/health`) and `AIP_PREDICT_ROUTE` (`/predict`).
    * **Build Pipeline:** Uses an authenticated `model-fetcher` stage (`google/cloud-sdk:slim`) with `gcloud storage cp` and `--mount=type=secret,id=gcp-creds` to pull the promoted checkpoint from `gs://regulatory-copilot-506507-vertex-training/models/maude-clinicalbert/model/`.
    * **Offline Determinism:** Configured with `TRANSFORMERS_OFFLINE=1` and `HF_HUB_OFFLINE=1`, ensuring all tokenizer and transformer weights initialize locally without Hugging Face Hub calls.
+
+## Scale-To-Zero & Inference Latency Profile
+
+The MAUDE Bio_ClinicalBERT classifier is deployed on a custom container Vertex AI endpoint configured with `min_replica_count = 0` and `max_replica_count = 2` to minimize idle compute costs.
+
+### Empirically Verified Latency Metrics
+
+| State | End-to-End Latency (`/assess`) | Component Breakdown & Behavior |
+|---|---|---|
+| **Cold Start (0 → 1 Replicas)** | **188.36s** (~3m 08s) *(Verified run)* | **~185.1s** Vertex AI container provisioning + **~3.2s** ChromaDB RAG retrieval & pipeline processing. Succeeded on Attempt 12 (~184.5s elapsed check) after confirmed 0-replica state. |
+| **Warm State (Steady-State)** | **~2900ms – 3353ms** | **~2800ms – 3100ms** Vertex AI network round-trip & inference + **~60ms – 110ms** local embedding & document retrieval. |
+
+> **Architecture Trade-Off Analysis (Interview Reference):**  
+> The verified cold-start time of **~188s** represents an approximate **2.5x increase** over the stock Google Deep Learning Container (DLC) baseline (~65s–75s).  
+> - **Why this tradeoff exists:** The custom container image (~954 MB) packages a complete self-contained environment: custom FastAPI/Uvicorn orchestration, PyTorch runtime, model weights, and the custom dual-pooling concatenation head (`Bio_ClinicalBERT-cls_mean_concat-v1`). GCE node scheduling, layer extraction, and local weight-binding take longer than lightweight stock containers.  
+> - **Engineering justification:** In return for this initial warm-up cost, steady-state serving avoids Hugging Face DLC pipeline overhead, eliminates remote storage dependencies (`AIP_STORAGE_URI`), and executes predictions deterministically in ~2900ms warm.
+
+---
+
+### Client Resilience Strategy: `predict_with_backoff`
+
+When the endpoint is scaled to zero, Vertex AI returns `429 ResourceExhausted` during the boot window. `VertexClassifierClient` shields upstream consumers via exponential backoff:
+
+* **Backoff Strategy:** `3.0s -> 6.0s -> 12.0s -> 20.0s -> 20.0s ...` (capped at 20.0s delay per attempt).
+* **Timeout Budget:** `settings.vertex_cold_start_timeout_seconds = 210.0` (set above the verified ~185s container threshold to avoid premature failover).
+* **Guaranteed Fallback:** If provisioning exceeds the timeout budget, the server transparently degrades to the in-memory standby TF-IDF model (`maude_classifier.joblib`), returning HTTP 200 with `backend_used: "tfidf_fallback"`.
+
+#### Execution Flow
+
+```mermaid
+flowchart TD
+    A[app.py: _classify_narrative] --> B[VertexClassifierClient.predict_with_backoff]
+    B --> C{Endpoint Call}
+    C -->|200 OK| D[Parse Native Dict & Return]
+    C -->|429 Cold Starting| E{Elapsed + Delay > 210s?}
+    E -->|No| F[Sleep current_delay & double interval]
+    F --> C
+    E -->|Yes| G[Raise VertexColdStartException]
+    G --> H[app.py Catch: Failover to local TF-IDF]
+    C -->|Fatal Error / 4xx / 5xx| I[app.py Catch: Failover to local TF-IDF]

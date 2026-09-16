@@ -59,9 +59,11 @@ FROM base AS vertex
 ENV AIP_HTTP_PORT=8080 \
     AIP_HEALTH_ROUTE=/health \
     AIP_PREDICT_ROUTE=/predict \
+    AIP_STORAGE_URI=/app/maude_classifier/model \
     TRANSFORMERS_OFFLINE=1 \
     HF_HUB_OFFLINE=1
 
+WORKDIR /app
 # Copy serving source code only
 COPY maude_classifier/ /app/maude_classifier/
 

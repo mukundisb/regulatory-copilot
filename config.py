@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings,SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal, Optional
+
 
 class Settings(BaseSettings):
     app_name: str = "Regulatory Co-pilot"
@@ -7,18 +8,18 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
 
-# Model & Classifier Backend Strategy
+    # Model & Classifier Backend Strategy
     # Options: 'tfidf' (local fast path) or 'clinicalbert_vertex' (Vertex AI managed endpoint)
-    classifier_backend: Literal["tfidf", "clinicalbert_vertex"] = "tfidf"
+    classifier_backend: Literal["tfidf", "clinicalbert_vertex"] = "clinicalbert_vertex"
 
     # Vertex AI Endpoint Configuration
     gcp_project_id: str = "regulatory-copilot-506507"
     gcp_region: str = "asia-south1"
-    vertex_endpoint_id: str = "8682713582174994432"
+    vertex_endpoint_id: str = "4702516673997963264"
 
     # Vertex AI Scale-To-Zero Backoff & Cold Start Tuning
     vertex_retry_backoff_base_seconds: float = 3.0
-    vertex_cold_start_timeout_seconds: float = 90.0
+    vertex_cold_start_timeout_seconds: float = 210.0
 
     # OpenFDA Ingestion (Optional fields so they are recognized)
     openfda_base_url: Optional[str] = None
