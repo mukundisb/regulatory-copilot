@@ -462,7 +462,7 @@ A single, reproducible multi-stage `Dockerfile` defines two distinct service tar
 
 ## Scale-To-Zero & Inference Latency Profile
 
-The MAUDE Bio_ClinicalBERT classifier is deployed on a custom container Vertex AI endpoint configured with `min_replica_count = 0` and `max_replica_count = 2` to minimize idle compute costs.
+The MAUDE Bio_ClinicalBERT classifier is deployed on a custom container Vertex AI endpoint configured with `min_replica_count = 0` and `max_replica_count = 1` to minimize idle compute costs.
 
 ### Empirically Verified Latency Metrics
 
