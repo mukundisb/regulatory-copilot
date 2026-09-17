@@ -13,6 +13,7 @@ from maude_classifier.classifier import predict_single as predict_tfidf
 from maude_classifier.text_cleaner import clean_text
 from maude_classifier.vertex_client import VertexClassifierClient, VertexColdStartException
 from rag_pipeline import init_store, query_store
+from rag_recommender import generate_grounded_recommendation
 
 logging.basicConfig(
     level=logging.INFO,
@@ -124,6 +125,8 @@ class AssessResponse(BaseModel):
     retrieval_query_used: str
     retrieved_chunks: list[RetrieveResult]
     recommendation: str
+    citations: list[str] = []
+    llm_grounding_verified: bool = False
     fallback_triggered: bool = False
     backend_used: str | None = None
     warning: str | None = None
@@ -311,17 +314,28 @@ def assess(data: ClassifyRequest):
         top_k=3,
     )
 
-    # 4. Deterministic guidance templating
-    top_section = chunks[0]["section"] if chunks else "General EU-MDR Provisions"
-    recommendation = generate_recommendation(predicted_label, top_section, confidence)
+    # 4. LLM-grounded recommendation generation with citation containment
+    top_score = chunks[0]["similarity_score"] if chunks else 0.0
+    rec_result = generate_grounded_recommendation(
+        narrative=data.narrative,
+        predicted_label=predicted_label,
+        chunks=chunks,
+        retrieval_fallback_triggered=fallback_triggered,
+        top_score=top_score,
+        threshold=RETRIEVAL_QUALITY_THRESHOLD,
+    )
+
+    combined_warning = clf_result.get("warning")
+    if rec_result.get("warning"):
+        combined_warning = f"{combined_warning} | {rec_result['warning']}" if combined_warning else rec_result["warning"]
 
     latency_ms = (time.perf_counter() - start_time) * 1000
-    # Disambiguation:
-    # 'fallback_triggered': True if RAG fell back to raw narrative query due to low similarity score (<0.55)
-    # 'backend': 'clinicalbert_vertex' (primary) vs 'tfidf_fallback' (classifier degraded mode)
     logger.info(
         f"event = assess_success predicted_label = {predicted_label} confidence = {confidence:.4f} "
-        f"backend = {clf_result.get('backend_used')} fallback_triggered = {fallback_triggered} "
+        f"classifier_backend = {clf_result.get('backend_used')} "
+        f"retrieval_fallback_triggered = {fallback_triggered} "
+        f"llm_verified = {rec_result['llm_grounding_verified']} "
+        f"citations = {rec_result['citations']} "
         f"latency_ms = {latency_ms:.2f}"
     )
 
@@ -330,12 +344,13 @@ def assess(data: ClassifyRequest):
         confidence=confidence,
         retrieval_query_used=query_used,
         retrieved_chunks=chunks,
-        recommendation=recommendation,
+        recommendation=rec_result["recommendation"],
+        citations=rec_result["citations"],
+        llm_grounding_verified=rec_result["llm_grounding_verified"],
         fallback_triggered=fallback_triggered,
         backend_used=clf_result.get("backend_used"),
-        warning=clf_result.get("warning"),
+        warning=combined_warning,
     )
-
 
 if __name__ == "__main__":
     import uvicorn
