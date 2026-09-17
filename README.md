@@ -158,3 +158,60 @@ cd frontend
 npm run build
 # dist/ contains static HTML/JS/CSS assets ready for CDN deployment
 ```
+
+## System Architecture & End-to-End ML Pipeline
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["1. Data Ingestion & Preprocessing"]
+        FDA[OpenFDA MAUDE API] -->|Raw XML/JSON| Ingest[ingestion/fetch_maude_events.py]
+        Ingest --> Clean[maude_classifier/text_cleaner.py]
+        Clean --> Split[Train / Val / Test Split]
+    end
+
+    subgraph Training["2. Model Training & Checkpoint Promotion"]
+        Split --> LocalTFIDF[Baseline TF-IDF + LogisticRegression]
+        LocalTFIDF --> ModelJoblib[(maude_classifier/model/maude_classifier.joblib)]
+        
+        Split --> VertexTrain[Vertex AI Custom Training Job<br/>n1-standard-8 + NVIDIA T4]
+        VertexTrain --> BERT[Fine-Tuned Bio_ClinicalBERT<br/>cls_mean_concat-v1 Dual Pooling]
+        BERT --> GCS[(gs://regulatory-copilot-506507-vertex-training/models/maude-clinicalbert/model)]
+    end
+
+    subgraph Containerization["3. Artifact Registry Packaging"]
+        GCS --> DockerBuild[Multi-Stage Dockerfile<br/>Torch + Transformers + FastAPI/Uvicorn]
+        DockerBuild --> GAR[Google Artifact Registry<br/>asia-south1-docker.pkg.dev/.../maude-artifacts/maude-serving:v1]
+    end
+
+    subgraph Serving["4. Managed Inference & Cold-Start Autoscaling"]
+        GAR --> VertexModel[Vertex AI Model Registry]
+        VertexModel --> VertexEndpoint[Vertex AI Endpoint: 4702516673997963264<br/>Autoscaling: min=0, max=1 replicas]
+    end
+
+    subgraph AppPipeline["5. FastAPI Application Core (/assess)"]
+        User[Client Request: raw_narrative] --> AssessEndpoint["POST /assess"]
+        AssessEndpoint --> TextClean[clean_text]
+
+        %% Classification Branch with Fallback
+        TextClean --> TryVertex{"Primary: VertexClassifierClient<br/>(Backoff Loop up to 210s)"}
+        TryVertex -->|Success: 200| VertexClassified["ClinicalBERT Result<br/>(backend: clinicalbert_vertex)"]
+        TryVertex -->|429 Timeout / gRPC Err / Client Init Err| Failover["Standby Failover<br/>(_degrade_to_tfidf)"]
+        
+        ModelJoblib -.->|Warm Standby Preload| Failover
+        Failover --> TFIDFClassified["TF-IDF Fallback Result<br/>(backend: tfidf_fallback + warning)"]
+
+        VertexClassified --> QuerySynthesis[build_retrieval_query<br/>Label-Conditioned MDR Query]
+        TFIDFClassified --> QuerySynthesis
+
+        %% Adaptive RAG Branch
+        QuerySynthesis --> ChromaPrimary[ChromaDB Primary Query<br/>all-MiniLM-L6-v2 Embeddings]
+        ChromaPrimary --> QualCheck{"Top Match >= 0.55?"}
+        QualCheck -->|Yes| PrimaryChunks[Primary Regulatory Chunks]
+        QualCheck -->|No| ChromaFallback[ChromaDB Fallback Query<br/>Raw Narrative Fallback]
+        ChromaFallback --> FallbackChunks[Fallback Regulatory Chunks]
+
+        PrimaryChunks --> Reco[generate_recommendation<br/>Deterministic Action Mapping]
+        FallbackChunks --> Reco
+
+        Reco --> FinalResponse["AssessResponse 200 OK<br/>(predicted_label, confidence, recommendation,<br/>fallback_triggered, backend_used)"]
+    end

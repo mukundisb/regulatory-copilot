@@ -316,6 +316,9 @@ def assess(data: ClassifyRequest):
     recommendation = generate_recommendation(predicted_label, top_section, confidence)
 
     latency_ms = (time.perf_counter() - start_time) * 1000
+    # Disambiguation:
+    # 'fallback_triggered': True if RAG fell back to raw narrative query due to low similarity score (<0.55)
+    # 'backend': 'clinicalbert_vertex' (primary) vs 'tfidf_fallback' (classifier degraded mode)
     logger.info(
         f"event = assess_success predicted_label = {predicted_label} confidence = {confidence:.4f} "
         f"backend = {clf_result.get('backend_used')} fallback_triggered = {fallback_triggered} "
