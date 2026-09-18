@@ -128,7 +128,7 @@ def generate_grounded_recommendation(
         gemini_client = client or genai.Client(api_key=api_key)
 
         response = gemini_client.models.generate_content(
-            model="gemini-3.5-flash",
+            model="gemini-3.8-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",

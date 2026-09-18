@@ -40,3 +40,6 @@ data/*.csv
 data/processed/*.csv
 data/processed/*.json
 data/processed/*.parquet
+
+mlflow.db
+mlruns/
