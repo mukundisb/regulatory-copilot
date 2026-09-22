@@ -9,9 +9,9 @@ Verifies that:
 import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-
 import pytest
-from ingestion.fetch_maude_events import fetch_incremental_events, get_next_day, load_watermark, save_watermark
+import requests
+from ingestion.fetch_maude_events import fetch_incremental_events, get_next_day, load_watermark, save_watermark, sanitize_api_key
 
 
 def test_get_next_day():
@@ -83,3 +83,49 @@ def test_id_deduplication_prevents_duplicate_records(mock_get, tmp_path):
         records = json.load(f)
     assert len(records) == 1
     assert records[0]["report_number"] == "NEW-2"
+
+def test_sanitize_api_key_strips_bom_quotes_and_whitespace():
+    """Guards against BOM corruption (e.g. Windows Out-File/Set-Content) and messy env formatting."""
+    # Byte-order mark prefix with trailing whitespace and newlines
+    dirty_bom = "\ufeffmy-fda-key-12345 \n"
+    assert sanitize_api_key(dirty_bom) == "my-fda-key-12345"
+
+    # Accidental wrapping quotes
+    quoted = '"quoted-api-key"'
+    assert sanitize_api_key(quoted) == "quoted-api-key"
+
+    # Both BOM and quotes together
+    bom_and_quoted = "\ufeff'secret-key-abc'\t"
+    assert sanitize_api_key(bom_and_quoted) == "secret-key-abc"
+
+    # None and empty strings return cleanly
+    assert sanitize_api_key(None) is None
+    assert sanitize_api_key("   ") is None
+
+
+@patch("ingestion.fetch_maude_events.requests.get")
+def test_fetch_incremental_events_raises_on_http_error(mock_get, tmp_path):
+    """Guards against silent green executions when openFDA returns 401/403/500."""
+    wm_file = str(tmp_path / "watermark.json")
+    out_dir = str(tmp_path / "output")
+
+    # Set up a prior watermark so the delta window logic activates
+    with open(wm_file, "w", encoding="utf-8") as f:
+        f.write('{"last_date_received": "20240101", "record_count_total": 50}')
+
+    # Mock an openFDA 403 Forbidden response
+    mock_resp = MagicMock()
+    mock_resp.status_code = 403
+    mock_resp.raise_for_status.side_effect = requests.exceptions.HTTPError(
+        "403 Client Error: Forbidden for url"
+    )
+    mock_get.return_value = mock_resp
+
+    # Verify that HTTPError is not swallowed and actually raises RuntimeError
+    with pytest.raises(RuntimeError, match="openFDA fetch aborted due to HTTP 403"):
+        fetch_incremental_events(
+            watermark_path=wm_file,
+            output_dir=out_dir,
+            api_key="test-key",
+            limit_batches=1,
+        )

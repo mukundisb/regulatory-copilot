@@ -39,6 +39,18 @@ DEFAULT_TARGET_RECORDS = 160_000
 PAGE_LIMIT = 1000  # openFDA maximum batch size
 DEFAULT_WATERMARK_FILE = "data/watermark.json"
 
+def sanitize_api_key(raw_key: str | None) -> str | None:
+    """Strip whitespace, surrounding quotes, and UTF-8 Byte Order Marks (BOM)."""
+    if not raw_key:
+        return None
+    # Strip UTF-8 BOM characters (\ufeff) and general whitespace/quotes
+    cleaned = raw_key.strip().lstrip("\ufeff").strip("\"'")
+    return cleaned if cleaned else None
+
+def get_openfda_api_key() -> str | None:
+    raw_key = os.environ.get("OPENFDA_API_KEY")
+    return sanitize_api_key(raw_key)
+
 # Severity label mapping based on MAUDE event_type field
 EVENT_TYPE_SEVERITY = {
     "Death": "D",
@@ -324,13 +336,16 @@ def fetch_incremental_events(
         logger.info("No prior watermark detected. Fetching baseline from %s...", start_date)
         search_query = f"date_received:[{start_date} TO {current_date}]"
 
+    # Route through sanitize_api_key defensively
+    clean_api_key = sanitize_api_key(api_key or os.environ.get("OPENFDA_API_KEY"))
+
     params = {
         "search": search_query,
         "limit": 100,
         "sort": "date_received:asc",
     }
-    if api_key:
-        params["api_key"] = api_key
+    if clean_api_key:
+        params["api_key"] = clean_api_key
 
     seen_ids: Set[str] = set(existing_seen_ids) if existing_seen_ids else set()
     records_fetched = 0
@@ -341,9 +356,12 @@ def fetch_incremental_events(
     for batch_idx in range(limit_batches):
         try:
             resp = requests.get(BASE_URL, params=params, timeout=20)
+            
+            # openFDA returns 404 when query matches 0 records (genuinely caught up)
             if resp.status_code == 404:
                 logger.info("No records returned for search range: %s", search_query)
                 break
+                
             resp.raise_for_status()
             data = resp.json()
             raw_results = data.get("results", [])
@@ -380,9 +398,13 @@ def fetch_incremental_events(
             params["search"] = f"date_received:[{next_start} TO {current_date}]"
             time.sleep(0.5)
 
-        except Exception as err:
-            logger.error("Error during openFDA batch fetch: %s", err)
-            break
+        # Re-raise real HTTP/network errors so job exits non-zero
+        except requests.exceptions.HTTPError as err:
+            logger.error("Fatal HTTP error during openFDA batch fetch: %s", err)
+            raise RuntimeError(f"openFDA fetch aborted due to HTTP {resp.status_code}") from err
+        except requests.exceptions.RequestException as err:
+            logger.error("Network/connection error during openFDA batch fetch: %s", err)
+            raise RuntimeError("openFDA fetch aborted due to network failure") from err
 
     if records_fetched > 0:
         save_watermark(watermark_path, max_seen_date, records_fetched)

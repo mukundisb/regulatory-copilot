@@ -1,0 +1,19 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--platform'
+      - 'linux/amd64'
+      - '--target'
+      - 'ingestion'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/$PROJECT_ID/regulatory-copilot/regulatory-copilot:ingestion'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+images:
+  - 'asia-south1-docker.pkg.dev/$PROJECT_ID/regulatory-copilot/regulatory-copilot:ingestion'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

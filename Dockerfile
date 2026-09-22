@@ -74,3 +74,23 @@ COPY --from=model-fetcher /model/ /app/maude_classifier/model/
 EXPOSE 8080
 
 ENTRYPOINT ["python", "-m", "uvicorn", "maude_classifier.serve:app", "--host", "0.0.0.0", "--port", "8080"]
+
+# ---------------------------------------------------------
+# Dedicated Lean Ingestion Runner
+# Completely decoupled from base / ML dependencies
+# ---------------------------------------------------------
+FROM python:3.12-slim AS ingestion
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir \
+    requests==2.34.2 \
+    pandas==3.0.5 \
+    google-cloud-storage==2.19.0
+
+COPY ingestion/ ./ingestion/
+
+ENTRYPOINT ["python", "ingestion/fetch_maude_events.py"]
