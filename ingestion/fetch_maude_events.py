@@ -1,7 +1,7 @@
 """
 openFDA MAUDE API Client
-Ingests Medical Device Adverse Event (MAUDE) reports from the openFDA API
-using search_after cursor pagination to bypass the 26,000 skip limit.
+Incremental ingestion script for openFDA MAUDE adverse event reports.
+Tracks high-water mark via GCS or local JSON to pull only delta records.
 
 Docs: https://open.fda.gov/apis/paging/
 """
@@ -14,7 +14,8 @@ import json
 import logging
 import argparse
 from pathlib import Path
-from typing import Optional, Union, List, Any
+from typing import Optional, Union, List, Any, Set, Dict
+from datetime import datetime, timezone, timedelta
 
 import requests
 import pandas as pd
@@ -36,6 +37,7 @@ logger = logging.getLogger("maude_fetcher")
 BASE_URL = os.getenv("OPENFDA_BASE_URL", "https://api.fda.gov/device/event.json")
 DEFAULT_TARGET_RECORDS = 160_000
 PAGE_LIMIT = 1000  # openFDA maximum batch size
+DEFAULT_WATERMARK_FILE = "data/watermark.json"
 
 # Severity label mapping based on MAUDE event_type field
 EVENT_TYPE_SEVERITY = {
@@ -246,18 +248,204 @@ def fetch_maude_dataset(
     logger.info(f"Extraction complete. Successfully wrote {total_valid:,} records to {output_path}")
     return total_valid
 
+def get_next_day(date_str: str) -> str:
+    """Advances YYYYMMDD string by 1 day to ensure strictly exclusive lower bound."""
+    dt = datetime.strptime(date_str, "%Y%m%d")
+    return (dt + timedelta(days=1)).strftime("%Y%m%d")
+
+
+def load_watermark(watermark_path: str) -> Optional[str]:
+    """Loads the last ingested date_received (YYYYMMDD)."""
+    if watermark_path.startswith("gs://"):
+        try:
+            from google.cloud import storage
+
+            client = storage.Client()
+            bucket_name, blob_name = watermark_path.replace("gs://", "").split("/", 1)
+            blob = client.bucket(bucket_name).blob(blob_name)
+            if blob.exists():
+                data = json.loads(blob.download_as_text())
+                return data.get("last_date_received")
+        except Exception as e:
+            logger.warning("Could not load GCS watermark from %s: %s", watermark_path, e)
+            return None
+    else:
+        local_file = Path(watermark_path)
+        if local_file.exists():
+            with open(local_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("last_date_received")
+    return None
+
+
+def save_watermark(watermark_path: str, last_date_received: str, record_count: int):
+    """Persists updated high-water mark timestamp."""
+    payload = {
+        "last_date_received": last_date_received,
+        "record_count_total": record_count,
+        "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+    }
+    if watermark_path.startswith("gs://"):
+        from google.cloud import storage
+
+        client = storage.Client()
+        bucket_name, blob_name = watermark_path.replace("gs://", "").split("/", 1)
+        blob = client.bucket(bucket_name).blob(blob_name)
+        blob.upload_from_string(json.dumps(payload, indent=2))
+        logger.info("Persisted GCS watermark to %s", watermark_path)
+    else:
+        local_file = Path(watermark_path)
+        local_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(local_file, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        logger.info("Persisted local watermark to %s", watermark_path)
+
+
+def fetch_incremental_events(
+    watermark_path: str = DEFAULT_WATERMARK_FILE,
+    output_dir: str = "data/raw/incremental",
+    api_key: Optional[str] = None,
+    limit_batches: int = 5,
+    existing_seen_ids: Optional[Set[str]] = None,
+) -> int:
+    last_date = load_watermark(watermark_path)
+    current_date = datetime.now(timezone.utc).strftime("%Y%m%d")
+
+    # If watermark exists, strictly advance lower bound by 1 calendar day to prevent re-querying processed date
+    if last_date:
+        start_date = get_next_day(last_date)
+        if start_date > current_date:
+            logger.info("Watermark %s is already up to date with %s. No delta pull required.", last_date, current_date)
+            return 0
+        logger.info("Found watermark %s. Querying delta window: [%s TO %s]", last_date, start_date, current_date)
+        search_query = f"date_received:[{start_date} TO {current_date}]"
+    else:
+        start_date = "20240101"
+        logger.info("No prior watermark detected. Fetching baseline from %s...", start_date)
+        search_query = f"date_received:[{start_date} TO {current_date}]"
+
+    params = {
+        "search": search_query,
+        "limit": 100,
+        "sort": "date_received:asc",
+    }
+    if api_key:
+        params["api_key"] = api_key
+
+    seen_ids: Set[str] = set(existing_seen_ids) if existing_seen_ids else set()
+    records_fetched = 0
+    max_seen_date = last_date or start_date
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    for batch_idx in range(limit_batches):
+        try:
+            resp = requests.get(BASE_URL, params=params, timeout=20)
+            if resp.status_code == 404:
+                logger.info("No records returned for search range: %s", search_query)
+                break
+            resp.raise_for_status()
+            data = resp.json()
+            raw_results = data.get("results", [])
+            if not raw_results:
+                break
+
+            # Deduplicate by report_number
+            unique_batch: List[Dict] = []
+            for r in raw_results:
+                r_id = r.get("report_number")
+                if r_id and r_id in seen_ids:
+                    continue
+                if r_id:
+                    seen_ids.add(r_id)
+                unique_batch.append(r)
+
+                d = r.get("date_received")
+                if d and d > max_seen_date:
+                    max_seen_date = d
+
+            if unique_batch:
+                records_fetched += len(unique_batch)
+                batch_file = out_path / f"maude_delta_{max_seen_date}_{batch_idx}.json"
+                with open(batch_file, "w", encoding="utf-8") as f:
+                    json.dump(unique_batch, f)
+
+            if len(raw_results) < 100:
+                break
+
+            # Advance window forward if date progressed, or step +1 day past current max_seen_date
+            next_start = get_next_day(max_seen_date)
+            if next_start > current_date:
+                break
+            params["search"] = f"date_received:[{next_start} TO {current_date}]"
+            time.sleep(0.5)
+
+        except Exception as err:
+            logger.error("Error during openFDA batch fetch: %s", err)
+            break
+
+    if records_fetched > 0:
+        save_watermark(watermark_path, max_seen_date, records_fetched)
+    
+    logger.info("Incremental fetch finished. New records: %d | New High-Water Mark: %s", records_fetched, max_seen_date)
+    return records_fetched
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Fetch openFDA MAUDE records via search_after cursor.")
-    parser.add_argument("--target", type=int, default=int(os.getenv("OPENFDA_LIMIT", str(DEFAULT_TARGET_RECORDS))))
-    parser.add_argument("--output", type=Path, default=Path(os.getenv("OPENFDA_OUTPUT_PATH", "data/raw/maude_raw.jsonl")))
-    parser.add_argument("--api-key", type=str, default=os.getenv("OPENFDA_API_KEY", None))
-    parser.add_argument("--delay", type=float, default=0.1 if os.getenv("OPENFDA_API_KEY") else 0.3)
+    parser = argparse.ArgumentParser(
+        description="openFDA MAUDE ingestion supporting incremental watermark tracking and full baseline pulls."
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["incremental", "full"],
+        default="incremental",
+        help="Run incremental delta pull via watermark (default) or execute full historical crawl.",
+    )
+    # Incremental options
+    parser.add_argument(
+        "--watermark-path", type=str, default=DEFAULT_WATERMARK_FILE
+    )
+    parser.add_argument(
+        "--output-dir", type=str, default="data/raw/incremental"
+    )
+    parser.add_argument(
+        "--batches",
+        type=int,
+        default=3,
+        help="Max batches to pull for incremental runs",
+    )
+    # Full extraction options
+    parser.add_argument(
+        "--target",
+        type=int,
+        default=int(os.getenv("OPENFDA_LIMIT", str(DEFAULT_TARGET_RECORDS))),
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path(os.getenv("OPENFDA_OUTPUT_PATH", "data/raw/maude_raw.jsonl")),
+    )
+    parser.add_argument(
+        "--api-key", type=str, default=os.getenv("OPENFDA_API_KEY", None)
+    )
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=0.1 if os.getenv("OPENFDA_API_KEY") else 0.3,
+    )
     args = parser.parse_args()
 
-    fetch_maude_dataset(
-        target_count=args.target,
-        output_path=args.output,
-        api_key=args.api_key,
-        delay=args.delay,
-    )
+    if args.mode == "full":
+        fetch_maude_dataset(
+            target_count=args.target,
+            output_path=args.output,
+            api_key=args.api_key,
+            delay=args.delay,
+        )
+    else:
+        fetch_incremental_events(
+            watermark_path=args.watermark_path,
+            output_dir=args.output_dir,
+            limit_batches=args.batches,
+            api_key=args.api_key,
+        )

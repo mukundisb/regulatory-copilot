@@ -222,16 +222,22 @@ def test_assess_e2e_real_pipeline(client):
         f" but got '{data['predicted_label']}' (confidence: {data.get('confidence')})"
     )
     assert 0.0 <= data["confidence"] <= 1.0
-    
+
     # Branching query assertions (Death narrative should trigger vigilance keywords)
     assert "serious incident reporting vigilance" in data["retrieval_query_used"]
-    
+
     # Retrieval assertions
     assert len(data["retrieved_chunks"]) > 0
     assert isinstance(data["retrieved_chunks"][0]["similarity_score"], float)
-    
-    # Recommendation assertions
-    assert "Primary regulatory basis:" in data["recommendation"]
+
+    # Recommendation assertions: verifies statutory guidance for death incidents (Article 87)
+    rec = data["recommendation"]
+    assert "Article 87" in rec, (
+        f"Expected Article 87 statutory reference in recommendation, got: {rec}"
+    )
+    assert any(term in rec for term in ["Primary regulatory basis:", "weak candidates", "10 days"]), (
+        f"Expected either primary basis or low-confidence vigilance advice, got: {rec}"
+    )
 
 def test_assess_e2e_malfunction_branch_real_pipeline(client):
     """E2E Test: Malfunction narrative classifies as M and triggers CAPA/investigation query steering."""
