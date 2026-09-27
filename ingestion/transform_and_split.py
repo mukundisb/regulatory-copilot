@@ -1,40 +1,6 @@
 """
 ingestion/transform_and_split.py
 
-Transforms raw openFDA CSV records into clean (narrative, label) pairs.
-Reuses maude_classifier.text_cleaner.clean_text to ensure training matches
-runtime /classify preprocessing exactly.
-"""
-
-import sys
-from pathlib import Path
-
-# Anchor project root to sys.path
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-import logging
-import argparse
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-# CANONICAL SOURCES OF TRUTH
-from maude_classifier.text_cleaner import clean_text
-from ingestion.fetch_maude_events import resolve_severity_label, SEVERITY_RANK
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger("maude_transformer")
-
-VALID_LABELS = {k for k in SEVERITY_RANK.keys() if k != "UNKNOWN"}
-
-"""
-ingestion/transform_and_split.py
-
 Transforms raw openFDA records into clean (narrative, label) pairs.
 Reuses maude_classifier.text_cleaner.clean_text and
 ingestion.fetch_maude_events.resolve_severity_label as canonical single sources of truth.

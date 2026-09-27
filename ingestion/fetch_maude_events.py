@@ -16,9 +16,8 @@ import argparse
 from pathlib import Path
 from typing import Optional, Union, List, Any, Set, Dict
 from datetime import datetime, timezone, timedelta
-
+from google.cloud import storage
 import requests
-import pandas as pd
 
 # Load environment variables from root .env if python-dotenv is present
 try:
@@ -46,10 +45,6 @@ def sanitize_api_key(raw_key: str | None) -> str | None:
     # Strip UTF-8 BOM characters (\ufeff) and general whitespace/quotes
     cleaned = raw_key.strip().lstrip("\ufeff").strip("\"'")
     return cleaned if cleaned else None
-
-def get_openfda_api_key() -> str | None:
-    raw_key = os.environ.get("OPENFDA_API_KEY")
-    return sanitize_api_key(raw_key)
 
 # Severity label mapping based on MAUDE event_type field
 EVENT_TYPE_SEVERITY = {
@@ -270,8 +265,6 @@ def load_watermark(watermark_path: str) -> Optional[str]:
     """Loads the last ingested date_received (YYYYMMDD)."""
     if watermark_path.startswith("gs://"):
         try:
-            from google.cloud import storage
-
             client = storage.Client()
             bucket_name, blob_name = watermark_path.replace("gs://", "").split("/", 1)
             blob = client.bucket(bucket_name).blob(blob_name)
@@ -336,7 +329,6 @@ def fetch_incremental_events(
         logger.info("No prior watermark detected. Fetching baseline from %s...", start_date)
         search_query = f"date_received:[{start_date} TO {current_date}]"
 
-    # Route through sanitize_api_key defensively
     clean_api_key = sanitize_api_key(api_key or os.environ.get("OPENFDA_API_KEY"))
 
     params = {
@@ -350,8 +342,6 @@ def fetch_incremental_events(
     seen_ids: Set[str] = set(existing_seen_ids) if existing_seen_ids else set()
     records_fetched = 0
     max_seen_date = last_date or start_date
-    out_path = Path(output_dir)
-    out_path.mkdir(parents=True, exist_ok=True)
 
     for batch_idx in range(limit_batches):
         try:
@@ -384,9 +374,13 @@ def fetch_incremental_events(
 
             if unique_batch:
                 records_fetched += len(unique_batch)
-                batch_file = out_path / f"maude_delta_{max_seen_date}_{batch_idx}.json"
-                with open(batch_file, "w", encoding="utf-8") as f:
-                    json.dump(unique_batch, f)
+                # Persist to local path or GCS bucket based on URI schema
+                write_partitioned_records(
+                    output_dir=output_dir,
+                    start_date=max_seen_date,
+                    end_date=str(batch_idx),
+                    records=unique_batch,
+                )
 
             if len(raw_results) < 100:
                 break
@@ -411,6 +405,33 @@ def fetch_incremental_events(
     
     logger.info("Incremental fetch finished. New records: %d | New High-Water Mark: %s", records_fetched, max_seen_date)
     return records_fetched
+
+def write_partitioned_records(output_dir: str, start_date: str, end_date: str, records: list) -> str:
+    """Persists fetched records to disk or GCS partition."""
+    filename = f"maude_delta_{start_date}_{end_date}.json"
+    payload = json.dumps(records, indent=2)
+
+    if output_dir.startswith("gs://"):
+        client = storage.Client()
+        parts = output_dir[5:].split("/", 1)
+        bucket_name = parts[0]
+        prefix = parts[1].rstrip("/") if len(parts) > 1 else ""
+        blob_path = f"{prefix}/{filename}" if prefix else filename
+
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(blob_path)
+        blob.upload_from_string(payload, content_type="application/json")
+        destination = f"gs://{bucket_name}/{blob_path}"
+        logger.info("Uploaded %d delta records to GCS: %s", len(records), destination)
+        return destination
+    else:
+        out_path = Path(output_dir)
+        out_path.mkdir(parents=True, exist_ok=True)
+        out_file = out_path / filename
+        with open(out_file, "w", encoding="utf-8") as f:
+            f.write(payload)
+        logger.info("Wrote %d records to local disk: %s", len(records), out_file)
+        return str(out_file)
 
 
 if __name__ == "__main__":

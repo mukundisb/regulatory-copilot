@@ -223,22 +223,6 @@ def retrieve_with_fallback(primary_query: str, fallback_query: str, top_k: int =
     return primary_chunks, primary_query, True
 
 
-def generate_recommendation(label: str, top_section: str, confidence: float) -> str:
-    """Generates a deterministic regulatory guidance summary based on label and top retrieved section."""
-    actions = {
-        "D": "Mandatory vigilance reporting required. Initiate immediate risk assessment and submit report within strict statutory timelines (within 2 to 10 days depending on public health threat severity).",
-        "I": "Serious deterioration in health detected. Notify competent authority within 15 days of becoming aware, record in vigilance register, and initiate root-cause investigation.",
-        "M": "Device malfunction identified. Log in post-market surveillance system, verify if incident meets trend-reporting thresholds, and assess need for Field Safety Corrective Action (FSCA).",
-        "O": "No immediate serious adverse event or critical malfunction detected. Archive under standard customer complaints register and continue routine post-market surveillance monitoring.",
-    }
-    action_text = actions.get(label, "Review event under standard quality management system procedures.")
-    return (
-        f"Event classified as '{label}' (confidence: {confidence:.2%}). "
-        f"Primary regulatory basis: {top_section}. "
-        f"Recommended Action: {action_text}"
-    )
-
-
 @app.get("/health")
 def health():
     return {

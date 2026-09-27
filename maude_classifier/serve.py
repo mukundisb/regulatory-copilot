@@ -15,8 +15,7 @@ from contextlib import asynccontextmanager
 
 import torch
 import torch.nn.functional as F
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from transformers import AutoTokenizer
 

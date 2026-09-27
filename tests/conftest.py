@@ -2,6 +2,7 @@ import os
 import shutil
 import pytest
 import joblib
+from pathlib import Path
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -100,6 +101,30 @@ def setup_test_chroma_db():
 
     yield
 
-    # Clean up Chroma artifacts if needed
-    if os.path.exists("chroma_db"):
-        shutil.rmtree("chroma_db", ignore_errors=True)
+@pytest.fixture(autouse=True)
+def isolate_test_chroma(tmp_path, monkeypatch):
+    """Direct all test vector DB operations to an isolated temp directory."""
+    test_db_dir = tmp_path / "test_chroma_db"
+    # If a seeded store already exists at ./chroma_db, clone it into the temp path
+    source_chroma = Path("./chroma_db")
+    if source_chroma.exists() and any(source_chroma.iterdir()):
+        shutil.copytree(source_chroma, test_db_dir, dirs_exist_ok=True)
+    else:
+        test_db_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Set environment variables
+    monkeypatch.setenv("CHROMA_PERSIST_DIRECTORY", str(test_db_dir))
+    monkeypatch.setenv("CHROMA_DB_DIR", str(test_db_dir))
+
+    # 2. Patch module attribute directly
+    monkeypatch.setattr(rag_pipeline, "DB_PATH", str(test_db_dir))
+
+    # 3. Reset module singletons directly
+    monkeypatch.setattr(rag_pipeline, "client", None)
+    monkeypatch.setattr(rag_pipeline, "collection", None)
+
+    yield str(test_db_dir)
+
+    # 4. Clear singletons on teardown
+    rag_pipeline.client = None
+    rag_pipeline.collection = None

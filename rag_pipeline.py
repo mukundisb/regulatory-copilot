@@ -11,27 +11,31 @@ from chromadb.utils import embedding_functions
 #   paragraph 2) if a split lands across paragraph boundaries.
 DEFAULT_CHUNK_SIZE = 350
 DEFAULT_OVERLAP = 50
-DB_PATH = "./chroma_db"
+DB_PATH = os.environ.get("CHROMA_PERSIST_DIRECTORY") or os.environ.get("CHROMA_DB_DIR") or "./chroma_db"
 COLLECTION_NAME = "document_collection"
 
 client = None
 collection = None
 
 # 1. Initialize embedding function (Sentence-Transformers)
-def init_store():
+def init_store(persist_directory: str = None):
     """Initializes the embedding model and Chroma collection at server startup."""
     global client, collection
-    if collection is not None:
+    
+    target_path = persist_directory or os.environ.get("CHROMA_PERSIST_DIRECTORY") or os.environ.get("CHROMA_DB_DIR") or DB_PATH
+
+    # If collection is already initialized with the same target path, reuse it
+    if collection is not None and client is not None:
         return collection
 
     embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
         model_name="all-MiniLM-L6-v2"
     )
-    client = chromadb.PersistentClient(path=DB_PATH)
+    client = chromadb.PersistentClient(path=target_path)
     collection = client.get_or_create_collection(
         name=COLLECTION_NAME,
         embedding_function=embedding_fn,
-        metadata={"hnsw:space": "cosine"} # Using Cosine distance for standard normalized scoring
+        metadata={"hnsw:space": "cosine"},
     )
     return collection
 

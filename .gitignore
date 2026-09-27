@@ -43,3 +43,6 @@ data/processed/*.parquet
 
 mlflow.db
 mlruns/
+
+# EU-MDR source file
+EU-MDR Guidance document.pdf

@@ -12,78 +12,32 @@ An automated regulatory triage and decision-support API built for medical device
 🔗 **Live Frontend Application:** [https://regulatory-copilot.netlify.app](https://regulatory-copilot.netlify.app)  
 *(Backend hosted serverless on Google Cloud Run)*
 
-## Two-Service Architecture & Deployment Topology
+## Architecture at a Glance
 
-The system is split into two independently versioned, built, and deployed services:
+| Component | Runs on | Role |
+| :--- | :--- | :--- |
+| **API** (`app.py`) | Cloud Run, scale-to-zero | Classification routing, EU-MDR retrieval, grounded recommendation |
+| **Classifier** (`maude_classifier/serve.py`) | Vertex AI endpoint, 0–1 replicas | Fine-tuned Bio_ClinicalBERT (`cls_mean_concat`); TF-IDF warm standby inside the API |
+| **Training** (`training/train_bert.py`) | Vertex AI Custom Job, T4 GPU | MLflow-tracked; promotion to serving is manual and human-gated |
+| **Ingestion** (`ingestion/fetch_maude_events.py`) | Cloud Run Job + Cloud Scheduler, weekly | Watermarked incremental pull from openFDA |
+| **Frontend** (`frontend/`) | Netlify | Vite + React client |
 
-[ Developer / CI ]
-|
-+---> (Git Push main) ---------> GitHub Actions (Pytest Unit + Invariant Gates)
-|
-+---> (Manual / Webhook) ------> Netlify Build Step (Vite Static Bundle Generation)
-|                                       |
-|                                       v
-|                            [ Frontend Client (SPA) ]
-|                            (Hosted on Netlify CDN)
-|                                       |
-|                                       | HTTPS Cross-Origin REST Calls
-|                                       | (CORS: *.netlify.app allowed)
-|                                       v
-+---> (gcloud builds / deploy) -> [ Backend Engine (FastAPI) ]
-(GCP Cloud Run - Serverless Container)
-|-- Scikit-Learn Classifier (Lifespan Loaded)
-|-- ChromaDB Vector Store (EU-MDR Index)
--- Deterministic Agentic Fallback Logic
+Full diagram, request flow, image targets and known limitations: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
 ## Architectural Problem & Context
 
 Pharma and MedTech AI engineering roles require systems that bridge statistical ML with deterministic statutory requirements. A pure LLM or generic RAG pipeline risks hallucinating compliance timelines or missing critical reporting triggers. 
 
-This engine implements a **two-stage agentic workflow**:
+This engine implements a **three-stage agentic workflow**:
 1. **Upstream Classification:** Multi-class classification of medical device adverse events into MAUDE categories: **Death (`D`)**, **Injury (`I`)**, **Malfunction (`M`)**, or **Other (`O`)**.
 2. **Dynamic Query Steering:** Reformulates statutory vector search queries with regulatory criteria (e.g., EU-MDR Article 87 vigilance timelines vs. Article 88 trend reporting/CAPA).
 3. **Adaptive Quality Gate:** Evaluates retrieval confidence against an empirical cosine similarity cutoff ($0.55$) and triggers an automatic fallback pass if steered search underperforms.
-
-                              +-----------------------+
-                              | Raw Adverse Narrative |
-                              +-----------------------+
-                                          |
-                                          v
-                               [ POST /classify ]
-                     (TF-IDF + Calibrated Logistic Regression)
-                                          |
-                 +------------------------+------------------------+
-                 |                        |                        |
-             Label: D / I              Label: M                 Label: O
-                 |                        |                        |
-                 v                        v                        v
-         [ Article 87 Prefix ]    [ Article 88 Prefix ]     [ Raw Narrative ]
-         "vigilance timelines"    "malfunction root cause"      (No prefix)
-                 \                        |                        /
-                  \                       |                       /
-                   +----------------------+----------------------+
-                                          |
-                                          v
-                                [ Primary ChromaDB Query ]
-                                (all-MiniLM-L6-v2 Embeddings)
-                                          |
-                               { Score >= 0.55 Gate? }
-                                 /                 \
-                         YES    /                   \   NO
-                               v                     v
-                     [ Accept Primary ]     [ Fallback Raw Query ]
-                               \                     /
-                                \                   /
-                                 v                 v
-                           +-----------------------------+
-                           |      [ POST /assess ]       |
-                           | Recommendation + Citations  |
-                           +-----------------------------+
-
----
+4. **Grounded Recommendation:** Gemini drafts the recommendation from the retrieved EU-MDR sections only; any citation outside those sections is pruned in code, with a deterministic fallback when the LLM is unavailable.
+ 
 
 ## Documentation Links
 
+* **[Architecture (`docs/ARCHITECTURE.md`)](docs/ARCHITECTURE.md):** Services, request flow, training and promotion, weekly ingestion, container images, and known limitations.
 * **[API Reference (`docs/API.md`)](docs/API.md):** Complete OpenAPI request/response schemas, sample curl commands, and agentic orchestration design notes.
 * **[Regulatory Mapping (`docs/REGULATORY_MAPPING.md`)](docs/REGULATORY_MAPPING.md):** Mapping codebase artifacts to **IEC 62304** (Medical Device Software Lifecycle) and FDA **PCCP** (Predetermined Change Control Plan) frameworks.
 * **[Interview Defense Notes (`docs/INTERVIEW_NOTES.md`)](docs/INTERVIEW_NOTES.md):** Engineering rationale, debugging logs, cold-start analyses, and architectural trade-offs.
@@ -95,7 +49,7 @@ This engine implements a **two-stage agentic workflow**:
 | Method | Endpoint | Function |
 | :--- | :--- | :--- |
 | `GET` | `/health` | Liveness and readiness probe verifying model artifacts and vector store state. |
-| `POST` | `/classify` | Classifies raw adverse event narratives into `D`, `I`, `M`, or `O` with calibrated probabilities. |
+| `POST` | `/classify` | Classifies raw adverse event narratives into `D`, `I`, `M`, or `O` with class probabilities (ClinicalBERT on Vertex AI; TF-IDF standby on failure, reported in `backend_used`). |
 | `POST` | `/retrieve` | Executes dense semantic search across indexed EU-MDR regulatory text. |
 | `POST` | `/assess` | End-to-end orchestration: classification $\rightarrow$ dynamic query steering $\rightarrow$ threshold validation $\rightarrow$ structured regulatory recommendation. |
 
@@ -129,8 +83,8 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 The repository includes a production-ready Dockerfile optimized for CPU inference and dynamic $PORT evaluation.
 
 ```bash
-# Build and run locally
-docker build -t regulatory-copilot .
+# Build and run locally (--target is required: the Dockerfile's last stage is the ingestion job)
+docker build --target cloudrun -t regulatory-copilot .
 docker run -p 8000:8000 -e PORT=8000 regulatory-copilot
 ```
 
@@ -138,8 +92,9 @@ docker run -p 8000:8000 -e PORT=8000 regulatory-copilot
 
 ### 1. Backend Service (GCP Cloud Run)
 ```bash
-# 1. Build and push container to Artifact Registry
-gcloud builds submit --tag asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest .
+# 1. Build the API image and push it to Artifact Registry
+docker build --target cloudrun -t asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest .
+docker push asia-south1-docker.pkg.dev/<PROJECT_ID>/regulatory-copilot/regulatory-copilot:latest
 
 # 2. Deploy service revision
 gcloud run deploy regulatory-copilot \
@@ -158,60 +113,3 @@ cd frontend
 npm run build
 # dist/ contains static HTML/JS/CSS assets ready for CDN deployment
 ```
-
-## System Architecture & End-to-End ML Pipeline
-
-```mermaid
-flowchart TD
-    subgraph Ingestion["1. Data Ingestion & Preprocessing"]
-        FDA[OpenFDA MAUDE API] -->|Raw XML/JSON| Ingest[ingestion/fetch_maude_events.py]
-        Ingest --> Clean[maude_classifier/text_cleaner.py]
-        Clean --> Split[Train / Val / Test Split]
-    end
-
-    subgraph Training["2. Model Training & Checkpoint Promotion"]
-        Split --> LocalTFIDF[Baseline TF-IDF + LogisticRegression]
-        LocalTFIDF --> ModelJoblib[(maude_classifier/model/maude_classifier.joblib)]
-        
-        Split --> VertexTrain[Vertex AI Custom Training Job<br/>n1-standard-8 + NVIDIA T4]
-        VertexTrain --> BERT[Fine-Tuned Bio_ClinicalBERT<br/>cls_mean_concat-v1 Dual Pooling]
-        BERT --> GCS[(gs://regulatory-copilot-506507-vertex-training/models/maude-clinicalbert/model)]
-    end
-
-    subgraph Containerization["3. Artifact Registry Packaging"]
-        GCS --> DockerBuild[Multi-Stage Dockerfile<br/>Torch + Transformers + FastAPI/Uvicorn]
-        DockerBuild --> GAR[Google Artifact Registry<br/>asia-south1-docker.pkg.dev/.../maude-artifacts/maude-serving:v1]
-    end
-
-    subgraph Serving["4. Managed Inference & Cold-Start Autoscaling"]
-        GAR --> VertexModel[Vertex AI Model Registry]
-        VertexModel --> VertexEndpoint[Vertex AI Endpoint: 4702516673997963264<br/>Autoscaling: min=0, max=1 replicas]
-    end
-
-    subgraph AppPipeline["5. FastAPI Application Core (/assess)"]
-        User[Client Request: raw_narrative] --> AssessEndpoint["POST /assess"]
-        AssessEndpoint --> TextClean[clean_text]
-
-        %% Classification Branch with Fallback
-        TextClean --> TryVertex{"Primary: VertexClassifierClient<br/>(Backoff Loop up to 210s)"}
-        TryVertex -->|Success: 200| VertexClassified["ClinicalBERT Result<br/>(backend: clinicalbert_vertex)"]
-        TryVertex -->|429 Timeout / gRPC Err / Client Init Err| Failover["Standby Failover<br/>(_degrade_to_tfidf)"]
-        
-        ModelJoblib -.->|Warm Standby Preload| Failover
-        Failover --> TFIDFClassified["TF-IDF Fallback Result<br/>(backend: tfidf_fallback + warning)"]
-
-        VertexClassified --> QuerySynthesis[build_retrieval_query<br/>Label-Conditioned MDR Query]
-        TFIDFClassified --> QuerySynthesis
-
-        %% Adaptive RAG Branch
-        QuerySynthesis --> ChromaPrimary[ChromaDB Primary Query<br/>all-MiniLM-L6-v2 Embeddings]
-        ChromaPrimary --> QualCheck{"Top Match >= 0.55?"}
-        QualCheck -->|Yes| PrimaryChunks[Primary Regulatory Chunks]
-        QualCheck -->|No| ChromaFallback[ChromaDB Fallback Query<br/>Raw Narrative Fallback]
-        ChromaFallback --> FallbackChunks[Fallback Regulatory Chunks]
-
-        PrimaryChunks --> Reco[generate_recommendation<br/>Deterministic Action Mapping]
-        FallbackChunks --> Reco
-
-        Reco --> FinalResponse["AssessResponse 200 OK<br/>(predicted_label, confidence, recommendation,<br/>fallback_triggered, backend_used)"]
-    end

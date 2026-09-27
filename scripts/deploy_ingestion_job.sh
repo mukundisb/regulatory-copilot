@@ -39,6 +39,8 @@ gcloud secrets add-iam-policy-binding OPENFDA_API_KEY \
     --role="roles/secretmanager.secretAccessor"
 
 echo "=== 3. Deploying Cloud Run Job ==="
+RAW_GCS_OUTPUT="gs://regulatory-copilot-506507-vertex-training/data/raw/incremental"
+
 gcloud run jobs deploy "${JOB_NAME}" \
     --image="${IMAGE_TAG}" \
     --region="${REGION}" \
@@ -48,10 +50,9 @@ gcloud run jobs deploy "${JOB_NAME}" \
     --task-timeout=3600s \
     --memory=512Mi \
     --cpu=1 \
-    --set-env-vars="WATERMARK_PATH=${WATERMARK_GCS_PATH},OUTPUT_DIR=/tmp/incremental" \
+    --set-env-vars="WATERMARK_PATH=${WATERMARK_GCS_PATH},OUTPUT_DIR=${RAW_GCS_OUTPUT}" \
     --set-secrets="OPENFDA_API_KEY=OPENFDA_API_KEY:latest" \
-    --command="python" \
-    --args="ingestion/fetch_maude_events.py,--mode,incremental,--watermark-path,${WATERMARK_GCS_PATH},--output-dir,/tmp/incremental,--batches,5"
+    --args="--mode,incremental,--watermark-path,${WATERMARK_GCS_PATH},--batches,5,--output-dir,${RAW_GCS_OUTPUT}"
 
 echo "=== 4. Provisioning Weekly Cloud Scheduler Trigger ==="
 CRON_SCHEDULE="0 2 * * 0"

@@ -88,7 +88,6 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir \
     requests==2.34.2 \
-    pandas==3.0.5 \
     google-cloud-storage==2.19.0
 
 COPY ingestion/ ./ingestion/

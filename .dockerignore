@@ -35,3 +35,8 @@ reports/
 maude_classifier/model/*
 !maude_classifier/model/*.joblib
 models/
+
+# Adding mlflow artifacts
+mlruns/
+mlflow.db
+eu_mdr_text.txt

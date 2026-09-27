@@ -1,0 +1,7 @@
+-r requirements.txt
+pytest==9.1.1
+iniconfig==2.3.0
+pluggy==1.6.0
+pdfplumber==0.10.0
+mlflow==3.16.0
+pyarrow==25.0.1

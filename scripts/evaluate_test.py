@@ -7,7 +7,6 @@ the held-out test split (data/processed/test.parquet) and outputs canonical
 metrics to disk and stdout.
 """
 
-import os
 import sys
 import json
 import time

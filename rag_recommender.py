@@ -11,7 +11,6 @@ except ImportError:
     genai = None
     types = None
 
-from config import settings
 
 logger = logging.getLogger("regulatory_copilot.llm")
 

@@ -1,24 +1,7 @@
 # Vendored from mukundisb/maude-nlp-classifier (src/model/classifier.py),
 # trimmed to the load + single-narrative inference path only (no training code).
 
-import os
-import logging
-
-import joblib
 from sklearn.pipeline import Pipeline
-
-logger = logging.getLogger(__name__)
-
-DEFAULT_MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "maude_classifier.joblib")
-
-
-def load_model(path: str = DEFAULT_MODEL_PATH) -> Pipeline:
-    """Load the persisted fine-tuned pipeline from disk."""
-    if not os.path.exists(path):
-        raise FileNotFoundError(f"Model not found at {path}")
-    pipeline = joblib.load(path)
-    logger.info(f"Model loaded from {path}")
-    return pipeline
 
 
 def predict_single(pipeline: Pipeline, text: str) -> dict:

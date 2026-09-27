@@ -1,8 +1,6 @@
 """Deploys custom containerized Bio_ClinicalBERT model to a Vertex AI Endpoint."""
 
-import argparse
 import os
-import sys
 import time
 from google.cloud import aiplatform
 

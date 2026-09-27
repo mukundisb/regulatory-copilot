@@ -21,9 +21,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score, balanced_accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, balanced_accuracy_score, f1_score
 import mlflow
-from sklearn.metrics import classification_report, accuracy_score, f1_score
 
 # Load environment variables if python-dotenv is present
 try:

@@ -4,7 +4,6 @@ training/submit_vertex_job.py
 Submits a containerized Vertex AI Custom Training Job using the Google Cloud AI Platform SDK.
 """
 
-import os
 import sys
 from pathlib import Path
 from google.cloud import aiplatform, storage
