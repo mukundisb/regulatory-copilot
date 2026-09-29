@@ -17,9 +17,9 @@ env/
 .vscode/
 .idea/
 
-# Model artifacts — large binaries don't belong in plain git history.
-maude_classifier/model/*.joblib
-maude_classifier/model/
+# Model artifacts — large binaries don't belong in plain git history along with TF-IDF fallback artifact (joblib file) which is needed by Cloud Run
+maude_classifier/model/*
+!maude_classifier/model/maude_classifier.joblib
 *.pkl
 *.pt
 *.h5
