@@ -39,4 +39,3 @@ models/
 # Adding mlflow artifacts
 mlruns/
 mlflow.db
-eu_mdr_text.txt
