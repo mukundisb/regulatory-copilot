@@ -81,6 +81,9 @@ Both models use the same `maude_classifier/text_cleaner.clean_text` as the train
 - **Corpus:** Regulation (EU) 2017/745 (EU-MDR). `extract_pdf.py` turns the PDF into `eu_mdr_text.txt`. Running `python rag_pipeline.py` splits the text on Article and Annex headers, chunks each section into 350-word windows with a 50-word overlap, tags every chunk with its section title, and writes it to a persistent ChromaDB collection at `./chroma_db`.
 - **Embeddings:** `all-MiniLM-L6-v2` via `sentence-transformers`, with cosine distance.
 - **Grounding:** citations are only valid if they match the section titles of the chunks actually retrieved for that request (`rag_recommender.py`). That check is enforced in code, not left to the prompt.
+- `chroma_db/` is treated strictly as an ephemeral build artifact and is excluded from version control.
+- Canonical legal text (`eu_mdr_text.txt`, ~660KB) is versioned in Git.
+- On container cold start, `app.py` checks `collection.count() == 0`. If empty, it automatically triggers `rag_pipeline.ingest_document("eu_mdr_text.txt")`, embedding chunks with `all-MiniLM-L6-v2`.
 
 ## Training & promotion
 

@@ -12,8 +12,9 @@ from config import settings
 from maude_classifier.classifier import predict_single as predict_tfidf
 from maude_classifier.text_cleaner import clean_text
 from maude_classifier.vertex_client import VertexClassifierClient, VertexColdStartException
-from rag_pipeline import init_store, query_store
+from rag_pipeline import init_store, query_store, ingest_document
 from rag_recommender import generate_grounded_recommendation
+from pathlib import Path
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,7 +68,19 @@ async def lifespan(app: FastAPI):
         logger.info("Running on local TF-IDF backend.")
 
     # 3. Initialize ChromaDB collection
-    init_store()
+    EU_MDR_SOURCE_PATH = Path("eu_mdr_text.txt")
+    collection = init_store()
+
+    count = collection.count()
+    logger.info("Chroma collection '%s' loaded with %d documents.", "document_collection", count)
+
+    if count == 0:
+        if EU_MDR_SOURCE_PATH.exists():
+            logger.warning("Empty chroma store detected.Bootstrapping from %s...", EU_MDR_SOURCE_PATH)
+            ingest_document(str(EU_MDR_SOURCE_PATH))
+            logger.info("Cold-boot ingestion complete. Collection count: %d", collection.count())
+        else:
+            logger.error("Chroma store is empty and %s was not found.", EU_MDR_SOURCE_PATH)
 
     yield
 

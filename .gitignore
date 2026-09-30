@@ -29,7 +29,6 @@ coaching/
 
 # Vector Database & Extracted Artifacts
 chroma_db/
-eu_mdr_text.txt
 # Local Netlify folder
 .netlify
 
