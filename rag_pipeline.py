@@ -2,6 +2,14 @@ import os
 import re
 import chromadb
 from chromadb.utils import embedding_functions
+import hashlib
+import json
+import logging
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Tuple, List
+
+logger = logging.getLogger(__name__)
 
 # Explicit parameter decisions:
 # CHUNK_SIZE = 350 words (~450 tokens): EU-MDR legal clauses average 200–300 words. 
@@ -13,9 +21,47 @@ DEFAULT_CHUNK_SIZE = 350
 DEFAULT_OVERLAP = 50
 DB_PATH = os.environ.get("CHROMA_PERSIST_DIRECTORY") or os.environ.get("CHROMA_DB_DIR") or "./chroma_db"
 COLLECTION_NAME = "document_collection"
+EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"  # Sentence-Transformers model for semantic embeddings
 
 client = None
 collection = None
+
+def compute_file_sha256(filepath: Path) -> str:
+    """Computes exact SHA-256 byte digest for content drift detection."""
+    sha256 = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        while chunk := f.read(65536):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+def get_registry_path(persist_dir: str = None) -> Path:
+    base_dir = Path(persist_dir or DB_PATH)
+    return base_dir / "registry.json"
+
+def write_feature_registry(
+    persist_dir: str,
+    source_file: Path,
+    chunk_count: int,
+    embedding_dimension: int,
+) -> Path:
+    registry_data: Dict[str, Any] = {
+        "embedding_model": EMBEDDING_MODEL_NAME,
+        "embedding_dimension": embedding_dimension,
+        "chunk_size": DEFAULT_CHUNK_SIZE,
+        "chunk_overlap": DEFAULT_OVERLAP,
+        "source_file": source_file.name,
+        "source_content_hash": compute_file_sha256(source_file),
+        "chunk_count": chunk_count,
+        "ingested_at": datetime.now(timezone.utc).isoformat(),
+    }
+    
+    target_path = get_registry_path(persist_dir)
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(target_path, "w", encoding="utf-8") as f:
+        json.dump(registry_data, f, indent=2)
+    
+    logger.info("Feature registry written to %s", target_path)
+    return target_path
 
 # 1. Initialize embedding function (Sentence-Transformers)
 def init_store(persist_directory: str = None):
@@ -29,7 +75,7 @@ def init_store(persist_directory: str = None):
         return collection
 
     embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name="all-MiniLM-L6-v2"
+        model_name=EMBEDDING_MODEL_NAME
     )
     client = chromadb.PersistentClient(path=target_path)
     collection = client.get_or_create_collection(
@@ -73,34 +119,75 @@ def split_into_sections(text: str) -> list[tuple[str, str]]:
     return sections
 
 # 4. Ingestion Workflow
-def ingest_document(file_path: str):
-    global collection
-    if collection is None:
-        init_store()
+def ingest_document(source_path: str, persist_directory: str = None) -> int:
+    """
+    Ingests source text preserving statutory Article/Annex section boundaries,
+    indexes them into ChromaDB, and writes registry.json strictly on success.
+    """
+    col = init_store(persist_directory)
+    file_path = Path(source_path)
+    if not file_path.exists():
+        raise FileNotFoundError(f"Source file {source_path} does not exist.")
 
     with open(file_path, "r", encoding="utf-8") as f:
         raw_text = f.read()
 
+    # 1. Parse statutory boundaries using existing domain parsers
     sections = split_into_sections(raw_text)
 
-    ids, documents, metadatas = [], [], []
-    for label, body in sections:
-        for chunk in chunk_text(body, chunk_size=DEFAULT_CHUNK_SIZE, overlap=DEFAULT_OVERLAP):
-            chunk_id = len(ids)
-            ids.append(f"doc_chunk_{chunk_id}")
-            documents.append(f"[{label}]\n{chunk}")
-            metadatas.append({
-                "chunk_index": chunk_id,
-                "section": label,
-                "total_words": len(chunk.split()),
-            })
+    all_chunks: List[str] = []
+    chunk_ids: List[str] = []
+    metadatas: List[Dict[str, Any]] = []
 
-    collection.add(
-        documents=documents,
-        ids=ids,
-        metadatas=metadatas
+    for section_title, section_body in sections:
+        # Window within statutory section boundaries
+        sub_chunks = chunk_text(
+            section_body,
+            chunk_size=DEFAULT_CHUNK_SIZE,
+            overlap=DEFAULT_OVERLAP,
+        )
+        for chunk in sub_chunks:
+            # Prepend statutory header to text for embedding/generation clarity
+            formatted_text = f"[{section_title}]\n{chunk}"
+            chunk_id = f"doc_chunk_{len(all_chunks)}"
+            all_chunks.append(formatted_text)
+            chunk_ids.append(chunk_id)
+            metadatas.append(
+                {
+                    "source": file_path.name,
+                    "section": section_title,
+                    "chunk_index": len(all_chunks) - 1,
+                }
+            )
+
+    if not all_chunks:
+        logger.warning("No chunks generated from %s", source_path)
+        return 0
+
+    # 2. Derive embedding dimension via live forward pass on chunk 0
+    probe_vector = col._embedding_function([all_chunks[0]])
+    actual_dimension = len(probe_vector[0])
+
+    # 3. Add to Chroma in batches
+    batch_size = 100
+    for i in range(0, len(all_chunks), batch_size):
+        end_idx = min(i + batch_size, len(all_chunks))
+        col.add(
+            ids=chunk_ids[i:end_idx],
+            documents=all_chunks[i:end_idx],
+            metadatas=metadatas[i:end_idx],
+        )
+
+    # 4. ORDERING INVARIANT: Only record registry once insertion succeeds
+    target_dir = persist_directory or DB_PATH
+    write_feature_registry(
+        persist_dir=target_dir,
+        source_file=file_path,
+        chunk_count=len(all_chunks),
+        embedding_dimension=actual_dimension,
     )
-    print(f"Ingested {len(documents)} chunks across {len(sections)} sections into ChromaDB at '{DB_PATH}'.")
+
+    return len(all_chunks)
 
 # 5. Query Function
 def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45) -> list[dict]:
@@ -140,6 +227,58 @@ def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45)
             "text": doc,
         })
     return output
+
+def verify_feature_registry(
+    source_file: Path,
+    persist_dir: str = None
+) -> Tuple[bool, List[str]]:
+    """
+    Compares stored registry metadata against current runtime constants and source file hash.
+    Returns (is_valid, list_of_mismatch_messages).
+    """
+    reg_path = get_registry_path(persist_dir)
+    if not reg_path.exists():
+        return False, [f"Registry file not found at {reg_path}"]
+
+    try:
+        with open(reg_path, "r", encoding="utf-8") as f:
+            stored = json.load(f)
+    except Exception as err:
+        return False, [f"Failed to parse registry at {reg_path}: {err}"]
+
+    mismatches: List[str] = []
+
+    # 1. Chunk size check
+    if stored.get("chunk_size") != DEFAULT_CHUNK_SIZE:
+        mismatches.append(
+            f"chunk_size mismatch: registry={stored.get('chunk_size')} vs current_runtime={DEFAULT_CHUNK_SIZE}"
+        )
+
+    # 2. Chunk overlap check
+    if stored.get("chunk_overlap") != DEFAULT_OVERLAP:
+        mismatches.append(
+            f"chunk_overlap mismatch: registry={stored.get('chunk_overlap')} vs current_runtime={DEFAULT_OVERLAP}"
+        )
+
+    # 3. Embedding model check
+    if stored.get("embedding_model") != EMBEDDING_MODEL_NAME:
+        mismatches.append(
+            f"embedding_model mismatch: registry={stored.get('embedding_model')} vs current_runtime={EMBEDDING_MODEL_NAME}"
+        )
+
+    # 4. Source file content hash check
+    if source_file.exists():
+        current_hash = compute_file_sha256(source_file)
+        stored_hash = stored.get("source_content_hash")
+        if current_hash != stored_hash:
+            mismatches.append(
+                f"source_content_hash mismatch for {source_file.name}: "
+                f"registry={stored_hash} vs disk={current_hash}"
+            )
+    else:
+        mismatches.append(f"Source file {source_file} missing from disk for verification.")
+
+    return (len(mismatches) == 0, mismatches)
 
 if __name__ == "__main__":
     DOC_PATH = "eu_mdr_text.txt"

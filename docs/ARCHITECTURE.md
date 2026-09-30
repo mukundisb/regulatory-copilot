@@ -121,6 +121,27 @@ One multi-stage `Dockerfile` produces three images. **Always pass `--target`**: 
 
 Runtime dependencies are in `requirements.txt`. Test and offline-tooling dependencies (`pytest`, `mlflow`, `pdfplumber`) are in `requirements-dev.txt`.
 
+### Vector Feature Registry & Parity Control
+
+#### Scope & Operating Boundaries
+Cloud Run deploys run in an ephemeral container environment with no persistent volume or GCS FUSE mount. Consequently, production cold starts rebuild the index fresh from the checked-in `eu_mdr_text.txt` and current runtime code. 
+
+The primary failure mode guarded by the Vector Feature Registry is **local development drift**: developers switching branches or altering chunking constants (`DEFAULT_CHUNK_SIZE`, `DEFAULT_OVERLAP`) while persisting stale SQLite indexes locally at `./chroma_db`.
+
+#### Registry Schema (`<persist_directory>/registry.json`)
+The registry is written inside `ingest_document()` strictly after `collection.add()` completes:
+- `embedding_model`: Model name string (`all-MiniLM-L6-v2`).
+- `embedding_dimension`: Dimension measured by passing a probe vector to `embedding_fn` during ingestion (`384`).
+- `chunk_size` / `chunk_overlap`: Runtime chunking parameters (`350` / `50`).
+- `source_file`: Corpus filename (`eu_mdr_text.txt`).
+- `source_content_hash`: SHA-256 byte digest of the source text at ingest.
+- `chunk_count`: Actual chunk count written to the store.
+- `ingested_at`: UTC ISO timestamp.
+
+#### Parity Contrast: RAG vs. Standby Classifier
+- **Standby Classifier**: The TF-IDF vectorizer and Logistic Regression model are coupled and serialized together inside `maude_classifier/model/maude_classifier.joblib` via an `sklearn.Pipeline`. Feature definition and inference code share structural parity at artifact level.
+- **RAG Subsystem**: Embeddings, tokenization parameters, and source statutory text are maintained separately from the vector database engine. The registry provides structural auditability to enforce feature store integrity across local code iterations.
+
 ## Known limitations / not yet built
 
 These are deliberate scope boundaries, listed so they're easy to discuss rather than easy to miss:

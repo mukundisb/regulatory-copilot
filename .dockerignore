@@ -39,3 +39,7 @@ models/
 # Adding mlflow artifacts
 mlruns/
 mlflow.db
+
+#Adding chromadb artifacts
+chroma_db/
+*.sqlite3

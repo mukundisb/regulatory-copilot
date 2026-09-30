@@ -7,12 +7,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
 import joblib
+import rag_pipeline
 
 from config import settings
 from maude_classifier.classifier import predict_single as predict_tfidf
 from maude_classifier.text_cleaner import clean_text
 from maude_classifier.vertex_client import VertexClassifierClient, VertexColdStartException
-from rag_pipeline import init_store, query_store, ingest_document
+from rag_pipeline import init_store, query_store, ingest_document, verify_feature_registry, COLLECTION_NAME
 from rag_recommender import generate_grounded_recommendation
 from pathlib import Path
 
@@ -39,8 +40,13 @@ def get_maude_pipeline():
             raise RuntimeError(f"Standby TF-IDF model unavailable at {settings.model_path}") from e
     return ml_models["maude_pipeline"]
 
+# Application-level degraded state flag for downstream /assess routing
+rag_grounding_degraded = False
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global rag_grounding_degraded
+
     # 1. Fail-Fast: Standby TF-IDF model MUST exist and load cleanly
     logger.info(f"Loading mandatory standby TF-IDF pipeline from {settings.model_path}...")
     try:
@@ -67,20 +73,36 @@ async def lifespan(app: FastAPI):
         ml_models["vertex_client"] = None
         logger.info("Running on local TF-IDF backend.")
 
-    # 3. Initialize ChromaDB collection
+    # 3. Initialize ChromaDB collection and audit Feature Store Registry
     EU_MDR_SOURCE_PATH = Path("eu_mdr_text.txt")
     collection = init_store()
 
     count = collection.count()
-    logger.info("Chroma collection '%s' loaded with %d documents.", "document_collection", count)
+    logger.info("Chroma collection '%s' loaded with %d documents.", COLLECTION_NAME, count)
 
     if count == 0:
         if EU_MDR_SOURCE_PATH.exists():
-            logger.warning("Empty chroma store detected.Bootstrapping from %s...", EU_MDR_SOURCE_PATH)
+            logger.warning("Empty chroma store detected. Bootstrapping from %s...", EU_MDR_SOURCE_PATH)
+            # ingest_document embeds chunks and writes registry.json upon completion
             ingest_document(str(EU_MDR_SOURCE_PATH))
             logger.info("Cold-boot ingestion complete. Collection count: %d", collection.count())
         else:
             logger.error("Chroma store is empty and %s was not found.", EU_MDR_SOURCE_PATH)
+            rag_grounding_degraded = True
+    else:
+        # Vector store is populated: audit registry against current code parameters and source bytes
+        is_valid, mismatches = verify_feature_registry(EU_MDR_SOURCE_PATH)
+        if not is_valid:
+            rag_grounding_degraded = True
+            logger.error("=================================================================")
+            logger.error("FEATURE STORE DRIFT DETECTED IN LOCAL VECTOR REGISTRY:")
+            for mismatch in mismatches:
+                logger.error("  -> %s", mismatch)
+            logger.error("Refusing grounded /assess responses. Re-run ingestion to resolve.")
+            logger.error("=================================================================")
+        else:
+            rag_grounding_degraded = False
+            logger.info("Feature store registry verified: embeddings, chunk parameters, and source hashes match.")
 
     yield
 
@@ -301,15 +323,22 @@ def assess(data: ClassifyRequest):
         probs = clf_result.get("probabilities") or {}
         confidence = float(probs.get(predicted_label, 1.0))
 
-    # 2. Label-driven query synthesis
-    primary_query = build_retrieval_query(predicted_label, data.narrative)
-
-    # 3. Adaptive retrieval with quality evaluation and fallback
-    chunks, query_used, fallback_triggered = retrieve_with_fallback(
-        primary_query=primary_query,
-        fallback_query=data.narrative,
-        top_k=3,
-    )
+    # 2. Vector Registry Audit Guard
+    if rag_grounding_degraded:
+        logger.warning("Feature store degraded (drift or unseeded store). Bypassing RAG retrieval.")
+        chunks = []
+        query_used = "BYPASSED_DUE_TO_FEATURE_REGISTRY_DRIFT"
+        fallback_triggered = True
+        drift_warning = "Feature store registry drift detected. Regulatory retrieval disabled; serving rule-based template."
+    else:
+        # 3. Label-driven query synthesis & adaptive retrieval
+        primary_query = build_retrieval_query(predicted_label, data.narrative)
+        chunks, query_used, fallback_triggered = retrieve_with_fallback(
+            primary_query=primary_query,
+            fallback_query=data.narrative,
+            top_k=3,
+        )
+        drift_warning = None
 
     # 4. LLM-grounded recommendation generation with citation containment
     top_score = chunks[0]["similarity_score"] if chunks else 0.0
@@ -322,14 +351,15 @@ def assess(data: ClassifyRequest):
         threshold=RETRIEVAL_QUALITY_THRESHOLD,
     )
 
-    combined_warning = clf_result.get("warning")
-    if rec_result.get("warning"):
-        combined_warning = f"{combined_warning} | {rec_result['warning']}" if combined_warning else rec_result["warning"]
+    # 5. Aggregate warnings across classifier, recommender, and registry guard
+    warnings = [w for w in [clf_result.get("warning"), rec_result.get("warning"), drift_warning] if w]
+    combined_warning = " | ".join(warnings) if warnings else None
 
     latency_ms = (time.perf_counter() - start_time) * 1000
     logger.info(
         f"event = assess_success predicted_label = {predicted_label} confidence = {confidence:.4f} "
         f"classifier_backend = {clf_result.get('backend_used')} "
+        f"rag_grounding_degraded = {rag_grounding_degraded} "
         f"retrieval_fallback_triggered = {fallback_triggered} "
         f"llm_verified = {rec_result['llm_grounding_verified']} "
         f"citations = {rec_result['citations']} "
@@ -348,7 +378,6 @@ def assess(data: ClassifyRequest):
         backend_used=clf_result.get("backend_used"),
         warning=combined_warning,
     )
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host=settings.host, port=settings.port, reload=True)
