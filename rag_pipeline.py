@@ -229,14 +229,16 @@ def query_store(query_string: str, top_k: int = 3, min_similarity: float = 0.45)
     return output
 
 def verify_feature_registry(
-    source_file: Path,
-    persist_dir: str = None
+    persist_dir: str = None,
+    source_file: Path = None,
 ) -> Tuple[bool, List[str]]:
     """
     Compares stored registry metadata against current runtime constants and source file hash.
-    Returns (is_valid, list_of_mismatch_messages).
+    Resolves the source file from registry metadata if not explicitly provided.
     """
+    base_dir = Path(persist_dir or DB_PATH)
     reg_path = get_registry_path(persist_dir)
+
     if not reg_path.exists():
         return False, [f"Registry file not found at {reg_path}"]
 
@@ -266,19 +268,36 @@ def verify_feature_registry(
             f"embedding_model mismatch: registry={stored.get('embedding_model')} vs current_runtime={EMBEDDING_MODEL_NAME}"
         )
 
-    # 4. Source file content hash check
-    if source_file.exists():
-        current_hash = compute_file_sha256(source_file)
+    # 4. Resolve source file from registry metadata if not overridden
+    target_source = source_file
+    if target_source is None:
+        raw_source_name = stored.get("source_file")
+        if not raw_source_name:
+            mismatches.append("registry.json is missing required 'source_file' field.")
+            return False, mismatches
+
+        # Resolve candidate relative to CWD, base_dir, and base_dir's parent
+        candidate = Path(raw_source_name)
+        if not candidate.exists():
+            candidate = base_dir / raw_source_name
+        if not candidate.exists() and base_dir.parent.exists():
+            candidate = base_dir.parent / raw_source_name
+
+        target_source = candidate
+
+    # 5. Content hash verification
+    if target_source.exists():
+        current_hash = compute_file_sha256(target_source)
         stored_hash = stored.get("source_content_hash")
         if current_hash != stored_hash:
             mismatches.append(
-                f"source_content_hash mismatch for {source_file.name}: "
+                f"source_content_hash mismatch for {target_source.name}: "
                 f"registry={stored_hash} vs disk={current_hash}"
             )
     else:
-        mismatches.append(f"Source file {source_file} missing from disk for verification.")
+        mismatches.append(f"Recorded source file '{target_source}' does not exist on disk.")
 
-    return (len(mismatches) == 0, mismatches)
+    return len(mismatches) == 0, mismatches
 
 if __name__ == "__main__":
     DOC_PATH = "eu_mdr_text.txt"

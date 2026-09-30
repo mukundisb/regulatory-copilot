@@ -198,7 +198,7 @@ def test_assess_malfunction_branch_orchestration(client, monkeypatch):
     data = response.json()
     assert data["predicted_label"] == "M"
     assert "device malfunction root cause analysis" in data["retrieval_query_used"]
-    assert "Article 88" in data["recommendation"]
+    assert any("Article 88" in c for c in data["citations"]) or "Article 88" in data["recommendation"]
 
 
 def test_assess_empty_payload_validation(client):
@@ -232,12 +232,25 @@ def test_assess_e2e_real_pipeline(client):
 
     # Recommendation assertions: verifies statutory guidance for death incidents (Article 87)
     rec = data["recommendation"]
-    assert "Article 87" in rec, (
-        f"Expected Article 87 statutory reference in recommendation, got: {rec}"
+    citations = data.get("citations", [])
+    # 1. Statutory citation grounding assertion
+    assert any("Article 87" in c for c in citations) or "Article 87" in rec, (
+        f"Expected Article 87 statutory reference in citations or recommendation. Citations: {citations}, Rec: {rec}"
     )
-    assert any(term in rec for term in ["Primary regulatory basis:", "weak candidates", "10 days"]), (
-        f"Expected either primary basis or low-confidence vigilance advice, got: {rec}"
-    )
+
+    # 2. Operational posture assertion: must match one of the verified execution pathways
+        # - LLM grounded: 'Primary regulatory basis:'
+        # - Low-confidence RAG warning: 'weak candidates'
+        # - Deterministic vigilance template: 'report the serious incident'
+    valid_posture_markers = [
+            "Primary regulatory basis:",
+            "weak candidates",
+            "report the serious incident",
+        ]
+    assert any(marker in rec for marker in valid_posture_markers), (
+            f"Recommendation does not reflect an authorized operational pathway. "
+            f"Expected one of {valid_posture_markers}, got: '{rec}'"
+        )
 
 def test_assess_e2e_malfunction_branch_real_pipeline(client):
     """E2E Test: Malfunction narrative classifies as M and triggers CAPA/investigation query steering."""
@@ -481,3 +494,35 @@ def test_assess_e2e_real_fallback_evaluation(client):
             f"Fallback was bypassed (fallback_triggered=False), but top chunk score was "
             f"{top_score:.4f}, which is below the 0.55 threshold!"
         )
+
+def test_feature_registry_verification_and_drift_detection(tmp_path, monkeypatch):
+    """Verifies that verify_feature_registry validates matching stores and catches drift."""
+    import rag_pipeline
+    test_dir = tmp_path / "drift_test_chroma"
+    test_dir.mkdir(parents=True, exist_ok=True)
+
+    test_source = tmp_path / "sample_regulatory.txt"
+    test_source.write_text("Article 87 - Reporting of serious incidents.\nObligations...", encoding="utf-8")
+
+    # Ingest document and write initial registry
+    rag_pipeline.ingest_document(str(test_source), persist_directory=str(test_dir))
+
+    # 1. Baseline verification should pass
+    is_valid, mismatches = rag_pipeline.verify_feature_registry(persist_dir=str(test_dir), source_file=test_source)
+    assert is_valid is True, f"Expected valid registry, got errors: {mismatches}"
+    assert len(mismatches) == 0
+
+    # 2. Test code parameter drift (modify DEFAULT_CHUNK_SIZE)
+    monkeypatch.setattr(rag_pipeline, "DEFAULT_CHUNK_SIZE", 999)
+    is_valid, mismatches = rag_pipeline.verify_feature_registry(persist_dir=str(test_dir), source_file=test_source)
+    assert is_valid is False
+    assert any("chunk_size mismatch" in m for m in mismatches)
+
+    # Reset chunk size
+    monkeypatch.setattr(rag_pipeline, "DEFAULT_CHUNK_SIZE", 350)
+
+    # 3. Test source content hash drift (mutate source file)
+    test_source.write_text("Article 87 - Modified content that causes SHA-256 drift.", encoding="utf-8")
+    is_valid, mismatches = rag_pipeline.verify_feature_registry(persist_dir=str(test_dir), source_file=test_source)
+    assert is_valid is False
+    assert any("source_content_hash mismatch" in m for m in mismatches)

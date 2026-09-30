@@ -59,72 +59,75 @@ def setup_test_classifier_model():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_test_chroma_db():
+def setup_session_golden_chroma_db(tmp_path_factory):
     """
-    Initializes rag_pipeline's own store and seeds it with high-relevance documents
-    matching the exact query strings and metadata schema.
+    Session-scoped: Ingests the canonical eu_mdr_text.txt once into a golden directory.
+    All tests clone this golden directory, giving every test the full 412 chunks 
+    and a valid registry.json without re-running ingestion repeatedly.
     """
-    # 1. Initialize the application's real collection instance
-    rag_pipeline.init_store()
-    collection = rag_pipeline.collection
+    golden_dir = tmp_path_factory.mktemp("golden_chroma_db")
+    corpus_path = Path("eu_mdr_text.txt")
+    
+    rag_pipeline.client = None
+    rag_pipeline.collection = None
 
-    # 2. Seeded documents with high overlap to guarantee similarity_score >= 0.55
-    seeded_docs = [
-        # Matches test_retrieve_e2e_real_store
-        "In what language must device labels, packaging information, and instructions for use be provided? "
-        "ANNEX I General Safety and Performance Requirements for device labels and translation obligations.",
+    if corpus_path.exists():
+        # Ingest the real corpus once for the entire session (~8s)
+        rag_pipeline.ingest_document(str(corpus_path), persist_directory=str(golden_dir))
+    else:
+        # Fallback to synthetic if eu_mdr_text.txt is missing
+        collection = rag_pipeline.init_store(persist_directory=str(golden_dir))
+        docs = [
+            "Article 10 - General obligations of manufacturers regarding quality management systems.",
+            "Article 87 - Reporting of serious incidents and field safety corrective actions vigilance timelines.",
+            "Article 88 - Trend reporting for medical devices.",
+            "Article 89 - Analysis of serious incidents and corrective actions by competent authorities."
+        ]
 
-        # Matches test_assess_e2e_real_pipeline (D/I branch)
-        "serious incident reporting vigilance timelines manufacturer obligations for acute myocardial infarction, "
-        "catheter fracture, embolization, death, and severe patient deterioration under Article 87.",
+        # Write actual fixture bytes to disk so compute_file_sha256 does not raise FileNotFoundError
+        fallback_corpus_file = golden_dir / "test.txt"
+        fallback_corpus_file.write_text("\n\n".join(docs), encoding="utf-8")
 
-        # Matches test_assess_e2e_malfunction_branch_real_pipeline & fallback test (M branch)
-        "device malfunction root cause analysis trend reporting corrective action. "
-        "Infusion pump screen froze stopped delivery medication error code E-402 ventilator display error code E-102 stopped oxygen delivery under Article 88."
-    ]
-
-    seeded_metadatas = [
-        {"section": "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS", "chunk_id": "doc_chunk_283"},
-        {"section": "Article 87 - Reporting of serious incidents and vigilance timelines", "chunk_id": "doc_chunk_180"},
-        {"section": "Article 88 - Trend reporting and device malfunction CAPA", "chunk_id": "doc_chunk_182"}
-    ]
-
-    seeded_ids = ["doc_chunk_283", "doc_chunk_180", "doc_chunk_182"]
-
-    # Ingest seed documents if collection is empty or fresh
-    if collection.count() == 0:
+        
         collection.add(
-            documents=seeded_docs,
-            metadatas=seeded_metadatas,
-            ids=seeded_ids
+            ids=[f"doc_chunk_{i}" for i in range(len(docs))],
+            documents=docs,
+            metadatas=[{"source": "test.txt", "section": d.split(" - ")[0], "chunk_index": i} for i, d in enumerate(docs)]
+        )
+        probe = collection._embedding_function([docs[0]])
+        rag_pipeline.write_feature_registry(
+            persist_dir=str(golden_dir),
+            source_file=golden_dir / "test.txt",
+            chunk_count=len(docs),
+            embedding_dimension=len(probe[0]),
         )
 
-    yield
+    yield golden_dir
+
+    rag_pipeline.client = None
+    rag_pipeline.collection = None
+
 
 @pytest.fixture(autouse=True)
-def isolate_test_chroma(tmp_path, monkeypatch):
-    """Direct all test vector DB operations to an isolated temp directory."""
+def isolate_test_chroma(tmp_path, setup_session_golden_chroma_db, monkeypatch):
+    """
+    Function-scoped: Clones the pre-seeded session golden store (with its registry.json)
+    into an isolated per-test directory. Every test starts with count > 0,
+    actively exercising verify_feature_registry() without re-embedding eu_mdr_text.txt.
+    """
     test_db_dir = tmp_path / "test_chroma_db"
-    # If a seeded store already exists at ./chroma_db, clone it into the temp path
-    source_chroma = Path("./chroma_db")
-    if source_chroma.exists() and any(source_chroma.iterdir()):
-        shutil.copytree(source_chroma, test_db_dir, dirs_exist_ok=True)
-    else:
-        test_db_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(setup_session_golden_chroma_db, test_db_dir, dirs_exist_ok=True)
 
-    # 1. Set environment variables
+    # Point environment and pipeline to this test's isolated directory
     monkeypatch.setenv("CHROMA_PERSIST_DIRECTORY", str(test_db_dir))
     monkeypatch.setenv("CHROMA_DB_DIR", str(test_db_dir))
-
-    # 2. Patch module attribute directly
     monkeypatch.setattr(rag_pipeline, "DB_PATH", str(test_db_dir))
 
-    # 3. Reset module singletons directly
-    monkeypatch.setattr(rag_pipeline, "client", None)
-    monkeypatch.setattr(rag_pipeline, "collection", None)
+    # Reset singletons so Chroma re-binds to the function's isolated store
+    rag_pipeline.client = None
+    rag_pipeline.collection = None
 
     yield str(test_db_dir)
 
-    # 4. Clear singletons on teardown
     rag_pipeline.client = None
     rag_pipeline.collection = None

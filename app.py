@@ -83,15 +83,14 @@ async def lifespan(app: FastAPI):
     if count == 0:
         if EU_MDR_SOURCE_PATH.exists():
             logger.warning("Empty chroma store detected. Bootstrapping from %s...", EU_MDR_SOURCE_PATH)
-            # ingest_document embeds chunks and writes registry.json upon completion
             ingest_document(str(EU_MDR_SOURCE_PATH))
             logger.info("Cold-boot ingestion complete. Collection count: %d", collection.count())
         else:
             logger.error("Chroma store is empty and %s was not found.", EU_MDR_SOURCE_PATH)
             rag_grounding_degraded = True
     else:
-        # Vector store is populated: audit registry against current code parameters and source bytes
-        is_valid, mismatches = verify_feature_registry(EU_MDR_SOURCE_PATH)
+        # Self-contained audit: reads registry.json and verifies against the source file it names
+        is_valid, mismatches = verify_feature_registry()
         if not is_valid:
             rag_grounding_degraded = True
             logger.error("=================================================================")
