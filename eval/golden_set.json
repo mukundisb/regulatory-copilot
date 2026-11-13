@@ -1,0 +1,429 @@
+{
+  "description": "Golden set for evaluating EU-MDR retrieval and citation. 'question' items are sent to retrieval as-is (same as POST /retrieve). 'narrative' items are adverse event narratives with a given MAUDE label and go through the label-steered retrieval used by POST /assess. expected_sections lists every section accepted as correct, by its header prefix (e.g. 'Article 87').",
+  "status": "REVIEWED - expected_sections are reviewed against the regulation text. Results can be published",
+  "source_document": "eu_mdr_text.txt (Regulation (EU) 2017/745)",
+  "items": [
+    {
+      "id": "Q01",
+      "type": "question",
+      "query": "What is the deadline for a manufacturer to report a serious incident to the competent authority?",
+      "expected_sections": [
+        "Article 87"
+      ]
+    },
+    {
+      "id": "Q02",
+      "type": "question",
+      "query": "How quickly must a serious public health threat be reported?",
+      "expected_sections": [
+        "Article 87"
+      ]
+    },
+    {
+      "id": "Q03",
+      "type": "question",
+      "query": "What is the reporting timeline when a device incident results in death or an unanticipated serious deterioration in a person's state of health?",
+      "expected_sections": [
+        "Article 87"
+      ]
+    },
+    {
+      "id": "Q04",
+      "type": "question",
+      "query": "When must a manufacturer report a field safety corrective action?",
+      "expected_sections": [
+        "Article 87"
+      ]
+    },
+    {
+      "id": "Q05",
+      "type": "question",
+      "query": "Can a manufacturer submit periodic summary reports instead of individual serious incident reports for similar incidents?",
+      "expected_sections": [
+        "Article 87"
+      ]
+    },
+    {
+      "id": "Q06",
+      "type": "question",
+      "query": "What must a manufacturer do when there is a statistically significant increase in the frequency or severity of non-serious incidents?",
+      "expected_sections": [
+        "Article 88"
+      ]
+    },
+    {
+      "id": "Q07",
+      "type": "question",
+      "query": "After reporting a serious incident, what investigation must the manufacturer perform?",
+      "expected_sections": [
+        "Article 89"
+      ]
+    },
+    {
+      "id": "Q08",
+      "type": "question",
+      "query": "How do competent authorities monitor vigilance data to identify trends or signals?",
+      "expected_sections": [
+        "Article 90"
+      ]
+    },
+    {
+      "id": "Q09",
+      "type": "question",
+      "query": "What must a manufacturer's post-market surveillance system do?",
+      "expected_sections": [
+        "Article 83"
+      ]
+    },
+    {
+      "id": "Q10",
+      "type": "question",
+      "query": "What is the post-market surveillance plan and where are its requirements set out?",
+      "expected_sections": [
+        "Article 84",
+        "ANNEX III"
+      ]
+    },
+    {
+      "id": "Q11",
+      "type": "question",
+      "query": "Which devices require a post-market surveillance report and what should it contain?",
+      "expected_sections": [
+        "Article 85"
+      ]
+    },
+    {
+      "id": "Q12",
+      "type": "question",
+      "query": "Which device classes require a periodic safety update report and how often must it be updated?",
+      "expected_sections": [
+        "Article 86"
+      ]
+    },
+    {
+      "id": "Q13",
+      "type": "question",
+      "query": "What should the technical documentation on post-market surveillance contain?",
+      "expected_sections": [
+        "ANNEX III"
+      ]
+    },
+    {
+      "id": "Q14",
+      "type": "question",
+      "query": "What must a manufacturer's quality management system address?",
+      "expected_sections": [
+        "Article 10"
+      ]
+    },
+    {
+      "id": "Q15",
+      "type": "question",
+      "query": "How long must manufacturers keep the technical documentation and the EU declaration of conformity available for competent authorities?",
+      "expected_sections": [
+        "Article 10"
+      ]
+    },
+    {
+      "id": "Q16",
+      "type": "question",
+      "query": "What tasks must an authorised representative perform under its mandate?",
+      "expected_sections": [
+        "Article 11"
+      ]
+    },
+    {
+      "id": "Q17",
+      "type": "question",
+      "query": "What must an importer verify before placing a device on the market?",
+      "expected_sections": [
+        "Article 13"
+      ]
+    },
+    {
+      "id": "Q18",
+      "type": "question",
+      "query": "What are the obligations of distributors when making a device available on the market?",
+      "expected_sections": [
+        "Article 14"
+      ]
+    },
+    {
+      "id": "Q19",
+      "type": "question",
+      "query": "What qualifications must the person responsible for regulatory compliance have?",
+      "expected_sections": [
+        "Article 15"
+      ]
+    },
+    {
+      "id": "Q20",
+      "type": "question",
+      "query": "Under what conditions can single-use devices be reprocessed?",
+      "expected_sections": [
+        "Article 17"
+      ]
+    },
+    {
+      "id": "Q21",
+      "type": "question",
+      "query": "What information must be provided on an implant card?",
+      "expected_sections": [
+        "Article 18"
+      ]
+    },
+    {
+      "id": "Q22",
+      "type": "question",
+      "query": "What must the EU declaration of conformity contain?",
+      "expected_sections": [
+        "Article 19",
+        "ANNEX IV"
+      ]
+    },
+    {
+      "id": "Q23",
+      "type": "question",
+      "query": "What obligations apply to custom-made devices?",
+      "expected_sections": [
+        "ANNEX XIII",
+        "Article 52",
+        "Article 21"
+      ]
+    },
+    {
+      "id": "Q24",
+      "type": "question",
+      "query": "What does the Unique Device Identification system consist of?",
+      "expected_sections": [
+        "Article 27"
+      ]
+    },
+    {
+      "id": "Q25",
+      "type": "question",
+      "query": "What must a manufacturer do to register a device before placing it on the market?",
+      "expected_sections": [
+        "Article 29"
+      ]
+    },
+    {
+      "id": "Q26",
+      "type": "question",
+      "query": "How does a manufacturer obtain a single registration number?",
+      "expected_sections": [
+        "Article 31"
+      ]
+    },
+    {
+      "id": "Q27",
+      "type": "question",
+      "query": "Which devices require a summary of safety and clinical performance?",
+      "expected_sections": [
+        "Article 32"
+      ]
+    },
+    {
+      "id": "Q28",
+      "type": "question",
+      "query": "Into which risk classes are medical devices divided?",
+      "expected_sections": [
+        "Article 51"
+      ]
+    },
+    {
+      "id": "Q29",
+      "type": "question",
+      "query": "How is software classified under the classification rules?",
+      "expected_sections": [
+        "ANNEX VIII"
+      ]
+    },
+    {
+      "id": "Q30",
+      "type": "question",
+      "query": "Which conformity assessment procedure applies to class III devices?",
+      "expected_sections": [
+        "Article 52"
+      ]
+    },
+    {
+      "id": "Q31",
+      "type": "question",
+      "query": "For how long are certificates issued by notified bodies valid?",
+      "expected_sections": [
+        "Article 56"
+      ]
+    },
+    {
+      "id": "Q32",
+      "type": "question",
+      "query": "What are the requirements for clinical evaluation, and when can equivalence to another device be claimed?",
+      "expected_sections": [
+        "Article 61",
+        "ANNEX XIV"
+      ]
+    },
+    {
+      "id": "Q33",
+      "type": "question",
+      "query": "What should a post-market clinical follow-up plan include?",
+      "expected_sections": [
+        "ANNEX XIV"
+      ]
+    },
+    {
+      "id": "Q34",
+      "type": "question",
+      "query": "What are the informed consent requirements for subjects in a clinical investigation?",
+      "expected_sections": [
+        "Article 63"
+      ]
+    },
+    {
+      "id": "Q35",
+      "type": "question",
+      "query": "How must adverse events that occur during a clinical investigation be recorded and reported?",
+      "expected_sections": [
+        "Article 80"
+      ]
+    },
+    {
+      "id": "Q36",
+      "type": "question",
+      "query": "What does the risk management system required by the general safety and performance requirements involve?",
+      "expected_sections": [
+        "ANNEX I"
+      ]
+    },
+    {
+      "id": "Q37",
+      "type": "question",
+      "query": "What information must appear on the label and in the instructions for use?",
+      "expected_sections": [
+        "ANNEX I"
+      ]
+    },
+    {
+      "id": "Q38",
+      "type": "question",
+      "query": "What must the technical documentation of a device include?",
+      "expected_sections": [
+        "ANNEX II"
+      ]
+    },
+    {
+      "id": "Q39",
+      "type": "question",
+      "query": "How is a serious incident defined?",
+      "expected_sections": [
+        "Article 2"
+      ]
+    },
+    {
+      "id": "Q40",
+      "type": "question",
+      "query": "What happens when a competent authority finds that a device presents an unacceptable risk to health and safety?",
+      "expected_sections": [
+        "Article 95",
+        "Article 94"
+      ]
+    },
+    {
+      "id": "Q41",
+      "type": "question",
+      "query": "What are the transitional provisions for devices with certificates issued under the previous directives?",
+      "expected_sections": [
+        "Article 120"
+      ]
+    },
+    {
+      "id": "Q42",
+      "type": "question",
+      "query": "What penalties apply for infringement of the regulation?",
+      "expected_sections": [
+        "Article 113"
+      ]
+    },
+    {
+      "id": "N01",
+      "type": "narrative",
+      "label": "D",
+      "query": "Patient with an implanted cardiac defibrillator collapsed at home. The device failed to deliver therapy during ventricular fibrillation and the patient died before emergency services arrived.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ]
+    },
+    {
+      "id": "N02",
+      "type": "narrative",
+      "label": "D",
+      "query": "Infusion pump delivered a tenfold overdose of morphine due to a suspected software fault. Patient went into respiratory arrest and expired despite resuscitation.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ]
+    },
+    {
+      "id": "N03",
+      "type": "narrative",
+      "label": "I",
+      "query": "During hip replacement surgery the femoral stem fractured on insertion. Surgery was prolonged and the patient required a revision procedure two weeks later.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ]
+    },
+    {
+      "id": "N04",
+      "type": "narrative",
+      "label": "I",
+      "query": "Insulin pump occlusion alarm did not sound. Patient developed diabetic ketoacidosis and was hospitalised for three days.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ]
+    },
+    {
+      "id": "N05",
+      "type": "narrative",
+      "label": "I",
+      "query": "Surgical stapler misfired during bowel resection causing an anastomotic leak. Patient required emergency reoperation.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ]
+    },
+    {
+      "id": "N06",
+      "type": "narrative",
+      "label": "M",
+      "query": "Blood glucose meter displayed an error code repeatedly and would not produce a reading. No patient harm reported. Third similar complaint for this lot this month.",
+      "expected_sections": [
+        "Article 88",
+        "Article 87"
+      ]
+    },
+    {
+      "id": "N07",
+      "type": "narrative",
+      "label": "M",
+      "query": "Ventilator touchscreen froze during routine pre-use check. Device was removed from service before patient use. No injury.",
+      "expected_sections": [
+        "Article 88",
+        "Article 87"
+      ]
+    },
+    {
+      "id": "N08",
+      "type": "narrative",
+      "label": "M",
+      "query": "Catheter packaging seal found open on receipt at hospital. Product was not used. Several units from the same batch were affected.",
+      "expected_sections": [
+        "Article 88",
+        "Article 87"
+      ]
+    }
+  ]
+}

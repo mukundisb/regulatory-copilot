@@ -54,6 +54,48 @@ This engine implements a **three-stage agentic workflow**:
 | `POST` | `/assess` | End-to-end orchestration: classification $\rightarrow$ dynamic query steering $\rightarrow$ threshold validation $\rightarrow$ structured regulatory recommendation. |
 
 ---
+## Evaluation
+
+Retrieval and citation quality are measured against a 50-item golden set ([`eval/golden_set.json`](eval/golden_set.json)): 42 regulatory questions and 8 adverse event narratives, each mapped to the EU-MDR sections accepted as correct. The expected sections were reviewed against the regulation text.
+
+**Baseline run: 13 November 2026.** Index of 412 chunks (350 words, 50-word overlap, `all-MiniLM-L6-v2` embeddings), top 3 chunks per query, Gemini at temperature 0.
+
+| Subset | Items | hit@1 | hit@3 | MRR | Citation accuracy | Citation precision |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Overall | 50 | 0.700 | 0.840 | 0.767 | 0.840 | 0.662 |
+| Questions (`/retrieve` path) | 42 | 0.738 | 0.881 | 0.806 | 0.881 | 0.727 |
+| Narratives (`/assess` path) | 8 | 0.500 | 0.625 | 0.562 | 0.625 | 0.385 |
+
+* **hit@1 / hit@3:** the top chunk, or any of the top 3 chunks, comes from an expected section.
+* **MRR:** mean reciprocal rank of the first expected section.
+* **Citation accuracy:** the generated recommendation cites at least one expected section.
+* **Citation precision:** of all sections cited, the share that were expected.
+
+### What the baseline shows
+
+* **Retrieval is the bottleneck, not generation.** In all 42 items where retrieval surfaced an expected section, the recommendation cited it. Citations are restricted to retrieved chunks, so citation accuracy cannot exceed hit@3.
+* **Citation containment held on every item.** No citation fell outside the retrieved context (50 of 50).
+* **Narratives score lower than questions.** Label-steered retrieval for adverse event narratives reaches hit@3 of 0.625, and 7 of the 8 top similarity scores fall below the 0.55 quality threshold.
+
+### Known limitations
+
+* **No abstention on a retrieval miss.** In all 8 misses the model still cited a retrieved section. Containment confirms that a citation comes from the retrieved context, not that it is the right provision.
+* **Malfunction narratives miss Article 88.** None of the three malfunction narratives retrieved trend reporting (Article 88), and two retrieved neither Article 88 nor Article 87.
+* **Recitals compete with articles.** Preamble chunks ranked first for two questions (authorised representative tasks, device risk classes).
+* **Neighbouring sections win on some questions.** For example, Annex IX is retrieved instead of Article 10 for the quality management system, and Article 120 instead of Article 56 for certificate validity.
+* **Extra citations lower precision.** 23 of 68 cited sections were not on the expected list; Article 2 (definitions) accounts for 6 of them.
+* **Small golden set.** 50 items, with only 8 narratives, so the narrative figures move by 12.5 points per item.
+
+### Reproduce
+
+```bash
+python scripts/evaluate_rag.py              # retrieval metrics only, no API calls
+python scripts/evaluate_rag.py --with-llm   # adds citation metrics, needs GEMINI_API_KEY in .env
+```
+
+Per-item results are written to `reports/rag_eval.json`. Method notes: [`eval/README.md`](eval/README.md).
+
+---
 ## Local Development & Setup
 
 ### 1. Backend Service (GCP Cloud Run)

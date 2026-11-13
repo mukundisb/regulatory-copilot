@@ -1,0 +1,1420 @@
+{
+  "run_at": "2026-11-13T11:34:59+00:00",
+  "golden_set": "golden_set.json",
+  "golden_set_status": "REVIEWED - expected_sections are reviewed against the regulation text. Results can be published",
+  "top_k": 3,
+  "index": {
+    "chunk_count": 412,
+    "embedding_model": "all-MiniLM-L6-v2",
+    "chunk_size": 350,
+    "chunk_overlap": 50,
+    "registry_ok": true
+  },
+  "skipped_items": [],
+  "summary": {
+    "overall": {
+      "items": 50,
+      "hit_at_1": 0.7,
+      "hit_at_3": 0.84,
+      "mrr": 0.767,
+      "no_result": 0,
+      "llm_unavailable": 0,
+      "citation_accuracy": 0.84,
+      "citation_precision": 0.662
+    },
+    "question": {
+      "items": 42,
+      "hit_at_1": 0.738,
+      "hit_at_3": 0.881,
+      "mrr": 0.806,
+      "no_result": 0,
+      "llm_unavailable": 0,
+      "citation_accuracy": 0.881,
+      "citation_precision": 0.727
+    },
+    "narrative": {
+      "items": 8,
+      "hit_at_1": 0.5,
+      "hit_at_3": 0.625,
+      "mrr": 0.562,
+      "no_result": 0,
+      "llm_unavailable": 0,
+      "citation_accuracy": 0.625,
+      "citation_precision": 0.385
+    }
+  },
+  "items": [
+    {
+      "id": "Q01",
+      "type": "question",
+      "query": "What is the deadline for a manufacturer to report a serious incident to the competent authority?",
+      "expected_sections": [
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Article 11"
+      ],
+      "top_score": 0.6716,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q02",
+      "type": "question",
+      "query": "How quickly must a serious public health threat be reported?",
+      "expected_sections": [
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "top_score": 0.4984,
+      "first_hit_rank": 2,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.5,
+      "cited_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q03",
+      "type": "question",
+      "query": "What is the reporting timeline when a device incident results in death or an unanticipated serious deterioration in a person's state of health?",
+      "expected_sections": [
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 2",
+        "Article 2"
+      ],
+      "top_score": 0.6382,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87",
+        "Article 2"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q04",
+      "type": "question",
+      "query": "When must a manufacturer report a field safety corrective action?",
+      "expected_sections": [
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Article 89"
+      ],
+      "top_score": 0.7545,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q05",
+      "type": "question",
+      "query": "Can a manufacturer submit periodic summary reports instead of individual serious incident reports for similar incidents?",
+      "expected_sections": [
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 91",
+        "Article 87"
+      ],
+      "top_score": 0.6267,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q06",
+      "type": "question",
+      "query": "What must a manufacturer do when there is a statistically significant increase in the frequency or severity of non-serious incidents?",
+      "expected_sections": [
+        "Article 88"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 88",
+        "Preamble"
+      ],
+      "top_score": 0.5808,
+      "first_hit_rank": 2,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.5,
+      "cited_sections": [
+        "Article 88"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q07",
+      "type": "question",
+      "query": "After reporting a serious incident, what investigation must the manufacturer perform?",
+      "expected_sections": [
+        "Article 89"
+      ],
+      "retrieved_sections": [
+        "Article 89",
+        "Preamble",
+        "Article 87"
+      ],
+      "top_score": 0.5916,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 89"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q08",
+      "type": "question",
+      "query": "How do competent authorities monitor vigilance data to identify trends or signals?",
+      "expected_sections": [
+        "Article 90"
+      ],
+      "retrieved_sections": [
+        "Article 90",
+        "ANNEX VII",
+        "Article 44"
+      ],
+      "top_score": 0.7177,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 90"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q09",
+      "type": "question",
+      "query": "What must a manufacturer's post-market surveillance system do?",
+      "expected_sections": [
+        "Article 83"
+      ],
+      "retrieved_sections": [
+        "Article 83",
+        "Article 85",
+        "ANNEX III"
+      ],
+      "top_score": 0.7596,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 83"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q10",
+      "type": "question",
+      "query": "What is the post-market surveillance plan and where are its requirements set out?",
+      "expected_sections": [
+        "Article 84",
+        "ANNEX III"
+      ],
+      "retrieved_sections": [
+        "Article 84",
+        "ANNEX III",
+        "Article 85"
+      ],
+      "top_score": 0.7667,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 84",
+        "ANNEX III"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 2,
+      "cited_total": 2
+    },
+    {
+      "id": "Q11",
+      "type": "question",
+      "query": "Which devices require a post-market surveillance report and what should it contain?",
+      "expected_sections": [
+        "Article 85"
+      ],
+      "retrieved_sections": [
+        "Article 85",
+        "Article 83",
+        "ANNEX III"
+      ],
+      "top_score": 0.7793,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 85"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q12",
+      "type": "question",
+      "query": "Which device classes require a periodic safety update report and how often must it be updated?",
+      "expected_sections": [
+        "Article 86"
+      ],
+      "retrieved_sections": [
+        "Article 86",
+        "Article 88",
+        "Article 83"
+      ],
+      "top_score": 0.7265,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 86"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q13",
+      "type": "question",
+      "query": "What should the technical documentation on post-market surveillance contain?",
+      "expected_sections": [
+        "ANNEX III"
+      ],
+      "retrieved_sections": [
+        "ANNEX III",
+        "Article 85",
+        "Article 83"
+      ],
+      "top_score": 0.7719,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "ANNEX III"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q14",
+      "type": "question",
+      "query": "What must a manufacturer's quality management system address?",
+      "expected_sections": [
+        "Article 10"
+      ],
+      "retrieved_sections": [
+        "ANNEX IX",
+        "ANNEX IX",
+        "ANNEX IX"
+      ],
+      "top_score": 0.6396,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "ANNEX IX"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 1
+    },
+    {
+      "id": "Q15",
+      "type": "question",
+      "query": "How long must manufacturers keep the technical documentation and the EU declaration of conformity available for competent authorities?",
+      "expected_sections": [
+        "Article 10"
+      ],
+      "retrieved_sections": [
+        "Article 10",
+        "ANNEX X",
+        "Article 11"
+      ],
+      "top_score": 0.7415,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 10"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q16",
+      "type": "question",
+      "query": "What tasks must an authorised representative perform under its mandate?",
+      "expected_sections": [
+        "Article 11"
+      ],
+      "retrieved_sections": [
+        "Preamble",
+        "Preamble",
+        "ANNEX VII"
+      ],
+      "top_score": 0.5638,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "Preamble"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 1
+    },
+    {
+      "id": "Q17",
+      "type": "question",
+      "query": "What must an importer verify before placing a device on the market?",
+      "expected_sections": [
+        "Article 13"
+      ],
+      "retrieved_sections": [
+        "Article 13",
+        "Article 16",
+        "Article 16"
+      ],
+      "top_score": 0.672,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 13",
+        "Article 16"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q18",
+      "type": "question",
+      "query": "What are the obligations of distributors when making a device available on the market?",
+      "expected_sections": [
+        "Article 14"
+      ],
+      "retrieved_sections": [
+        "Article 14",
+        "Article 14",
+        "Article 16"
+      ],
+      "top_score": 0.7319,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 14"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q19",
+      "type": "question",
+      "query": "What qualifications must the person responsible for regulatory compliance have?",
+      "expected_sections": [
+        "Article 15"
+      ],
+      "retrieved_sections": [
+        "Article 15",
+        "Article 15",
+        "Article 38"
+      ],
+      "top_score": 0.7551,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 15"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q20",
+      "type": "question",
+      "query": "Under what conditions can single-use devices be reprocessed?",
+      "expected_sections": [
+        "Article 17"
+      ],
+      "retrieved_sections": [
+        "Article 17",
+        "Article 17",
+        "Preamble"
+      ],
+      "top_score": 0.7294,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 17"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q21",
+      "type": "question",
+      "query": "What information must be provided on an implant card?",
+      "expected_sections": [
+        "Article 18"
+      ],
+      "retrieved_sections": [
+        "Article 18",
+        "Article 18",
+        "ANNEX I"
+      ],
+      "top_score": 0.7126,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 18"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q22",
+      "type": "question",
+      "query": "What must the EU declaration of conformity contain?",
+      "expected_sections": [
+        "Article 19",
+        "ANNEX IV"
+      ],
+      "retrieved_sections": [
+        "ANNEX IV",
+        "Article 19",
+        "ANNEX IV"
+      ],
+      "top_score": 0.7254,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 19",
+        "ANNEX IV"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 2,
+      "cited_total": 2
+    },
+    {
+      "id": "Q23",
+      "type": "question",
+      "query": "What obligations apply to custom-made devices?",
+      "expected_sections": [
+        "ANNEX XIII",
+        "Article 52",
+        "Article 21"
+      ],
+      "retrieved_sections": [
+        "Article 10",
+        "Article 21",
+        "Article 17"
+      ],
+      "top_score": 0.6981,
+      "first_hit_rank": 2,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.5,
+      "cited_sections": [
+        "Article 10",
+        "Article 21"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q24",
+      "type": "question",
+      "query": "What does the Unique Device Identification system consist of?",
+      "expected_sections": [
+        "Article 27"
+      ],
+      "retrieved_sections": [
+        "Article 27",
+        "Article 27",
+        "Preamble"
+      ],
+      "top_score": 0.7068,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 27"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q25",
+      "type": "question",
+      "query": "What must a manufacturer do to register a device before placing it on the market?",
+      "expected_sections": [
+        "Article 29"
+      ],
+      "retrieved_sections": [
+        "Article 30",
+        "Article 16",
+        "Article 16"
+      ],
+      "top_score": 0.7015,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "Article 30"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 1
+    },
+    {
+      "id": "Q26",
+      "type": "question",
+      "query": "How does a manufacturer obtain a single registration number?",
+      "expected_sections": [
+        "Article 31"
+      ],
+      "retrieved_sections": [
+        "Article 30",
+        "Article 31",
+        "Article 31"
+      ],
+      "top_score": 0.601,
+      "first_hit_rank": 2,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.5,
+      "cited_sections": [
+        "Article 30",
+        "Article 31"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q27",
+      "type": "question",
+      "query": "Which devices require a summary of safety and clinical performance?",
+      "expected_sections": [
+        "Article 32"
+      ],
+      "retrieved_sections": [
+        "ANNEX I",
+        "Article 32",
+        "ANNEX I"
+      ],
+      "top_score": 0.7621,
+      "first_hit_rank": 2,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.5,
+      "cited_sections": [
+        "Article 32",
+        "ANNEX I"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q28",
+      "type": "question",
+      "query": "Into which risk classes are medical devices divided?",
+      "expected_sections": [
+        "Article 51"
+      ],
+      "retrieved_sections": [
+        "Preamble",
+        "ANNEX VIII",
+        "ANNEX VIII"
+      ],
+      "top_score": 0.6392,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "Preamble",
+        "ANNEX VIII"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 2
+    },
+    {
+      "id": "Q29",
+      "type": "question",
+      "query": "How is software classified under the classification rules?",
+      "expected_sections": [
+        "ANNEX VIII"
+      ],
+      "retrieved_sections": [
+        "ANNEX VIII"
+      ],
+      "top_score": 0.4738,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "ANNEX VIII"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q30",
+      "type": "question",
+      "query": "Which conformity assessment procedure applies to class III devices?",
+      "expected_sections": [
+        "Article 52"
+      ],
+      "retrieved_sections": [
+        "Article 52",
+        "Article 52",
+        "Article 52"
+      ],
+      "top_score": 0.7563,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 52"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q31",
+      "type": "question",
+      "query": "For how long are certificates issued by notified bodies valid?",
+      "expected_sections": [
+        "Article 56"
+      ],
+      "retrieved_sections": [
+        "Article 120",
+        "Article 46",
+        "Article 46"
+      ],
+      "top_score": 0.6573,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "Article 120",
+        "Article 46"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 2
+    },
+    {
+      "id": "Q32",
+      "type": "question",
+      "query": "What are the requirements for clinical evaluation, and when can equivalence to another device be claimed?",
+      "expected_sections": [
+        "Article 61",
+        "ANNEX XIV"
+      ],
+      "retrieved_sections": [
+        "ANNEX IX",
+        "Article 62",
+        "ANNEX XIV"
+      ],
+      "top_score": 0.7511,
+      "first_hit_rank": 3,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.3333333333333333,
+      "cited_sections": [
+        "ANNEX XIV",
+        "ANNEX IX"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q33",
+      "type": "question",
+      "query": "What should a post-market clinical follow-up plan include?",
+      "expected_sections": [
+        "ANNEX XIV"
+      ],
+      "retrieved_sections": [
+        "ANNEX XIV",
+        "ANNEX XIV",
+        "ANNEX XIV"
+      ],
+      "top_score": 0.5673,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "ANNEX XIV"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q34",
+      "type": "question",
+      "query": "What are the informed consent requirements for subjects in a clinical investigation?",
+      "expected_sections": [
+        "Article 63"
+      ],
+      "retrieved_sections": [
+        "Article 63",
+        "Article 62",
+        "Article 63"
+      ],
+      "top_score": 0.7195,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 63",
+        "Article 62"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "Q35",
+      "type": "question",
+      "query": "How must adverse events that occur during a clinical investigation be recorded and reported?",
+      "expected_sections": [
+        "Article 80"
+      ],
+      "retrieved_sections": [
+        "Article 80",
+        "Article 80",
+        "Article 72"
+      ],
+      "top_score": 0.7135,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 80"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q36",
+      "type": "question",
+      "query": "What does the risk management system required by the general safety and performance requirements involve?",
+      "expected_sections": [
+        "ANNEX I"
+      ],
+      "retrieved_sections": [
+        "ANNEX I",
+        "ANNEX I",
+        "Preamble"
+      ],
+      "top_score": 0.7063,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "ANNEX I"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q37",
+      "type": "question",
+      "query": "What information must appear on the label and in the instructions for use?",
+      "expected_sections": [
+        "ANNEX I"
+      ],
+      "retrieved_sections": [
+        "ANNEX I",
+        "ANNEX I",
+        "ANNEX I"
+      ],
+      "top_score": 0.636,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "ANNEX I"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q38",
+      "type": "question",
+      "query": "What must the technical documentation of a device include?",
+      "expected_sections": [
+        "ANNEX II"
+      ],
+      "retrieved_sections": [
+        "ANNEX II",
+        "ANNEX I",
+        "ANNEX II"
+      ],
+      "top_score": 0.6862,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "ANNEX II"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q39",
+      "type": "question",
+      "query": "How is a serious incident defined?",
+      "expected_sections": [
+        "Article 2"
+      ],
+      "retrieved_sections": [
+        "Article 2",
+        "Article 87",
+        "Article 89"
+      ],
+      "top_score": 0.7095,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 2"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q40",
+      "type": "question",
+      "query": "What happens when a competent authority finds that a device presents an unacceptable risk to health and safety?",
+      "expected_sections": [
+        "Article 95",
+        "Article 94"
+      ],
+      "retrieved_sections": [
+        "Article 94",
+        "Article 11",
+        "Article 95"
+      ],
+      "top_score": 0.7406,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 94",
+        "Article 95"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 2,
+      "cited_total": 2
+    },
+    {
+      "id": "Q41",
+      "type": "question",
+      "query": "What are the transitional provisions for devices with certificates issued under the previous directives?",
+      "expected_sections": [
+        "Article 120"
+      ],
+      "retrieved_sections": [
+        "Article 120",
+        "Article 120",
+        "Article 46"
+      ],
+      "top_score": 0.7454,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 120"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "Q42",
+      "type": "question",
+      "query": "What penalties apply for infringement of the regulation?",
+      "expected_sections": [
+        "Article 113"
+      ],
+      "retrieved_sections": [
+        "Article 113"
+      ],
+      "top_score": 0.7514,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 113"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "N01",
+      "type": "narrative",
+      "query": "Patient with an implanted cardiac defibrillator collapsed at home. The device failed to deliver therapy during ventricular fibrillation and the patient died before emergency services arrived.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Article 2"
+      ],
+      "top_score": 0.5952,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "N02",
+      "type": "narrative",
+      "query": "Infusion pump delivered a tenfold overdose of morphine due to a suspected software fault. Patient went into respiratory arrest and expired despite resuscitation.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Article 2"
+      ],
+      "top_score": 0.5304,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87",
+        "Article 2"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "N03",
+      "type": "narrative",
+      "query": "During hip replacement surgery the femoral stem fractured on insertion. Surgery was prolonged and the patient required a revision procedure two weeks later.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Preamble"
+      ],
+      "top_score": 0.5074,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "N04",
+      "type": "narrative",
+      "query": "Insulin pump occlusion alarm did not sound. Patient developed diabetic ketoacidosis and was hospitalised for three days.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ],
+      "retrieved_sections": [
+        "ANNEX VII"
+      ],
+      "top_score": 0.4541,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "ANNEX VII"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 1
+    },
+    {
+      "id": "N05",
+      "type": "narrative",
+      "query": "Surgical stapler misfired during bowel resection causing an anastomotic leak. Patient required emergency reoperation.",
+      "expected_sections": [
+        "Article 87",
+        "Article 89"
+      ],
+      "retrieved_sections": [
+        "Article 87",
+        "Preamble",
+        "Article 87"
+      ],
+      "top_score": 0.4998,
+      "first_hit_rank": 1,
+      "hit_at_1": true,
+      "hit_at_k": true,
+      "reciprocal_rank": 1.0,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 1
+    },
+    {
+      "id": "N06",
+      "type": "narrative",
+      "query": "Blood glucose meter displayed an error code repeatedly and would not produce a reading. No patient harm reported. Third similar complaint for this lot this month.",
+      "expected_sections": [
+        "Article 88",
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 2",
+        "Article 80"
+      ],
+      "top_score": 0.478,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "Article 2",
+        "Article 80"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 2
+    },
+    {
+      "id": "N07",
+      "type": "narrative",
+      "query": "Ventilator touchscreen froze during routine pre-use check. Device was removed from service before patient use. No injury.",
+      "expected_sections": [
+        "Article 88",
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "top_score": 0.4909,
+      "first_hit_rank": 2,
+      "hit_at_1": false,
+      "hit_at_k": true,
+      "reciprocal_rank": 0.5,
+      "cited_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": true,
+      "cited_expected": 1,
+      "cited_total": 2
+    },
+    {
+      "id": "N08",
+      "type": "narrative",
+      "query": "Catheter packaging seal found open on receipt at hospital. Product was not used. Several units from the same batch were affected.",
+      "expected_sections": [
+        "Article 88",
+        "Article 87"
+      ],
+      "retrieved_sections": [
+        "Article 22",
+        "ANNEX I"
+      ],
+      "top_score": 0.4821,
+      "first_hit_rank": null,
+      "hit_at_1": false,
+      "hit_at_k": false,
+      "reciprocal_rank": 0.0,
+      "cited_sections": [
+        "Article 22",
+        "ANNEX I"
+      ],
+      "llm_used": true,
+      "llm_warning": null,
+      "llm_grounding_verified": true,
+      "citation_hit": false,
+      "cited_expected": 0,
+      "cited_total": 2
+    }
+  ]
+}
