@@ -34,9 +34,50 @@ jobs:
         run: |
           pytest tests/ -v
 
+  rag-eval:
+    name: RAG Retrieval Quality Gate
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      # Minimum share of golden-set items whose expected EU-MDR section is in the top 3 chunks.
+      # Baseline on 14 Nov 2026 is 0.84 (42 of 50). Raise this as retrieval improves.
+      MIN_HIT_RATE: "0.84"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-dev.txt
+
+      # chroma_db/ is not committed, so the index is rebuilt from the regulation text.
+      - name: Build EU-MDR vector index
+        run: |
+          python rag_pipeline.py
+
+      # Retrieval only: no LLM calls, no API keys, same result on every run.
+      - name: Evaluate retrieval against the golden set
+        run: |
+          python scripts/evaluate_rag.py --min-hit-rate ${{ env.MIN_HIT_RATE }}
+
+      - name: Upload evaluation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rag-eval-report
+          path: reports/rag_eval.json
+
   deploy:
     name: Build & Deploy to Cloud Run
-    needs: test
+    needs: [test, rag-eval]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
