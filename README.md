@@ -58,12 +58,12 @@ This engine implements a **three-stage agentic workflow**:
 
 Retrieval and citation quality are measured against a 50-item golden set ([`eval/golden_set.json`](eval/golden_set.json)): 42 regulatory questions and 8 adverse event narratives, each mapped to the EU-MDR sections accepted as correct. The expected sections were reviewed against the regulation text.
 
-**Baseline run: 13 November 2026.** Index of 412 chunks (350 words, 50-word overlap, `all-MiniLM-L6-v2` embeddings), top 3 chunks per query, Gemini at temperature 0.
+**Baseline run: 14 November 2026.** Index of 412 chunks (350 words, 50-word overlap, `all-MiniLM-L6-v2` embeddings), top 3 chunks per query, Gemini at temperature 0.
 
 | Subset | Items | hit@1 | hit@3 | MRR | Citation accuracy | Citation precision |
 | :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Overall | 50 | 0.700 | 0.840 | 0.767 | 0.840 | 0.662 |
-| Questions (`/retrieve` path) | 42 | 0.738 | 0.881 | 0.806 | 0.881 | 0.727 |
+| Overall | 50 | 0.700 | 0.840 | 0.767 | 0.840 | 0.652 |
+| Questions (`/retrieve` path) | 42 | 0.738 | 0.881 | 0.806 | 0.881 | 0.714 |
 | Narratives (`/assess` path) | 8 | 0.500 | 0.625 | 0.562 | 0.625 | 0.385 |
 
 * **hit@1 / hit@3:** the top chunk, or any of the top 3 chunks, comes from an expected section.
@@ -77,13 +77,31 @@ Retrieval and citation quality are measured against a 50-item golden set ([`eval
 * **Citation containment held on every item.** No citation fell outside the retrieved context (50 of 50).
 * **Narratives score lower than questions.** Label-steered retrieval for adverse event narratives reaches hit@3 of 0.625, and 7 of the 8 top similarity scores fall below the 0.55 quality threshold.
 
+### Faithfulness
+
+Faithfulness asks whether every statement in a generated recommendation is supported by the retrieved EU-MDR text. Each recommendation is split into claims, one per sentence, and a judge model labels each claim `supported` or `not_supported`. The judge is Claude Sonnet 5.5 (`claude-sonnet-5-5`), a different model from the Gemini generator.
+
+| Measure | Result |
+| :--- | ---: |
+| Mean faithfulness (50 items, 156 claims) | 0.963 |
+| Unsupported claims | 6 of 156 |
+| Items with at least one unsupported claim | 6 of 50 |
+| Mean faithfulness when retrieval hit | 0.967 |
+| Mean faithfulness when retrieval missed | 0.938 |
+| Judge agreement with human labels (20 items, 63 claims) | 0.937 |
+
+* **The judge was checked against hand labels.** 20 items (63 claims), including all 8 retrieval misses, were labelled by hand against the retrieved text. The judge agreed on 59 of 63 claims. Five hand labels were revised once, after re-checking them against the full retrieved text.
+* **Faithful is not the same as correct.** 7 of the 8 retrieval misses are fully faithful: the recommendation accurately restates a retrieved section that is not the right provision. Faithfulness has to be read together with hit@3.
+* **Labelling rule.** A claim is supported if the retrieved text states or entails it, if it only restates the input, or if it makes no regulatory assertion (for example, the low-confidence caveat the system adds). A claim that is true in EU-MDR but absent from the retrieved text is not supported.
+
 ### Known limitations
 
 * **No abstention on a retrieval miss.** In all 8 misses the model still cited a retrieved section. Containment confirms that a citation comes from the retrieved context, not that it is the right provision.
 * **Malfunction narratives miss Article 88.** None of the three malfunction narratives retrieved trend reporting (Article 88), and two retrieved neither Article 88 nor Article 87.
 * **Recitals compete with articles.** Preamble chunks ranked first for two questions (authorised representative tasks, device risk classes).
 * **Neighbouring sections win on some questions.** For example, Annex IX is retrieved instead of Article 10 for the quality management system, and Article 120 instead of Article 56 for certificate validity.
-* **Extra citations lower precision.** 23 of 68 cited sections were not on the expected list; Article 2 (definitions) accounts for 6 of them.
+* **Extra citations lower precision.** 24 of 69 cited sections were not on the expected list; Article 2 (definitions) accounts for 6 of them.
+* **Faithfulness rests on one judge and a small human sample.** One judge model, sentence-level claims, and 63 hand-labelled claims; the judge and the human labels still disagree on 4 claims.
 * **Small golden set.** 50 items, with only 8 narratives, so the narrative figures move by 12.5 points per item.
 
 ### Reproduce
@@ -91,9 +109,10 @@ Retrieval and citation quality are measured against a 50-item golden set ([`eval
 ```bash
 python scripts/evaluate_rag.py              # retrieval metrics only, no API calls
 python scripts/evaluate_rag.py --with-llm   # adds citation metrics, needs GEMINI_API_KEY in .env
+python scripts/evaluate_faithfulness.py --judge anthropic   # faithfulness, needs JUDGE_API_KEY in .env
 ```
 
-Per-item results are written to `reports/rag_eval.json`. Method notes: [`eval/README.md`](eval/README.md).
+Per-item results are written to `reports/rag_eval.json` and `reports/faithfulness_eval.json`. Hand labels: [`eval/faithfulness_labels.csv`](eval/faithfulness_labels.csv). Method notes: [`eval/README.md`](eval/README.md).
 
 ---
 ## Local Development & Setup

@@ -113,6 +113,7 @@ def score_citations(item: dict, chunks: list[dict], expected: set[str]) -> dict:
     warning = result.get("warning") or ""
     llm_used = not warning.startswith(("Degraded", "No regulatory context"))
     return {
+        "recommendation": result.get("recommendation", ""),
         "cited_sections": cited,
         "llm_used": llm_used,
         "llm_warning": warning or None,
@@ -164,6 +165,16 @@ def main() -> int:
         }
         if args.with_llm:
             row.update(score_citations(item, chunks, expected))
+            # Kept so that scripts/evaluate_faithfulness.py can check each answer against its sources.
+            row["retrieved_chunks"] = [
+                {
+                    "chunk_id": c.get("chunk_id"),
+                    "section": c.get("section", ""),
+                    "similarity_score": round(c.get("similarity_score", 0.0), 4),
+                    "text": c.get("text", ""),
+                }
+                for c in chunks
+            ]
         rows.append(row)
 
     def summarise(subset: list[dict]) -> dict:

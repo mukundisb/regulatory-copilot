@@ -32,3 +32,18 @@ python scripts/evaluate_rag.py --with-llm   # adds citation metrics, needs GEMIN
 1. Review `expected_sections` for every item against the regulation text, then change `status` in `golden_set.json` from DRAFT to REVIEWED with the date.
 2. Run the script and copy the summary table into the main `README.md` under an "Evaluation" heading, with the run date and index settings (chunk size, overlap, embedding model).
 3. List the misses. They are the backlog for improving chunking, query steering or the similarity threshold.
+
+## Faithfulness
+
+Faithfulness asks whether every statement in a generated recommendation is supported by the retrieved EU-MDR text (or simply restates the input). It is measured by `../scripts/evaluate_faithfulness.py`.
+
+1. `python scripts/evaluate_rag.py --with-llm` saves each recommendation and its retrieved chunks in `reports/rag_eval.json`.
+2. `python scripts/evaluate_faithfulness.py --make-labels` writes `faithfulness_labels.csv` (20 items, one row per claim) and `faithfulness_review.md` (the same items with their retrieved text, for reading).
+3. Fill `human_label` in the CSV with `supported` or `not_supported`.
+4. `python scripts/evaluate_faithfulness.py` has a judge model label every claim, compares it with the human labels, and writes `reports/faithfulness_eval.json`.
+
+Item faithfulness = supported claims / total claims. A claim is one sentence of the recommendation.
+
+Do not rerun step 1 between labelling and judging: regenerated answers may be worded differently, and human labels are only compared when the claim text is unchanged.
+
+The judge can be a different model from the generator. The published results use Claude: `--judge anthropic`, with `JUDGE_API_KEY` in `.env` (or set `JUDGE_PROVIDER=anthropic` there). Any OpenAI-style endpoint also works: `--judge openai-compatible --judge-base-url <url> --judge-model <name>`.

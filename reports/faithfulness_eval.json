@@ -1,0 +1,1391 @@
+{
+  "run_at": "2026-11-14T08:22:54+00:00",
+  "source_report_run_at": "2026-11-14T06:30:02+00:00",
+  "judge": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-5-5"
+  },
+  "summary": {
+    "items_judged": 50,
+    "judge_errors": 0,
+    "claims": 156,
+    "unsupported_claims": 6,
+    "mean_faithfulness": 0.963,
+    "items_below_1": 6,
+    "mean_faithfulness_retrieval_hit": 0.967,
+    "mean_faithfulness_retrieval_miss": 0.938,
+    "fully_faithful_on_retrieval_miss": 7,
+    "human_claims_compared": 63,
+    "judge_human_agreement": 0.937,
+    "human_claims_skipped_text_changed": 0
+  },
+  "disagreements": [
+    {
+      "id": "Q06",
+      "claim_id": 3,
+      "claim": "Additionally, the manufacturer must specify how to manage such incidents, the methodology for determining the statistically significant increase, and the observation period within the post-market surveillance plan, and adopt any appropriate measures required by competent authorities.",
+      "human": "supported",
+      "judge": "not_supported"
+    },
+    {
+      "id": "N03",
+      "claim_id": 4,
+      "claim": "Alternatively, if the manufacturer considers that the event is not a serious incident, it must provide an explanatory statement to the competent authority.",
+      "human": "supported",
+      "judge": "not_supported"
+    },
+    {
+      "id": "N04",
+      "claim_id": 2,
+      "claim": "Based strictly on the provided text, when notified bodies receive information regarding vigilance cases, they must thoroughly document the results of their evaluation and decide on an appropriate action, which may include observing the manufacturer's and competent authority's activities and investigation results, performing extraordinary surveillance measures (such as document reviews, short-notice or unannounced audits, and product testing) if certification is likely at risk, increasing audit frequency, or assessing the manufacturer's documentation and application of vigilance provisions.",
+      "human": "supported",
+      "judge": "not_supported"
+    },
+    {
+      "id": "N06",
+      "claim_id": 4,
+      "claim": "Given that this is the third similar complaint for this lot, post-market surveillance procedures under Article 2(60) must be evaluated to determine whether corrective or preventive actions, recall (Article 2(62)), or withdrawal (Article 2(63)) are required.",
+      "human": "not_supported",
+      "judge": "supported"
+    }
+  ],
+  "errors": [],
+  "items": [
+    {
+      "id": "Q01",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under Article 87, the manufacturer must report a serious incident immediately after establishing or suspecting a causal relationship between the device and the serious incident, but not later than 10 days after the date on which the manufacturer becomes aware of the serious incident.",
+          "judge_label": "supported",
+          "evidence": "be provided immediately after the manufacturer has established or as soon as it suspects a causal relationship between the device and the serious incident but not later than 10 days after the date on which the manufacturer becomes aware of the serious incident."
+        },
+        {
+          "id": 2,
+          "text": "If necessary to ensure timely reporting, an initial incomplete report followed by a complete report may be submitted.",
+          "judge_label": "supported",
+          "evidence": "Where necessary to ensure timely reporting, the manufacturer may submit an initial report that is incomplete followed up by a complete report."
+        },
+        {
+          "id": 3,
+          "text": "If uncertain whether a potentially reportable incident is reportable, the manufacturer must nevertheless submit a report within the required timeframe.",
+          "judge_label": "supported",
+          "evidence": "If, after becoming aware of a potentially reportable incident, the manufacturer is uncertain about whether the incident is reportable, it shall nevertheless submit a report within the timeframe required in accordance with paragraphs 2 to 5."
+        }
+      ]
+    },
+    {
+      "id": "Q02",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates and require manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Sentences that only say retrieval confidence is low or that provisions are weak candidates are supported by design."
+        },
+        {
+          "id": 2,
+          "text": "Under the provided context, Article 2(65) and 2(66) define a 'serious incident' to include a 'serious public health threat', which is an event that could result in an imminent risk of death, serious deterioration in health, or serious illness requiring prompt remedial action.",
+          "judge_label": "supported",
+          "evidence": "(65) 'serious incident' means any incident that ... led, might have led or might lead to ... (c) a serious public health threat; (66) 'serious public health threat' means an event which could result in imminent risk of death, serious deterioration in a person's state of health, or serious illness, that may require prompt remedial action"
+        },
+        {
+          "id": 3,
+          "text": "While Article 87 addresses the reporting of serious incidents to competent authorities, the provided excerpt does not specify the exact reporting timeframe for a serious public health threat.",
+          "judge_label": "supported",
+          "evidence": "Article 87 excerpt addresses reporting to competent authorities and mentions only 'without delay' for informing the manufacturer; no timeframe for reporting a serious public health threat is given."
+        },
+        {
+          "id": 4,
+          "text": "A regulatory affairs specialist must manually consult the complete statutory text of Article 87 to confirm the exact reporting deadline.",
+          "judge_label": "supported",
+          "evidence": "The claim only says a regulatory affairs specialist should verify something, which is added by design."
+        }
+      ]
+    },
+    {
+      "id": "Q03",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 0.667,
+      "claims": [
+        {
+          "id": 1,
+          "text": "An incident that leads to death or temporary or permanent serious deterioration in a person's state of health qualifies as a serious incident under Article 2(65).",
+          "judge_label": "supported",
+          "evidence": "(65) 'serious incident' means any incident that directly or indirectly led, might have led or might lead to any of the following: (a) the death of a patient, user or other person, (b) the temporary or permanent serious deterioration of a patient's, user's or other person's state of health"
+        },
+        {
+          "id": 2,
+          "text": "Under the provided excerpt of Article 87, if the manufacturer considers an incident to be a serious incident, it must provide a report in accordance with paragraphs 1 to 5 of that Article to the competent authority of the Member State where the incident occurred and initiate appropriate follow-up action in accordance with Article 89; if deemed not serious, an explanatory statement must be provided.",
+          "judge_label": "supported",
+          "evidence": "Where the manufacturer of the device concerned considers that the incident is a serious incident, it shall provide a report in accordance with paragraphs 1 to 5 of this Article ... to the competent authority of the Member State in which that serious incident occurred and shall take the appropriate follow-up action in accordance with Article 89. Where the manufacturer ... considers that the incident is not a serious incident ... it shall provide an explanatory statement."
+        },
+        {
+          "id": 3,
+          "text": "The specific calendar timeline for reporting is referenced as being set out in paragraphs 1 to 5 of Article 87, which are not detailed in the provided statutory excerpt.",
+          "judge_label": "not_supported",
+          "evidence": "The excerpt references paragraphs 1 to 5 only for the report, not as the place where a calendar timeline is set out; no timeline is mentioned."
+        }
+      ]
+    },
+    {
+      "id": "Q04",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 87(8), except in cases of urgency where the manufacturer needs to undertake the field safety corrective action immediately, the manufacturer must report the field safety corrective action without undue delay in advance of it being undertaken.",
+          "judge_label": "supported",
+          "evidence": "8. Except in cases of urgency in which the manufacturer needs to undertake field safety corrective action immediately, the manufacturer shall, without undue delay, report the field safety corrective action referred to in point (b) of paragraph 1 in advance of the field safety corrective action being undertaken."
+        },
+        {
+          "id": 2,
+          "text": "Under Article 87(1)(b), reporting is required for any field safety corrective action in respect of devices made available on the Union market, including any action undertaken in a third country if the reason is not limited to the device made available in that third country, submitted through the electronic system referred to in Article 92.",
+          "judge_label": "supported",
+          "evidence": "(b) any field safety corrective action in respect of devices made available on the Union market, including any field safety corrective action undertaken in a third country ... if the reason for the field safety corrective action is not limited to the device made available in the third country. The reports ... shall be submitted through the electronic system referred to in Article 92."
+        }
+      ]
+    },
+    {
+      "id": "Q05",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "A manufacturer may provide periodic summary reports instead of individual serious incident reports for similar serious incidents occurring with the same device or device type if the root cause has been identified, a field safety corrective action has been implemented, or the incidents are common and well documented.",
+          "judge_label": "supported",
+          "evidence": "For similar serious incidents that occur with the same device or device type and for which the root cause has been identified or a field safety corrective action implemented or where the incidents are common and well documented, the manufacturer may provide periodic summary reports instead of individual serious incident reports"
+        },
+        {
+          "id": 2,
+          "text": "This is permitted only on the condition that the manufacturer has agreed on the format, content, and frequency of the periodic summary reporting with the coordinating competent authority (in consultation with the competent authorities referred to in Article 92(8)(a)) or following agreement with a single competent authority where applicable under Article 92(8).",
+          "judge_label": "supported",
+          "evidence": "on condition that the coordinating competent authority referred to in Article 89(9), in consultation with the competent authorities referred to in point (a) of Article 92(8), has agreed with the manufacturer on the format, content and frequency... Where a single competent authority is referred to in points (a) and (b) of Article 92(8), the manufacturer may provide periodic summary reports following agreement with that competent authority."
+        }
+      ]
+    },
+    {
+      "id": "Q06",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 0.667,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 88, manufacturers must report, by means of the electronic system referred to in Article 92, any statistically significant increase in the frequency or severity of incidents that are not serious incidents (or expected undesirable side-effects) that could have a significant impact on the benefit-risk analysis and which have led or may lead to unacceptable risks to the health or safety of patients, users, or others.",
+          "judge_label": "supported",
+          "evidence": "Manufacturers shall report, by means of the electronic system referred to in Article 92, any statistically significant increase in the frequency or severity of incidents that are not serious incidents or that are expected undesirable side- effects that could have a significant impact on the benefit-risk analysis ... which have led or may lead to risks ... that are unacceptable"
+        },
+        {
+          "id": 2,
+          "text": "The significant increase must be established in comparison to the foreseeable frequency or severity specified in the technical documentation and product information.",
+          "judge_label": "supported",
+          "evidence": "The significant increase shall be established in comparison to the foreseeable frequency or severity of such incidents in respect of the device ... during a specific period as specified in the technical documentation and product information."
+        },
+        {
+          "id": 3,
+          "text": "Additionally, the manufacturer must specify how to manage such incidents, the methodology for determining the statistically significant increase, and the observation period within the post-market surveillance plan, and adopt any appropriate measures required by competent authorities.",
+          "judge_label": "not_supported",
+          "evidence": "The text says the manufacturer shall specify management, methodology and observation period in the post-market surveillance plan, but competent authorities 'may' require measures; it does not make adopting such measures a standing manufacturer obligation."
+        }
+      ]
+    },
+    {
+      "id": "Q07",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Following the reporting of a serious incident pursuant to Article 87(1), the manufacturer must without delay perform the necessary investigations concerning the serious incident and the devices involved.",
+          "judge_label": "supported",
+          "evidence": "Following the reporting of a serious incident pursuant to Article 87(1), the manufacturer shall, without delay, perform the necessary investigations in relation to the serious incident and the devices concerned."
+        },
+        {
+          "id": 2,
+          "text": "This investigation must include a risk assessment of the incident and field safety corrective action.",
+          "judge_label": "supported",
+          "evidence": "This shall include a risk assessment of the incident and field safety corrective action taking into account criteria as referred to in paragraph 3 of this Article as appropriate."
+        },
+        {
+          "id": 3,
+          "text": "Additionally, the manufacturer must cooperate with the competent authorities and, where relevant, the notified body, and must not carry out any investigation that alters the device or a sample of the batch in a way that may affect any subsequent evaluation of the causes of the incident before informing the competent authorities.",
+          "judge_label": "supported",
+          "evidence": "The manufacturer shall co-operate with the competent authorities and where relevant with the notified body concerned... and shall not perform any investigation which involves altering the device or a sample of the batch concerned in a way which may affect any subsequent evaluation of the causes of the incident, prior to informing the competent authorities of such action."
+        }
+      ]
+    },
+    {
+      "id": "Q08",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under EU-MDR, the Commission, in collaboration with the Member States, establishes systems and processes to actively monitor vigilance data available in the electronic system referred to in Article 92 to identify trends, patterns, or signals revealing new risks or safety concerns.",
+          "judge_label": "supported",
+          "evidence": "The Commission shall, in collaboration with the Member States, put in place systems and processes to actively monitor the data available in the electronic system referred to in Article 92, in order to identify trends, patterns or signals in the data that may reveal new risks or safety concerns."
+        },
+        {
+          "id": 2,
+          "text": "When a previously unknown risk is detected or an anticipated risk's frequency significantly and adversely alters the benefit-risk determination, the competent authority or coordinating competent authority informs the manufacturer or authorised representative, who is required to execute necessary corrective actions.",
+          "judge_label": "supported",
+          "evidence": "Where a previously unknown risk is identified or the frequency of an anticipated risk significantly and adversely changes the benefit-risk determination, the competent authority or, where appropriate, the coordinating competent authority shall inform the manufacturer, or where applicable the authorised representative, which shall then take the necessary corrective actions."
+        }
+      ]
+    },
+    {
+      "id": "Q09",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Manufacturers must plan, establish, document, implement, maintain, and update a post-market surveillance system proportionate to the risk class and device type as an integral part of their quality management system.",
+          "judge_label": "supported",
+          "evidence": "manufacturers shall plan, establish, document, implement, maintain and update a post-market surveillance system in a manner that is proportionate to the risk class and appropriate for the type of device. That system shall be an integral part of the manufacturer's quality management system"
+        },
+        {
+          "id": 2,
+          "text": "The system must actively and systematically gather, record, and analyse relevant data on the device's quality, performance, and safety throughout its entire lifetime, draw necessary conclusions, and determine, implement, and monitor any preventive and corrective actions.",
+          "judge_label": "supported",
+          "evidence": "suited to actively and systematically gathering, recording and analysing relevant data on the quality, performance and safety of a device throughout its entire lifetime, and to drawing the necessary conclusions and to determining, implementing and monitoring any preventive and corrective actions"
+        },
+        {
+          "id": 3,
+          "text": "Gathered data must specifically be used to update risk management, benefit-risk determinations, design and manufacturing information, labelling, instructions for use, clinical evaluations, and the summary of safety and clinical performance; identify needs for preventive, corrective, or field safety corrective actions; identify options to improve usability, performance, and safety; contribute to surveillance of other devices where relevant; detect and report trends under Article 88; and keep technical documentation updated.",
+          "judge_label": "supported",
+          "evidence": "Article 83(3)(a)-(h): update benefit-risk determination and risk management; design and manufacturing information, instructions for use, labelling; clinical evaluation; summary of safety and clinical performance; identify needs for preventive, corrective or field safety corrective action; options to improve usability, performance and safety; contribute to PMS of other devices; detect and report trends per Article 88. The technical documentation shall be updated accordingly."
+        },
+        {
+          "id": 4,
+          "text": "If preventive or corrective action is required, the manufacturer must implement appropriate measures, inform competent authorities and notified bodies, and report serious incidents or field safety corrective actions in accordance with Article 87.",
+          "judge_label": "supported",
+          "evidence": "the manufacturer shall implement the appropriate measures and inform the competent authorities concerned and, where applicable, the notified body. Where a serious incident is identified or a field safety corrective action is implemented, it shall be reported in accordance with Article 87."
+        }
+      ]
+    },
+    {
+      "id": "Q10",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 84, the post-market surveillance system referred to in Article 83 must be based on a post-market surveillance plan, with requirements set out in Section 1.1 of Annex III.",
+          "judge_label": "supported",
+          "evidence": "The post-market surveillance system referred to in Article 83 shall be based on a post-market surveillance plan, the requirements for which are set out in Section 1.1 of Annex III."
+        },
+        {
+          "id": 2,
+          "text": "For devices other than custom-made devices, this plan must form part of the technical documentation specified in Annex II.",
+          "judge_label": "supported",
+          "evidence": "For devices other than custom-made devices, the post- market surveillance plan shall be part of the technical documentation specified in Annex II."
+        },
+        {
+          "id": 3,
+          "text": "In accordance with Section 1.1 of Annex III, the plan requires manufacturers to prove compliance with Article 83 by addressing the collection and utilization of available information (such as serious incidents, non-serious incidents, trend reporting, specialist literature, user feedback/complaints, and data on similar devices) and by establishing proactive collection processes, assessment methods, suitable indicators and thresholds, complaint investigation tools, trend reporting protocols, and communication methods.",
+          "judge_label": "supported",
+          "evidence": "The manufacturer shall prove in a post-market surveillance plan that it complies with the obligation referred to in Article 83. (a) ... shall address the collection and utilization of available information... (b) ... proactive and systematic process... methods to assess collected data... indicators and threshold values... investigate complaints... trend report... communicate effectively"
+        }
+      ]
+    },
+    {
+      "id": "Q11",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Manufacturers of class I devices are required to prepare a post-market surveillance report.",
+          "judge_label": "supported",
+          "evidence": "Manufacturers of class I devices shall prepare a post-market surveillance report"
+        },
+        {
+          "id": 2,
+          "text": "The report must summarise the results and conclusions of the analyses of the post-market surveillance data gathered from the post-market surveillance plan, along with a rationale and description of any preventive and corrective actions taken.",
+          "judge_label": "supported",
+          "evidence": "summarising the results and conclusions of the analyses of the post-market surveillance data gathered as a result of the post-market surveillance plan referred to in Article 84 together with a rationale and description of any preventive and corrective actions taken"
+        },
+        {
+          "id": 3,
+          "text": "Additionally, the report must be updated when necessary and made available to the competent authority upon request.",
+          "judge_label": "supported",
+          "evidence": "The report shall be updated when necessary and made available to the competent authority upon request."
+        }
+      ]
+    },
+    {
+      "id": "Q12",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 86(1), manufacturers of class IIa, class IIb, and class III devices are required to prepare a periodic safety update report (PSUR).",
+          "judge_label": "supported",
+          "evidence": "Manufacturers of class IIa, class IIb and class III devices shall prepare a periodic safety update report (‘PSUR’) for each device"
+        },
+        {
+          "id": 2,
+          "text": "Manufacturers of class IIb and class III devices must update the PSUR at least annually, whereas manufacturers of class IIa devices must update the PSUR when necessary and at least every two years.",
+          "judge_label": "supported",
+          "evidence": "Manufacturers of class IIb and class III devices shall update the PSUR at least annually. ... Manufacturers of class IIa devices shall update the PSUR when necessary and at least every two years."
+        }
+      ]
+    },
+    {
+      "id": "Q13",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Technical documentation on post-market surveillance must be prepared in accordance with Articles 83 to 86 in a clear, organised, readily searchable, and unambiguous manner.",
+          "judge_label": "supported",
+          "evidence": "The technical documentation on post-market surveillance to be drawn up by the manufacturer in accordance with Articles 83 to 86 shall be presented in a clear, organised, readily searchable and unambiguous manner"
+        },
+        {
+          "id": 2,
+          "text": "It must include the post-market surveillance plan established under Article 84 demonstrating compliance with Article 83.",
+          "judge_label": "supported",
+          "evidence": "The post-market surveillance plan drawn up in accordance with Article 84. The manufacturer shall prove in a post-market surveillance plan that it complies with the obligation referred to in Article 83."
+        },
+        {
+          "id": 3,
+          "text": "This plan must address the collection and utilization of available information (including serious incidents, PSURs, field safety corrective actions, non-serious incidents, undesirable side-effects, trend reporting, relevant literature/databases, user/distributor/importer feedback and complaints, and information on similar devices).",
+          "judge_label": "supported",
+          "evidence": "The post-market surveillance plan shall address the collection and utilization of available information, in particular: information concerning serious incidents, including information from PSURs, and field safety corrective actions; records referring to non-serious incidents and data on any undesirable side-effects; information from trend reporting; ..."
+        },
+        {
+          "id": 4,
+          "text": "Furthermore, it must specify proactive and systematic collection processes, data assessment methods, indicators and threshold values for continuous benefit-risk reassessment, complaint investigation tools, trend reporting management protocols, communication protocols with authorities, notified bodies, economic operators, and users, and references to procedures fulfilling manufacturer obligations.",
+          "judge_label": "supported",
+          "evidence": "The post-market surveillance plan shall cover at least: a proactive and systematic process to collect...; effective and appropriate methods and processes to assess the collected data; suitable indicators and threshold values...; methods and tools to investigate complaints...; methods and protocols to manage the events subject to the trend report...; methods and protocols to communicate effectively with competent authorities, notified bodies, economic operators and users; reference to procedures to fulfil the manufacturers obligations"
+        }
+      ]
+    },
+    {
+      "id": "Q14",
+      "type": "question",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under Annex IX, the manufacturer must establish, document, implement, and maintain an effective quality management system throughout the device life cycle.",
+          "judge_label": "supported",
+          "evidence": "The manufacturer shall establish, document and implement a quality management system as described in Article 10(9) and maintain its effectiveness throughout the life cycle of the devices concerned."
+        },
+        {
+          "id": 2,
+          "text": "The quality management system must address procedures to fulfil regulatory obligations, ensure ongoing adequacy and effectiveness, and include post-market surveillance and PMCF documentation.",
+          "judge_label": "supported",
+          "evidence": "a documented description of the procedures in place to fulfil the obligations arising from the quality management system and required under this Regulation... a description of the procedures in place to ensure that the quality management system remains adequate and effective... the documentation on the manufacturer's post-market surveillance system and, where applicable, on the PMCF plan"
+        },
+        {
+          "id": 3,
+          "text": "It must also encompass the management of design or quality system changes, keeping drawings and specifications up to date at every manufacturing stage, manufacturing verification and quality assurance techniques (particularly regarding processes such as sterilisation), tests and trials conducted before, during, and after manufacture with traceable test equipment calibration, and granting notified body access to technical documentation while reporting any planned substantial changes to the system or covered device range.",
+          "judge_label": "supported",
+          "evidence": "up to date from drawings, specifications or other relevant documents at every stage of manufacture, and — management of design or quality management system changes; (d) the verification and quality assurance techniques at the manufacturing stage... sterilisation; (e) the appropriate tests and trials... before, during and after manufacture... traceable calibration... the manufacturer shall grant the notified body access to the technical documentation... shall inform the notified body... of any plan for substantial changes to the quality management system, or the device-range covered."
+        }
+      ]
+    },
+    {
+      "id": "Q15",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Manufacturers must keep the technical documentation and the EU declaration of conformity available for competent authorities for a period of at least 10 years after the last device covered by the EU declaration of conformity has been placed on the market.",
+          "judge_label": "supported",
+          "evidence": "available for the competent authorities for a period of at least 10 years after the last device covered by the EU declaration of conformity has been placed on the market; Article 11(3)(b) refers to keeping the technical documentation and EU declaration of conformity available for the period in Article 10(8)"
+        },
+        {
+          "id": 2,
+          "text": "In the case of implantable devices, this retention period must be at least 15 years after the last device has been placed on the market.",
+          "judge_label": "supported",
+          "evidence": "In the case of implantable devices, the period shall be at least 15 years after the last device has been placed on the market."
+        }
+      ]
+    },
+    {
+      "id": "Q16",
+      "type": "question",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under the provided provisions, the specific tasks of an authorised representative must be defined in a written mandate.",
+          "judge_label": "supported",
+          "evidence": "The tasks of an authorised representative should be defined in a written mandate."
+        },
+        {
+          "id": 2,
+          "text": "In serving under this mandate, the authorised representative acts as a contact person established in the Union and plays a pivotal role in ensuring the compliance of devices produced by non-Union manufacturers, while meeting minimum requirements such as having available a qualified person similar to a manufacturer's person responsible for regulatory compliance.",
+          "judge_label": "supported",
+          "evidence": "For manufacturers who are not established in the Union, the authorised representative plays a pivotal role in ensuring the compliance of the devices produced by those manufacturers and in serving as their contact person established in the Union... the requirement of having available a person who fulfils minimum conditions of qualification which should be similar to those for a manufacturer's person responsible for regulatory compliance."
+        }
+      ]
+    },
+    {
+      "id": "Q17",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "The provided statutory excerpts do not contain the general pre-market verification checklist for importers under Article 13(2).",
+          "judge_label": "supported",
+          "evidence": "The Article 13 excerpt begins mid-sentence at \"shall cooperate with competent authorities...\" and contains no pre-market verification checklist. The retrieved text is all about cooperation, samples, and relabelling or repackaging."
+        },
+        {
+          "id": 2,
+          "text": "Based strictly on the provided text, an importer undertaking relabelling or repackaging activities must ensure and verify through a quality management system that translations are accurate and up-to-date, original conditions are preserved, packaging is not defective, and corrective actions are tracked.",
+          "judge_label": "supported",
+          "evidence": "\"Distributors and importers shall ensure that they have in place a quality management system that includes procedures which ensure that the translation of information is accurate and up-to-date... preserve the original condition... packaging... not defective... informed of any corrective action\""
+        },
+        {
+          "id": 3,
+          "text": "Additionally, at least 28 days before making such devices available, the importer must inform the manufacturer and competent authority, provide samples or mock-ups upon request, and submit a certificate from a notified body attesting to quality management system compliance.",
+          "judge_label": "supported",
+          "evidence": "\"At least 28 days prior to making the relabelled or repackaged device available... shall inform the manufacturer and the competent authority... upon request, shall provide... a sample or mock-up\"; \"submit to the competent authority a certificate, issued by a notified body... attesting that the quality management system... complies\""
+        },
+        {
+          "id": 4,
+          "text": "For devices placed on the market, importers must also cooperate with competent authorities and provide samples or access upon request.",
+          "judge_label": "supported",
+          "evidence": "\"shall cooperate with competent authorities, at the latters' request... shall provide samples of the device free of charge or, where that is impracticable, grant access to the device.\""
+        }
+      ]
+    },
+    {
+      "id": "Q18",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "When making a device available on the market, distributors must act with due care and verify that: (a) the device is CE marked and the EU declaration of conformity is drawn up; (b) the device is accompanied by the required manufacturer information under Article 10(11); (c) the importer has met the requirements of Article 13(3) for imported devices; and (d) a UDI is assigned where applicable (which may be verified via representative sampling).",
+          "judge_label": "supported",
+          "evidence": "Article 14(1)-(2): act with due care; verify CE marking and EU declaration of conformity, Article 10(11) information, importer compliance with Article 13(3), and UDI; sampling may be applied for points (a), (b) and (d)."
+        },
+        {
+          "id": 2,
+          "text": "If a distributor has reason to believe a device is non-compliant, it must withhold the device from the market, inform the manufacturer, authorised representative (if applicable), and importer, and additionally inform the competent authority if the device presents a serious risk or is falsified.",
+          "judge_label": "supported",
+          "evidence": "\"it shall not make the device available on the market until it has been brought into conformity, and shall inform the manufacturer and, where applicable, the ... authorised representative, and the importer... serious risk or is a falsified device, it shall also inform the competent authority\""
+        },
+        {
+          "id": 3,
+          "text": "Distributors must also ensure that storage and transport conditions meet the manufacturer's specifications while under their responsibility, immediately inform supply chain partners and cooperate with authorities if a distributed device is found non-compliant, and avoid actions under Article 16—such as marketing under their own name, altering the intended purpose, or modifying the device—that would transfer manufacturer obligations to them.",
+          "judge_label": "supported",
+          "evidence": "Article 14(3) storage/transport conditions; Article 14(4) \"immediately inform the manufacturer... shall co-operate\"; Article 16(1): a distributor assumes manufacturer obligations if it markets under its own name, changes the intended purpose, or modifies the device."
+        }
+      ]
+    },
+    {
+      "id": "Q19",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under Article 15, the person responsible for regulatory compliance must demonstrate requisite expertise through either: (a) a diploma, certificate, or other evidence of formal qualification awarded on completion of a university degree (or equivalent recognised course of study) in law, medicine, pharmacy, engineering, or another relevant scientific discipline, plus at least one year of professional experience in regulatory affairs or in quality management systems relating to medical devices; or (b) four years of professional experience in regulatory affairs or in quality management systems relating to medical devices.",
+          "judge_label": "supported",
+          "evidence": "The requisite expertise shall be demonstrated by either of the following qualifications: (a) a diploma, certificate or other evidence of formal qualification, awarded on completion of a university degree or of a course of study recognised as equivalent by the Member State concerned, in law, medicine, pharmacy, engineering or another relevant scientific discipline, and at least one year of professional experience... (b) four years of professional experience"
+        },
+        {
+          "id": 2,
+          "text": "In addition, manufacturers of custom-made devices may demonstrate the requisite expertise by having at least two years of professional experience within a relevant field of manufacturing.",
+          "judge_label": "supported",
+          "evidence": "manufacturers of custom-made devices may demonstrate the requisite expertise referred to in the first subparagraph by having at least two years of professional experience within a relevant field of manufacturing."
+        }
+      ]
+    },
+    {
+      "id": "Q20",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 0.75,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Reprocessing and further use of single-use devices may only take place where permitted by national law and in accordance with Article 17.",
+          "judge_label": "supported",
+          "evidence": "Reprocessing and further use of single-use devices may only take place where permitted by national law and only in accordance with this Article."
+        },
+        {
+          "id": 2,
+          "text": "Any natural or legal person who reprocesses a single-use device for further use within the Union is deemed its manufacturer and must assume all manufacturer obligations, including traceability and product liability.",
+          "judge_label": "not_supported",
+          "evidence": "The text says the reprocessor 'shall be considered to be a producer for the purpose of Article 3(1) of Directive 85/374/EEC'. It never mentions 'product liability', so that characterisation goes beyond the retrieved text."
+        },
+        {
+          "id": 3,
+          "text": "Member States may permit derogations for single-use devices reprocessed and used within health institutions, provided equivalent safety and performance to the original device are guaranteed, designated requirements of Article 5(5) are fulfilled, and reprocessing complies with Common Specifications (covering risk management, validation, quality management, release testing, incident reporting, and traceability).",
+          "judge_label": "supported",
+          "evidence": "Member States may decide not to apply all of the rules... provided that they ensure that: (a) the safety and performance of the reprocessed device is equivalent... (b) the reprocessing is performed in accordance with CS detailing the requirements concerning: risk management... validation... product release and performance testing... quality management system... reporting of incidents... traceability"
+        },
+        {
+          "id": 4,
+          "text": "Furthermore, the reprocessor's information must appear on the label and instructions for use (with the original manufacturer noted only in the instructions for use), and Member States retain the right to enforce stricter national restrictions or outright prohibitions.",
+          "judge_label": "supported",
+          "evidence": "The name and address of the legal or natural person... shall be indicated on the label and... instructions for use... name and address of the manufacturer of the original single-use device shall no longer appear on the label, but shall be mentioned in the instructions for use. A Member State... may maintain or introduce national provisions that are stricter... restrict or prohibit"
+        }
+      ]
+    },
+    {
+      "id": "Q21",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 18(1), the manufacturer must provide on an implant card delivered with the device the information allowing the identification of the device, including the device name, serial number, lot number, the UDI, the device model, as well as the name, address, and website of the manufacturer.",
+          "judge_label": "supported",
+          "evidence": "the manufacturer shall provide the information referred to in point (a) of the first subparagraph on an implant card delivered with the device"
+        },
+        {
+          "id": 2,
+          "text": "Additionally, under Article 18(2), the implant card must bear the identity of the patient who has been implanted with the device.",
+          "judge_label": "supported",
+          "evidence": "together with the implant card, which shall bear their identity"
+        },
+        {
+          "id": 3,
+          "text": "Specified implants such as sutures, staples, dental fillings, dental braces, tooth crowns, screws, wedges, plates, wires, pins, clips, and connectors are exempted under Article 18(3).",
+          "judge_label": "supported",
+          "evidence": "The following implants shall be exempted from the obligations laid down in this Article: sutures, staples, dental fillings, dental braces, tooth crowns, screws, wedges, plates, wires, pins, clips and connectors."
+        }
+      ]
+    },
+    {
+      "id": "Q22",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 19 and Annex IV, the EU declaration of conformity must state that the requirements of the Regulation have been fulfilled and be continuously updated.",
+          "judge_label": "supported",
+          "evidence": "The EU declaration of conformity shall state that the requirements specified in this Regulation have been fulfilled in relation to the device that is covered. The manufacturer shall continuously update the EU declaration of conformity."
+        },
+        {
+          "id": 2,
+          "text": "It must contain the following minimum information: 1) Name, registered trade name or trademark, SRN (if issued), registered business address of the manufacturer and, if applicable, its authorised representative; 2) A statement that it is issued under the sole responsibility of the manufacturer; 3) The Basic UDI-DI; 4) Product and trade name, product code, catalogue number or other reference for identification/traceability (which, except for product/trade name, may be provided by the Basic UDI-DI), and intended purpose; 5) Risk class of the device; 6) A statement of conformity with this Regulation and other applicable Union legislation; 7) References to any CS used; 8) Where applicable, notified body name and identification number, conformity assessment procedure description, and certificate identification; 9) Where applicable, additional information; 10) Place and date of issue, name, function, signature, and on whose behalf the person signed.",
+          "judge_label": "supported",
+          "evidence": "Annex IV: The EU declaration of conformity shall contain all of the following information: 1. Name, registered trade name or registered trade mark and, if already issued, SRN ... 10. Place and date of issue of the declaration, name and function of the person who signed it as well as an indication for, and on behalf of whom, that person signed, signature."
+        },
+        {
+          "id": 3,
+          "text": "If the device is subject to other Union legislation requiring a declaration, a single EU declaration of conformity must be drawn up.",
+          "judge_label": "supported",
+          "evidence": "Article 19(2): Where ... devices are subject to other Union legislation which also requires an EU declaration of conformity ... a single EU declaration of conformity shall be drawn up in respect of all Union acts applicable to the device."
+        }
+      ]
+    },
+    {
+      "id": "Q23",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Manufacturers of custom-made devices must draw up, keep up to date, and keep available for competent authorities documentation in accordance with Section 2 of Annex XIII (Article 10(5)).",
+          "judge_label": "supported",
+          "evidence": "Manufacturers of custom-made devices shall draw up, keep up to date and keep available for competent authorities documentation in accordance with Section 2 of Annex XIII."
+        },
+        {
+          "id": 2,
+          "text": "Under Article 21(1) and Article 10(6), custom-made devices must not bear the CE marking, and the requirement to draw up an EU declaration of conformity under Article 10(6) does not apply.",
+          "judge_label": "supported",
+          "evidence": "The devices referred to in the first subparagraph shall not bear the CE marking, with the exception of the devices referred to in Article 74. / manufacturers of devices, other than custom-made or investigational devices, shall draw up an EU declaration of conformity"
+        },
+        {
+          "id": 3,
+          "text": "In accordance with Article 21(1)(b) and 21(2), custom-made devices may be made available on the market if Article 52(8) and Annex XIII are complied with, and they must be accompanied by the statement referred to in Section 1 of Annex XIII, made available to the particular patient or user identified by name, acronym, or numerical code.",
+          "judge_label": "supported",
+          "evidence": "Member States shall not create obstacles to... custom-made devices being made available on the market if Article 52(8) and Annex XIII have been complied with. Custom-made devices shall be accompanied by the statement referred to in Section 1 of Annex XIII, which shall be made available to the particular patient or user identified by name, an acronym or a numerical code."
+        },
+        {
+          "id": 4,
+          "text": "Additionally, manufacturers must submit a list of such devices made available in their territory if required by Member States.",
+          "judge_label": "supported",
+          "evidence": "Member States may require that the manufacturer of a custom-made device submit to the competent authority a list of such devices which have been made available in their territory."
+        }
+      ]
+    },
+    {
+      "id": "Q24",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 27(1), the Unique Device Identification ('UDI') system consists of: (a) the production of a UDI comprising a manufacturer- and device-specific device identifier ('UDI-DI') and a production identifier ('UDI-PI') identifying the unit of device production (and packaged devices, if applicable); (b) placing the UDI on the device label or its packaging; (c) storage of the UDI by economic operators, health institutions, and healthcare professionals; and (d) the establishment of an electronic system for Unique Device Identification ('UDI database') in accordance with Article 28.",
+          "judge_label": "supported",
+          "evidence": "Article 27(1): 'shall consist of the following: (a) production of a UDI that comprises... (i) a UDI device identifier (‘UDI-DI’) specific to a manufacturer and a device... (ii) a UDI production identifier (‘UDI-PI’) that identifies the unit of device production and if applicable the packaged devices... (b) placing of the UDI on the label of the device or on its packaging; (c) storage of the UDI by economic operators, health institutions and healthcare professionals... (d) establishment of an electronic system for Unique Device Identification (‘UDI database’) in accordance with Article 28.'"
+        }
+      ]
+    },
+    {
+      "id": "Q25",
+      "type": "question",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "In accordance with the provided text, the manufacturer or its authorised representative must submit the required identification information laid down in Section 1 of Part A of Annex VI to the electronic system established by the Commission to generate a single registration number.",
+          "judge_label": "supported",
+          "evidence": "Article 30(1): \"details regarding the information to be provided to that electronic system by the economic operators are laid down in Section 1 of Part A of Annex VI\"; Article 30(3) refers to \"the manufacturer or authorised representative has provided to the electronic system the information\"."
+        },
+        {
+          "id": 2,
+          "text": "Importers are required to verify within two weeks of placing a non-custom-made device on the market that the manufacturer or authorised representative has provided this information to the electronic system.",
+          "judge_label": "supported",
+          "evidence": "\"Within two weeks of placing a device, other than a custom-made device, on the market, importers shall verify that the manufacturer or authorised representative has provided to the electronic system the information\""
+        }
+      ]
+    },
+    {
+      "id": "Q26",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "To obtain a single registration number (SRN), the manufacturer must submit the information specified in Section 1 of Part A of Annex VI to the electronic system set up under Article 30 before placing a device (other than a custom-made device) on the market, or prior to applying to a notified body where conformity assessment requires one.",
+          "judge_label": "supported",
+          "evidence": "Before placing a device, other than a custom-made device, on the market, manufacturers... shall, in order to register, submit to the electronic system referred to in Article 30 the information referred to in Section 1 of Part A of Annex VI... In cases where the conformity assessment procedure requires the involvement of a notified body pursuant to Article 52, the information... shall be provided to that electronic system before applying to the notified body."
+        },
+        {
+          "id": 2,
+          "text": "Once the competent authority verifies the entered data, it obtains the SRN from the electronic system and issues it to the manufacturer.",
+          "judge_label": "supported",
+          "evidence": "After having verified the data entered pursuant to paragraph 1, the competent authority shall obtain a single registration number (‘SRN’) from the electronic system referred to in Article 30 and issue it to the manufacturer, the authorised representative or the importer."
+        }
+      ]
+    },
+    {
+      "id": "Q27",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 32(1), the manufacturer must draw up a summary of safety and clinical performance for implantable devices and for class III devices, other than custom-made or investigational devices.",
+          "judge_label": "supported",
+          "evidence": "Article 32 1. For implantable devices and for class III devices, other than custom-made or investigational devices, the manufacturer shall draw up a summary of safety and clinical performance."
+        },
+        {
+          "id": 2,
+          "text": "The manufacturer must also mention on the label or instructions for use where the summary is available.",
+          "judge_label": "supported",
+          "evidence": "The manufacturer shall mention on the label or instructions for use where the summary is available."
+        }
+      ]
+    },
+    {
+      "id": "Q28",
+      "type": "question",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under the EU-MDR framework, medical devices are divided into four product classes based on potential risks and the vulnerability of the human body: class I, class IIa, class IIb, and class III.",
+          "judge_label": "supported",
+          "evidence": "to maintain the division of devices into four product classes... classification rules, which are based on the vulnerability of the human body, should take into account the potential risks; class I, class IIa, class IIb and class III devices"
+        },
+        {
+          "id": 2,
+          "text": "Class I devices represent the lowest vulnerability level, whereas active implantable devices and other critical items are categorized in the highest risk class (class III).",
+          "judge_label": "supported",
+          "evidence": "low level of vulnerability associated with such [class I] devices; active implantable devices should be in the highest risk class; other devices are classified as class III (Rules 14, 15, 18)"
+        }
+      ]
+    },
+    {
+      "id": "Q29",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates and require manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Sentences that only say retrieval confidence is low, that the retrieved provisions are weak candidates, or that a regulatory affairs specialist should verify something are always supported."
+        },
+        {
+          "id": 2,
+          "text": "Under Rule 11 of the retrieved rules, software intended to provide information used to take decisions with diagnosis or therapeutic purposes is classified as class IIa, unless such decisions may cause death or irreversible deterioration of health (class III), or a serious deterioration of health or surgical intervention (class IIb).",
+          "judge_label": "supported",
+          "evidence": "Software intended to provide information which is used to take decisions with diagnosis or therapeutic purposes is classified as class IIa, except if such decisions have an impact that may cause: — death or an irreversible deterioration of a person's state of health, in which case it is in class III; or — a serious deterioration of a person's state of health or a surgical intervention, in which case it is classified as class IIb."
+        },
+        {
+          "id": 3,
+          "text": "Software intended to monitor physiological processes is classified as class IIa, but is class IIb if intended to monitor vital physiological parameters where variations could result in immediate danger to the patient.",
+          "judge_label": "supported",
+          "evidence": "Software intended to monitor physiological processes is classified as class IIa, except if it is intended for monitoring of vital physiological parameters, where the nature of variations of those parameters is such that it could result in immediate danger to the patient, in which case it is classified as class IIb."
+        },
+        {
+          "id": 4,
+          "text": "All other software is classified as class I.",
+          "judge_label": "supported",
+          "evidence": "All other software is classified as class I."
+        }
+      ]
+    },
+    {
+      "id": "Q30",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 52(3), manufacturers of class III devices, other than custom-made or investigational devices, must undergo a conformity assessment as specified in Annex IX, or alternatively, a conformity assessment as specified in Annex X coupled with Annex XI.",
+          "judge_label": "supported",
+          "evidence": "Manufacturers of class III devices, other than custom-made or investigational devices, shall be subject to a conformity assessment as specified in Annex IX. Alternatively, the manufacturer may choose to apply a conformity assessment as specified in Annex X coupled with a conformity assessment as specified in Annex XI."
+        },
+        {
+          "id": 2,
+          "text": "For class III custom-made implantable devices, manufacturers must follow Annex XIII and additionally undergo conformity assessment specified in Chapter I of Annex IX or Part A of Annex XI as per Article 52(8).",
+          "judge_label": "supported",
+          "evidence": "Manufacturers of custom-made devices shall follow the procedure set out in Annex XIII... manufacturers of class III custom-made implantable devices shall be subject to the conformity assessment as specified in Chapter I of Annex IX. Alternatively... Part A of Annex XI."
+        },
+        {
+          "id": 3,
+          "text": "Specific additional procedures in Annex IX or Annex X may also apply under Article 52(9)-(11) depending on device characteristics.",
+          "judge_label": "supported",
+          "evidence": "In addition to the procedures applicable pursuant to paragraph 3, 4, 6, or 7... the procedure specified in Section 5.2 of Annex IX or Section 6 of Annex X, as applicable, shall also apply."
+        }
+      ]
+    },
+    {
+      "id": "Q31",
+      "type": "question",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under the transitional provisions, certificates issued by notified bodies under Directives 90/385/EEC and 93/42/EEC prior to 25 May 2017 remain valid until the end of the period indicated on the certificate, except certificates issued under Annex 4 to Directive 90/385/EEC or Annex IV to Directive 93/42/EEC, which become void at the latest on 27 May 2022.",
+          "judge_label": "supported",
+          "evidence": "Certificates issued by notified bodies in accordance with Directives 90/385/EEC and 93/42/EEC prior to 25 May 2017 shall remain valid until the end of the period indicated on the certificate, except for certificates issued in accordance with Annex 4 to Directive 90/385/EEC or Annex IV to Directive 93/42/EEC which shall become void at the latest on 27 May 2022."
+        },
+        {
+          "id": 2,
+          "text": "Certificates issued under those Directives from 25 May 2017 remain valid until the end of the period indicated on the certificate, which shall not exceed five years from issuance, and become void at the latest on 27 May 2024.",
+          "judge_label": "supported",
+          "evidence": "Certificates issued by notified bodies in accordance with Directives 90/385/EEC and 93/42/EEC from 25 May 2017 shall remain valid until the end of the period indicated on the certificate, which shall not exceed five years from its issuance. They shall however become void at the latest on 27 May 2024."
+        },
+        {
+          "id": 3,
+          "text": "In situations where a notified body's designation is withdrawn, certificates remain valid for a period of nine months under specified conditions, and competent authorities may extend this provisional validity for further three-month periods not exceeding twelve months in total.",
+          "judge_label": "supported",
+          "evidence": "where a designation has been withdrawn, the certificates shall remain valid for a period of nine months in the following circumstances... may extend the provisional validity of the certificates for further periods of three months, which altogether shall not exceed twelve months."
+        }
+      ]
+    },
+    {
+      "id": "Q32",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Manufacturers must ensure the clinical evaluation is thorough, objective, and accounts for both favourable and unfavourable data, with its depth and extent proportionate to the nature, classification, intended purpose, and risks of the device.",
+          "judge_label": "supported",
+          "evidence": "The clinical evaluation shall be thorough and objective, and take into account both favourable and unfavourable data. Its depth and extent shall be proportionate and appropriate to the nature, classification, intended purpose and risks of the device"
+        },
+        {
+          "id": 2,
+          "text": "All relevant clinical data must be analysed to conclude on the device's safety, clinical performance, and clinical benefits.",
+          "judge_label": "supported",
+          "evidence": "(e) analyse all relevant clinical data in order to reach conclusions about the safety and clinical performance of the device including its clinical benefits."
+        },
+        {
+          "id": 3,
+          "text": "Equivalence to another device may be claimed only if demonstrated across technical, biological, and clinical characteristics to the extent that there is no clinically significant difference in safety and clinical performance, supported by proper scientific justification and clear demonstration of sufficient access to the equivalent device data.",
+          "judge_label": "supported",
+          "evidence": "The characteristics listed in the first paragraph shall be similar to the extent that there would be no clinically significant difference... Considerations of equivalence shall be based on proper scientific justification. It shall be clearly demonstrated that manufacturers have sufficient levels of access to the data"
+        },
+        {
+          "id": 4,
+          "text": "Technical equivalence requires similar design, conditions of use, specifications, deployment methods, and principles of operation.",
+          "judge_label": "supported",
+          "evidence": "Technical: the device is of similar design; is used under similar conditions of use; has similar specifications and properties...; uses similar deployment methods, where relevant; has similar principles of operation"
+        },
+        {
+          "id": 5,
+          "text": "Biological equivalence requires using the same materials or substances in contact with the same tissues or fluids for similar duration and release profiles.",
+          "judge_label": "supported",
+          "evidence": "Biological: the device uses the same materials or substances in contact with the same human tissues or body fluids for a similar kind and duration of contact and similar release characteristics"
+        },
+        {
+          "id": 6,
+          "text": "Clinical equivalence requires use for the same clinical condition, body site, user type, and similar population.",
+          "judge_label": "supported",
+          "evidence": "Clinical: the device is used for the same clinical condition or purpose... at the same site in the body, in a similar population... has the same kind of user"
+        },
+        {
+          "id": 7,
+          "text": "Furthermore, the notified body will assess the suitability of equivalence data, particularly considering any innovation or new indications.",
+          "judge_label": "supported",
+          "evidence": "The notified body shall... assess the suitability of using such data, taking into account factors such as new indications and innovation."
+        },
+        {
+          "id": 8,
+          "text": "Where clinical investigations are conducted as part of the clinical evaluation, they must be designed and conducted to verify suitability, clinical benefits, and safety pursuant to regulatory requirements.",
+          "judge_label": "supported",
+          "evidence": "Clinical investigations shall be designed, authorised, conducted, recorded and reported in accordance with the provisions of this Article... where carried out as part of the clinical evaluation... (a) suitable for... specific purposes... (b) clinical benefits... (c) clinical safety"
+        }
+      ]
+    },
+    {
+      "id": "Q33",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Annex XIV, Part B, Section 6.2, the post-market clinical follow-up (PMCF) plan must include at least: (a) general methods and procedures of the PMCF to be applied (such as gathering user feedback, clinical experience, and screening scientific literature and other clinical data sources); (b) specific methods and procedures to be applied (such as evaluation of suitable registers or PMCF studies); (c) a rationale for the appropriateness of the general and specific methods and procedures; (d) references to relevant parts of the clinical evaluation report and risk management documentation; (e) specific objectives to be addressed by the PMCF; (f) an evaluation of clinical data relating to equivalent or similar devices; (g) reference to relevant common specifications, harmonised standards, and guidance on PMCF; and (h) a detailed, adequately justified time schedule for PMCF activities such as data analysis and reporting.",
+          "judge_label": "supported",
+          "evidence": "6.2. The PMCF plan shall include at least: (a) the general methods and procedures... (b) the specific methods and procedures... (c) a rationale... (d) a reference to the relevant parts of the clinical evaluation report... and to the risk management... (e) the specific objectives... (f) an evaluation of the clinical data relating to equivalent or similar devices; (g) reference to any relevant CS, harmonised standards... and relevant guidance on PMCF; and (h) a detailed and adequately justified time schedule"
+        },
+        {
+          "id": 2,
+          "text": "Additionally, per Section 6.1, the plan must specify methods and procedures for proactively collecting and evaluating clinical data to confirm safety and performance throughout expected lifetime, identify unknown side-effects and emergent risks, monitor identified side-effects and contraindications, ensure the continued acceptability of the benefit-risk ratio, and identify possible systematic misuse or off-label use.",
+          "judge_label": "supported",
+          "evidence": "6.1. The PMCF plan shall specify the methods and procedures for proactively collecting and evaluating clinical data with the aim of: (a) confirming the safety and performance... (b) identifying previously unknown side-effects and monitoring the identified side-effects and contraindications, (c) identifying and analysing emergent risks... (d) ensuring the continued acceptability of the benefit-risk ratio... (e) identifying possible systematic misuse or off-label use"
+        }
+      ]
+    },
+    {
+      "id": "Q34",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under EU-MDR, informed consent must be written, dated, and signed by both the subject (or their legally designated representative) and the qualified member of the investigating team conducting the interview, with adequate time provided for decision-making and a copy provided to the subject.",
+          "judge_label": "supported",
+          "evidence": "Informed consent shall be written, dated and signed by the person performing the interview referred to in point (c) of paragraph 2, and by the subject or... legally designated representative... Adequate time shall be given... shall be provided with a copy"
+        },
+        {
+          "id": 2,
+          "text": "If the subject cannot write, consent may be recorded through alternative means before an impartial witness who signs and dates it.",
+          "judge_label": "supported",
+          "evidence": "Where the subject is unable to write, consent may be given and recorded through appropriate alternative means in the presence of at least one impartial witness. In that case, the witness shall sign and date the informed consent document."
+        },
+        {
+          "id": 3,
+          "text": "Information presented must be comprehensive, clear, and provided in a prior interview where understanding is verified, detailing the investigation's nature, objectives, benefits, risks, alternatives, the Union-wide unique single identification number, the damage compensation system, and the availability of results and clinical investigation reports.",
+          "judge_label": "supported",
+          "evidence": "(b) be kept comprehensive, concise, clear...; (c) be provided in a prior interview...; (e) include the Union-wide unique single identification number...; (d) damage compensation system; paragraph 5 verification of understanding; paragraph 6 report and summary availability"
+        },
+        {
+          "id": 4,
+          "text": "Additionally, subjects or their representatives must be informed of their right to withdraw consent at any time without detriment or justification, which does not affect activities and data obtained prior to revocation.",
+          "judge_label": "supported",
+          "evidence": "the subject's rights... right to refuse to participate in and the right to withdraw... at any time without any resulting detriment and without having to provide any justification; withdrawal 'shall not affect the activities already carried out and the use of data obtained'"
+        }
+      ]
+    },
+    {
+      "id": "Q35",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 80, the sponsor must fully record: (a) any adverse event identified in the clinical investigation plan as critical to the evaluation of the results; (b) any serious adverse event; (c) any device deficiency that might have led to a serious adverse event without intervention or if circumstances had been less fortunate; and (d) any new findings related to these events.",
+          "judge_label": "supported",
+          "evidence": "The sponsor shall fully record all of the following: (a) any adverse event of a type identified in the clinical investigation plan as being critical to the evaluation of the results...; (b) any serious adverse event; (c) any device deficiency that might have led to a serious adverse event if appropriate action had not been taken, intervention had not occurred, or circumstances had been less fortunate; (d) any new findings"
+        },
+        {
+          "id": 2,
+          "text": "Furthermore, the sponsor must report without delay to all Member States where the investigation is conducted—using the electronic system referred to in Article 73—any serious adverse event causally related or reasonably possibly related to the investigational device, comparator, or procedure; relevant device deficiencies; and associated new findings, taking into account the severity of the event.",
+          "judge_label": "supported",
+          "evidence": "The sponsor shall report, without delay to all Member States in which the clinical investigation is being conducted... by means of the electronic system referred to in Article 73: (a) any serious adverse event that has a causal relationship... or where such causal relationship is reasonably possible; (b) any device deficiency...; (c) any new findings... The period for reporting shall take account of the severity of the event."
+        },
+        {
+          "id": 3,
+          "text": "Events occurring under the same clinical investigation plan in third countries must likewise be reported.",
+          "judge_label": "supported",
+          "evidence": "The sponsor shall also report to the Member States in which the clinical investigation is being conducted any event referred to in paragraph 2 of this Article that occurred in third countries in which a clinical investigation is performed under the same clinical investigation plan"
+        },
+        {
+          "id": 4,
+          "text": "Upon request, the sponsor must provide all recorded adverse event information to any involved Member State.",
+          "judge_label": "supported",
+          "evidence": "Upon request by any Member State in which the clinical investigation is being conducted, the sponsor shall provide all information referred to in paragraph 1."
+        }
+      ]
+    },
+    {
+      "id": "Q36",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under the General Safety and Performance Requirements, manufacturers must establish, implement, document, and maintain a risk management system as a continuous iterative process throughout the entire device lifecycle that requires regular systematic updating.",
+          "judge_label": "supported",
+          "evidence": "Manufacturers shall establish, implement, document and maintain a risk management system. Risk management shall be understood as a continuous iterative process throughout the entire lifecycle of a device, requiring regular systematic updating."
+        },
+        {
+          "id": 2,
+          "text": "In carrying out this system, manufacturers must: (a) establish and document a risk management plan for each device; (b) identify and analyse known and foreseeable hazards; (c) estimate and evaluate risks occurring during intended use and reasonably foreseeable misuse; (d) eliminate or control these risks in accordance with specified safety principles and priority order; (e) evaluate the impact of information from production and post-market surveillance on hazards, frequencies, risk estimates, overall risk, benefit-risk ratio, and risk acceptability; and (f) amend control measures as necessary based on that evaluation.",
+          "judge_label": "supported",
+          "evidence": "(a) establish and document a risk management plan for each device; (b) identify and analyse the known and foreseeable hazards...; (c) estimate and evaluate the risks... intended use and during reasonably foreseeable misuse; (d) eliminate or control the risks... in accordance with the requirements of Section 4; (e) evaluate the impact of information from the production phase and... post-market surveillance...; (f)... amend control measures"
+        }
+      ]
+    },
+    {
+      "id": "Q37",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under Annex I, Section 23, each device must be accompanied by information identifying the device and its manufacturer, along with safety and performance details.",
+          "judge_label": "supported",
+          "evidence": "Each device shall be accompanied by the information needed to identify the device and its manufacturer, and by any safety and performance information relevant to the user"
+        },
+        {
+          "id": 2,
+          "text": "The label must include the device name or trade name, details necessary to identify the device and contents, its intended purpose if not obvious, the manufacturer's name/trade mark and registered address (and the authorised representative's details if applicable), the lot or serial number, any presence of medicinal substances or human/animal tissues or cells, and labelling under Section 10.4.5 for CMR or endocrine-disrupting substances above 0.1% w/w.",
+          "judge_label": "supported",
+          "evidence": "23.2 The label shall bear: (a) the name or trade name of the device; (b) details strictly necessary... (c) name... of the manufacturer and address; (d) authorised representative; (e) medicinal substance... tissues or cells; (f) Section 10.4.5; (g) lot number or serial number"
+        },
+        {
+          "id": 3,
+          "text": "Residual risks must be provided as limitations, contra-indications, precautions, or warnings.",
+          "judge_label": "supported",
+          "evidence": "Residual risks which are required to be communicated to the user and/or other person shall be included as limitations, contra-indications, precautions or warnings"
+        },
+        {
+          "id": 4,
+          "text": "The instructions for use must convey readily understandable information, including residual risks and precautionary measures for vulnerable groups (e.g., children, pregnant or breastfeeding women) if substances under Section 10.4.1 are present above 0.1% w/w.",
+          "judge_label": "supported",
+          "evidence": "instructions for use shall be written in terms readily understood by the intended user; 10.4.5: information on residual risks for those patient groups and, if applicable, on appropriate precautionary measures shall be given in the instructions for use"
+        }
+      ]
+    },
+    {
+      "id": "Q38",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "The technical documentation drawn up by the manufacturer must be clear, organized, readily searchable, and unambiguous.",
+          "judge_label": "supported",
+          "evidence": "The technical documentation ... shall be presented in a clear, organised, readily searchable and unambiguous manner"
+        },
+        {
+          "id": 2,
+          "text": "In accordance with Annex II, it must include: (1) Device description and specification (including product name, intended purpose, Basic UDI-DI/traceability reference, intended patient population, operating principles, qualification rationale, risk classification justification, novel features, accessories, variants/configurations, key functional elements, raw materials, and technical specifications); (2) Reference to previous and similar generations of the device; (3) Information to be supplied by the manufacturer (complete sets of labels and instructions for use in accepted Member State languages); (4) Design and manufacturing information (design stages, manufacturing processes and validation, monitoring, final product testing, and identification of all design/manufacturing sites, suppliers, and subcontractors); and (5) Information demonstrating conformity with the general safety and performance requirements set out in Annex I, including justification, validation, and verification.",
+          "judge_label": "supported",
+          "evidence": "Annex II sections 1 (device description and specification, items (a)-(l)), 1.2 (previous and similar generations), 2 (information supplied by manufacturer: labels and IFU in accepted languages), 3 (design and manufacturing information), 4 (general safety and performance requirements: justification, validation and verification)"
+        }
+      ]
+    },
+    {
+      "id": "Q39",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Pursuant to Article 2(65), a 'serious incident' is defined as any incident that directly or indirectly led, might have led, or might lead to: (a) the death of a patient, user, or other person; (b) the temporary or permanent serious deterioration of a patient's, user's, or other person's state of health; or (c) a serious public health threat.",
+          "judge_label": "supported",
+          "evidence": "(65) 'serious incident' means any incident that directly or indirectly led, might have led or might lead to any of the following: (a) the death of a patient, user or other person, (b) the temporary or permanent serious deterioration of a patient's, user's or other person's state of health, (c) a serious public health threat;"
+        },
+        {
+          "id": 2,
+          "text": "Under Article 2(64), an 'incident' encompasses any malfunction or deterioration in the characteristics or performance of a device made available on the market, including use-error due to ergonomic features, inadequacy in manufacturer-supplied information, and any undesirable side-effect.",
+          "judge_label": "supported",
+          "evidence": "(64) 'incident' means any malfunction or deterioration in the characteristics or performance of a device made available on the market, including use-error due to ergonomic features, as well as any inadequacy in the information supplied by the manufacturer and any undesirable side-effect;"
+        }
+      ]
+    },
+    {
+      "id": "Q40",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Where competent authorities find that a device presents an unacceptable risk to the health or safety of patients, users, or other persons, or to public health, they must without delay require the manufacturer, its authorised representative, and all other relevant economic operators to take appropriate and duly justified corrective action to bring the device into compliance, restrict its making available, subject it to specific requirements, withdraw it, or recall it within a clearly defined period.",
+          "judge_label": "supported",
+          "evidence": "Art. 95(1): competent authorities \"shall without delay require the manufacturer..., its authorised representative and all other relevant economic operators to take all appropriate and duly justified corrective action... within a reasonable period that is clearly defined and communicated\""
+        },
+        {
+          "id": 2,
+          "text": "Competent authorities must promptly notify the Commission, other Member States, and the relevant notified body via the electronic system.",
+          "judge_label": "supported",
+          "evidence": "Art. 95(2): \"shall, without delay, notify the Commission, the other Member States and, where a certificate has been issued... the notified body... by means of the electronic system referred to in Article 100\""
+        },
+        {
+          "id": 3,
+          "text": "Economic operators must ensure corrective action is taken throughout the Union; if they fail to take adequate action within the defined period, competent authorities must take all appropriate measures to prohibit, restrict, withdraw, or recall the device from their national market and inform the Commission, other Member States, and the notified body.",
+          "judge_label": "supported",
+          "evidence": "Art. 95(3)-(4): operators \"ensure that all appropriate corrective action is taken throughout the Union\"; if inadequate, authorities \"shall take all appropriate measures to prohibit or restrict... withdraw... or recall it. The competent authorities shall notify the Commission, the other Member States and the notified body\""
+        },
+        {
+          "id": 4,
+          "text": "Relevant economic operators are also obliged to cooperate with competent authorities during evaluations.",
+          "judge_label": "supported",
+          "evidence": "Art. 94: \"The relevant economic operators shall cooperate with the competent authorities.\""
+        }
+      ]
+    },
+    {
+      "id": "Q41",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under Article 120, certificates issued under Directives 90/385/EEC and 93/42/EEC prior to 25 May 2017 remain valid until the expiry date indicated, except those under Annex 4/Annex IV which voided at the latest on 27 May 2022.",
+          "judge_label": "supported",
+          "evidence": "Certificates issued ... prior to 25 May 2017 shall remain valid until the end of the period indicated on the certificate, except for certificates issued in accordance with Annex 4 ... or Annex IV ... which shall become void at the latest on 27 May 2022."
+        },
+        {
+          "id": 2,
+          "text": "Certificates issued from 25 May 2017 remain valid for their stated duration up to a maximum of five years, becoming void at the latest on 27 May 2024.",
+          "judge_label": "supported",
+          "evidence": "Certificates issued ... from 25 May 2017 shall remain valid until the end of the period indicated on the certificate, which shall not exceed five years ... They shall however become void at the latest on 27 May 2024."
+        },
+        {
+          "id": 3,
+          "text": "Devices covered by these valid directive certificates may be placed on the market or put into service provided they continue to comply with the relevant Directive and undergo no significant changes in design or intended purpose.",
+          "judge_label": "supported",
+          "evidence": "may only be placed on the market or put into service provided that ... it continues to comply with either of those Directives, and provided there are no significant changes in the design and intended purpose."
+        },
+        {
+          "id": 4,
+          "text": "However, the manufacturer must comply with EU-MDR requirements for post-market surveillance, market surveillance, vigilance, and registration of economic operators and devices in place of directive rules.",
+          "judge_label": "supported",
+          "evidence": "the requirements of this Regulation relating to post-market surveillance, market surveillance, vigilance, registration of economic operators and of devices shall apply in place of the corresponding requirements in those Directives."
+        },
+        {
+          "id": 5,
+          "text": "Devices lawfully placed on the market under these provisions may continue to be made available on the market or put into service until 27 May 2025.",
+          "judge_label": "supported",
+          "evidence": "may continue to be made available on the market or put into service until 27 May 2025."
+        }
+      ]
+    },
+    {
+      "id": "Q42",
+      "type": "question",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Under Article 113, Member States are responsible for laying down the rules on penalties applicable for infringement of the provisions of this Regulation and taking all necessary measures to ensure they are implemented.",
+          "judge_label": "supported",
+          "evidence": "The Member States shall lay down the rules on penalties applicable for infringement of the provisions of this Regulation and shall take all measures necessary to ensure that they are implemented."
+        },
+        {
+          "id": 2,
+          "text": "The penalties established must be effective, proportionate, and dissuasive, and Member States were required to notify the Commission of those rules and measures by 25 February 2020, as well as notify any subsequent amendments without delay.",
+          "judge_label": "supported",
+          "evidence": "The penalties provided for shall be effective, proportionate, and dissuasive. The Member States shall notify the Commission of those rules and of those measures by 25 February 2020 and shall notify it, without delay, of any subsequent amendment affecting them."
+        }
+      ]
+    },
+    {
+      "id": "N01",
+      "type": "narrative",
+      "retrieval_hit": true,
+      "faithfulness": 0.8,
+      "claims": [
+        {
+          "id": 1,
+          "text": "The event qualifies as a serious incident because the device failure to deliver therapy during ventricular fibrillation directly or indirectly led to the death of the patient.",
+          "judge_label": "supported",
+          "evidence": "'serious incident' means any incident that directly or indirectly led, might have led or might lead to ... (a) the death of a patient; 'incident' includes any malfunction ... of a device"
+        },
+        {
+          "id": 2,
+          "text": "In accordance with EU-MDR statutory obligations, the manufacturer must report this serious incident to the competent authority of the Member State in which it occurred.",
+          "judge_label": "supported",
+          "evidence": "it shall provide a report ... to the competent authority of the Member State in which that serious incident occurred"
+        },
+        {
+          "id": 3,
+          "text": "This report must be provided immediately after establishing or suspecting a causal relationship between the device and the incident, and not later than 10 days after becoming aware of it.",
+          "judge_label": "supported",
+          "evidence": "be provided immediately after the manufacturer has established or as soon as it suspects a causal relationship ... but not later than 10 days after the date on which the manufacturer becomes aware of the serious incident"
+        },
+        {
+          "id": 4,
+          "text": "If necessary to ensure timely reporting, an initial incomplete report may be submitted followed by a complete report.",
+          "judge_label": "supported",
+          "evidence": "Where necessary to ensure timely reporting, the manufacturer may submit an initial report that is incomplete followed up by a complete report."
+        },
+        {
+          "id": 5,
+          "text": "Even if uncertain whether the incident is reportable, the manufacturer must submit a report within the specified timeframe and take appropriate follow-up action in accordance with Article 89.",
+          "judge_label": "not_supported",
+          "evidence": "Paragraph 7 only requires a report within the timeframe when the manufacturer is uncertain. The Article 89 follow-up obligation appears only where the manufacturer considers the incident serious, not in the uncertain-reportability case."
+        }
+      ]
+    },
+    {
+      "id": "N02",
+      "type": "narrative",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Caution: Retrieval confidence is low/ambiguous, and the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": ""
+        },
+        {
+          "id": 2,
+          "text": "Based strictly on the provided excerpts, the event involving a suspected software fault resulting in patient death corresponds to the definition of a serious incident under Article 2(65)(a).",
+          "judge_label": "supported",
+          "evidence": "'serious incident' means any incident that directly or indirectly led, might have led or might lead to... (a) the death of a patient; input: patient expired"
+        },
+        {
+          "id": 3,
+          "text": "Where a causal relationship is established or suspected, the manufacturer must report the serious incident to the competent authority, submitting an initial report if needed to ensure timeliness or if uncertain about reportability, and take appropriate follow-up action in accordance with Article 89.",
+          "judge_label": "supported",
+          "evidence": "immediately after the manufacturer has established or as soon as it suspects a causal relationship...; 'may submit an initial report that is incomplete'; 'If... uncertain... shall nevertheless submit a report'; 'take the appropriate follow-up action in accordance with Article 89'"
+        },
+        {
+          "id": 4,
+          "text": "Additionally, any field safety corrective action must be reported in advance without undue delay, except in urgent cases.",
+          "judge_label": "supported",
+          "evidence": "Except in cases of urgency... the manufacturer shall, without undue delay, report the field safety corrective action... in advance of the field safety corrective action being undertaken."
+        }
+      ]
+    },
+    {
+      "id": "N03",
+      "type": "narrative",
+      "retrieval_hit": true,
+      "faithfulness": 0.75,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Sentences that only say retrieval confidence is low, that the retrieved provisions are weak candidates, or that a regulatory affairs specialist should verify something are always supported."
+        },
+        {
+          "id": 2,
+          "text": "Based strictly on the provided text of Article 87, if a causal relationship between the device and the incident is established or suspected, reporting must occur immediately and no later than 10 days after becoming aware.",
+          "judge_label": "supported",
+          "evidence": "be provided immediately after the manufacturer has established or as soon as it suspects a causal relationship between the device and the serious incident but not later than 10 days after the date on which the manufacturer becomes aware of the serious incident."
+        },
+        {
+          "id": 3,
+          "text": "If there is uncertainty regarding whether the incident is reportable, the manufacturer must nevertheless submit a report within the required timeframe, with the option to submit an initial incomplete report followed by a complete report to ensure timeliness.",
+          "judge_label": "supported",
+          "evidence": "If, after becoming aware of a potentially reportable incident, the manufacturer is uncertain about whether the incident is reportable, it shall nevertheless submit a report within the timeframe... the manufacturer may submit an initial report that is incomplete followed up by a complete report."
+        },
+        {
+          "id": 4,
+          "text": "Alternatively, if the manufacturer considers that the event is not a serious incident, it must provide an explanatory statement to the competent authority.",
+          "judge_label": "not_supported",
+          "evidence": "The explanatory statement applies only when a competent authority obtains reports from healthcare professionals, users or patients and informs the manufacturer (paragraph 11); it is not a general obligation."
+        }
+      ]
+    },
+    {
+      "id": "N04",
+      "type": "narrative",
+      "retrieval_hit": false,
+      "faithfulness": 0.5,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates that require manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": ""
+        },
+        {
+          "id": 2,
+          "text": "Based strictly on the provided text, when notified bodies receive information regarding vigilance cases, they must thoroughly document the results of their evaluation and decide on an appropriate action, which may include observing the manufacturer's and competent authority's activities and investigation results, performing extraordinary surveillance measures (such as document reviews, short-notice or unannounced audits, and product testing) if certification is likely at risk, increasing audit frequency, or assessing the manufacturer's documentation and application of vigilance provisions.",
+          "judge_label": "not_supported",
+          "evidence": "The retrieved options for vigilance cases are: no action, observe the manufacturer's and authority's activities, extraordinary surveillance measures, increased audit frequency, review at the next audit, or any other relevant measure. Assessing the manufacturer's vigilance documentation appears only in a separate list of surveillance-audit procedures, not as an option for vigilance cases."
+        }
+      ]
+    },
+    {
+      "id": "N05",
+      "type": "narrative",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence below operational threshold, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Statement about low retrieval confidence and manual verification is added by design."
+        },
+        {
+          "id": 2,
+          "text": "Under Article 87, if the manufacturer considers the surgical stapler incident to be a serious incident or suspects a causal relationship between the device and the incident, it must provide a report to the relevant competent authority not later than 10 days after becoming aware.",
+          "judge_label": "supported",
+          "evidence": "\"be provided immediately after the manufacturer has established or as soon as it suspects a causal relationship... but not later than 10 days after the date on which the manufacturer becomes aware of the serious incident\"; \"Where the manufacturer... considers that the incident is a serious incident, it shall provide a report\""
+        },
+        {
+          "id": 3,
+          "text": "If there is uncertainty regarding whether the incident is reportable, the manufacturer must nevertheless submit a report within the required timeframe, and may provide an initial incomplete report if necessary to ensure timely reporting.",
+          "judge_label": "supported",
+          "evidence": "\"If... the manufacturer is uncertain about whether the incident is reportable, it shall nevertheless submit a report within the timeframe\"; \"the manufacturer may submit an initial report that is incomplete followed up by a complete report\""
+        },
+        {
+          "id": 4,
+          "text": "If determined not to be a serious incident, the manufacturer must provide an explanatory statement.",
+          "judge_label": "supported",
+          "evidence": "\"Where the manufacturer of the device concerned considers that the incident is not a serious incident... it shall provide an explanatory statement.\""
+        }
+      ]
+    },
+    {
+      "id": "N06",
+      "type": "narrative",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence, the statutory provisions retrieved are weak candidates and require manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Sentences that only say retrieval confidence is low or that provisions are weak candidates needing manual verification are added by design."
+        },
+        {
+          "id": 2,
+          "text": "Under Article 2(64), the repeated error code and inability to produce a reading aligns with the definition of an 'incident' as a malfunction or deterioration in device performance.",
+          "judge_label": "supported",
+          "evidence": "Article 2(64): 'incident' means any malfunction or deterioration in the characteristics or performance of a device made available on the market"
+        },
+        {
+          "id": 3,
+          "text": "Because no patient harm occurred, it does not currently meet the definition of a 'serious adverse event' under Article 2(58).",
+          "judge_label": "supported",
+          "evidence": "Article 2(58): serious adverse event means any adverse event that led to death or serious deterioration in health; input: 'No patient harm reported.'"
+        },
+        {
+          "id": 4,
+          "text": "Given that this is the third similar complaint for this lot, post-market surveillance procedures under Article 2(60) must be evaluated to determine whether corrective or preventive actions, recall (Article 2(62)), or withdrawal (Article 2(63)) are required.",
+          "judge_label": "supported",
+          "evidence": "Article 2(60) post-market surveillance ... 'identifying any need to immediately apply any necessary corrective or preventive actions'; 2(62) recall; 2(63) withdrawal; input: 'Third similar complaint for this lot this month.'"
+        },
+        {
+          "id": 5,
+          "text": "Article 80 addresses recording and reporting obligations for sponsors during clinical investigations, which requires manual verification to confirm whether the device is an investigational device subject to Article 80 requirements or a marketed device subject to general post-market vigilance.",
+          "judge_label": "supported",
+          "evidence": "Article 80 heading: 'Recording and reporting of adverse events that occur during clinical investigations'; 'The sponsor shall fully record...'; verification by specialist is added by design."
+        }
+      ]
+    },
+    {
+      "id": "N07",
+      "type": "narrative",
+      "retrieval_hit": true,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Please note that the retrieval confidence level is low and ambiguous, meaning the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Statement about low retrieval confidence and manual verification by a specialist is added by design."
+        },
+        {
+          "id": 2,
+          "text": "Based strictly on the provided context, the touchscreen malfunction aligns with the definition of an 'incident' under Article 2(64) as a malfunction or deterioration in the characteristics or performance of a device made available on the market.",
+          "judge_label": "supported",
+          "evidence": "Article 2(64): 'incident' means any malfunction or deterioration in the characteristics or performance of a device made available on the market"
+        },
+        {
+          "id": 3,
+          "text": "Furthermore, pursuant to Article 87, if the event was flagged to the manufacturer by a competent authority as a suspected serious incident and the manufacturer determines it is not a serious incident, the manufacturer must provide an explanatory statement, which may be subject to competent authority review and potential reporting requirements.",
+          "judge_label": "supported",
+          "evidence": "Where the manufacturer 'considers that the incident is not a serious incident... it shall provide an explanatory statement. If the competent authority does not agree... it may require the manufacturer to provide a report'"
+        }
+      ]
+    },
+    {
+      "id": "N08",
+      "type": "narrative",
+      "retrieval_hit": false,
+      "faithfulness": 1.0,
+      "claims": [
+        {
+          "id": 1,
+          "text": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist.",
+          "judge_label": "supported",
+          "evidence": "Sentences that only say retrieval confidence is low or that provisions are weak candidates requiring specialist verification are supported by design."
+        },
+        {
+          "id": 2,
+          "text": "Based strictly on the retrieved text, requirements address sterile packaging being damaged or unintentionally opened before use, and ensuring sterility until sterile packaging is opened or damaged.",
+          "judge_label": "supported",
+          "evidence": "Annex I: \"sterile packaging being damaged or unintentionally opened before use\"; Article 22: \"ensuring sterility until the sterile packaging is opened or damaged.\""
+        },
+        {
+          "id": 3,
+          "text": "The regulatory affairs specialist should evaluate whether the affected batch involves procedure pack requirements under Article 22 or packaging and labelling requirements concerning sterile packaging damaged or unintentionally opened before use under Annex I.",
+          "judge_label": "supported",
+          "evidence": "The claim only says a regulatory affairs specialist should evaluate whether Article 22 or Annex I applies; the retrieved text mentions both provisions."
+        }
+      ]
+    }
+  ]
+}
