@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     vertex_retry_backoff_base_seconds: float = 3.0
     vertex_cold_start_timeout_seconds: float = 210.0
 
+    # Gemini pricing, USD per 1M tokens, used only to estimate cost per request in telemetry.
+    # gemini-3.8-flash paid tier through 31 Dec 2026. From 1 Jan 2027: 1.50 input, 7.50 output.
+    # Output price includes thinking tokens.
+    gemini_input_price_per_mtok_usd: float = 0.75
+    gemini_output_price_per_mtok_usd: float = 3.75
+
     # OpenFDA Ingestion (Optional fields so they are recognized)
     openfda_base_url: Optional[str] = None
     openfda_api_key: Optional[str] = None

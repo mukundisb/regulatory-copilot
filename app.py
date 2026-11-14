@@ -15,6 +15,7 @@ from maude_classifier.text_cleaner import clean_text
 from maude_classifier.vertex_client import VertexClassifierClient, VertexColdStartException
 from rag_pipeline import init_store, query_store, ingest_document, verify_feature_registry, COLLECTION_NAME
 from rag_recommender import generate_grounded_recommendation
+from telemetry import emit_assess_event, estimate_gemini_cost_usd
 from pathlib import Path
 
 logging.basicConfig(
@@ -311,9 +312,22 @@ def retrieve(data: ClassifyRequest):
 @app.post("/assess", response_model=AssessResponse)
 def assess(data: ClassifyRequest):
     start_time = time.perf_counter()
+    try:
+        return _assess_pipeline(data, start_time)
+    except Exception as exc:
+        # Unhandled failure: record it for the error-rate metric, then let FastAPI return the 500.
+        emit_assess_event(
+            outcome="error",
+            latency_ms=round((time.perf_counter() - start_time) * 1000, 2),
+            error_type=type(exc).__name__,
+        )
+        raise
 
+
+def _assess_pipeline(data: ClassifyRequest, start_time: float) -> AssessResponse:
     # 1. ML Inference via unified router
     clf_result = _classify_narrative(data.narrative)
+    classify_done = time.perf_counter()
     predicted_label = clf_result["predicted_label"]
 
     # Calculate confidence robustly across tfidf and vertex payloads
@@ -338,6 +352,7 @@ def assess(data: ClassifyRequest):
             top_k=3,
         )
         drift_warning = None
+    retrieve_done = time.perf_counter()
 
     # 4. LLM-grounded recommendation generation with citation containment
     top_score = chunks[0]["similarity_score"] if chunks else 0.0
@@ -349,6 +364,7 @@ def assess(data: ClassifyRequest):
         top_score=top_score,
         threshold=RETRIEVAL_QUALITY_THRESHOLD,
     )
+    generate_done = time.perf_counter()
 
     # 5. Aggregate warnings across classifier, recommender, and registry guard
     warnings = [w for w in [clf_result.get("warning"), rec_result.get("warning"), drift_warning] if w]
@@ -363,6 +379,29 @@ def assess(data: ClassifyRequest):
         f"llm_verified = {rec_result['llm_grounding_verified']} "
         f"citations = {rec_result['citations']} "
         f"latency_ms = {latency_ms:.2f}"
+    )
+
+    # 6. Structured telemetry: one JSON line per request for log-based metrics
+    classifier_fallback = clf_result.get("backend_used") == "tfidf_fallback"
+    llm_fallback = (rec_result.get("warning") or "").startswith(("Degraded to deterministic", "No regulatory context"))
+    usage = rec_result.get("usage") or {}
+    emit_assess_event(
+        outcome="degraded" if (classifier_fallback or llm_fallback or rag_grounding_degraded) else "ok",
+        latency_ms=round(latency_ms, 2),
+        classify_ms=round((classify_done - start_time) * 1000, 2),
+        retrieve_ms=round((retrieve_done - classify_done) * 1000, 2),
+        generate_ms=round((generate_done - retrieve_done) * 1000, 2),
+        predicted_label=predicted_label,
+        classifier_backend=clf_result.get("backend_used"),
+        classifier_fallback=classifier_fallback,
+        retrieval_fallback=fallback_triggered,
+        retrieval_top_score=round(top_score, 4),
+        rag_grounding_degraded=rag_grounding_degraded,
+        llm_fallback=llm_fallback,
+        llm_grounding_verified=rec_result["llm_grounding_verified"],
+        input_tokens=usage.get("input_tokens"),
+        output_tokens=usage.get("output_tokens"),
+        est_cost_usd=estimate_gemini_cost_usd(usage.get("input_tokens"), usage.get("output_tokens")),
     )
 
     return AssessResponse(

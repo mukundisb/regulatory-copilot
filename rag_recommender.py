@@ -72,6 +72,26 @@ STRICT GROUNDING RULES:
 """
 
 
+def _extract_usage(response: Any) -> Dict[str, Optional[int]]:
+    """
+    Token counts for one Gemini call, read from response.usage_metadata.
+    Thinking tokens are billed as output, so they are added to the output count.
+    Returns None values when the SDK response carries no usable counts.
+    """
+    meta = getattr(response, "usage_metadata", None)
+
+    def count(name: str) -> Optional[int]:
+        value = getattr(meta, name, None)
+        return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+    input_tokens = count("prompt_token_count")
+    output_tokens = count("candidates_token_count")
+    thinking_tokens = count("thoughts_token_count")
+    if output_tokens is not None and thinking_tokens:
+        output_tokens += thinking_tokens
+    return {"input_tokens": input_tokens, "output_tokens": output_tokens}
+
+
 def _fallback_deterministic_template(predicted_label: str, chunks: List[Dict[str, Any]], reason: str) -> Dict[str, Any]:
     """
     Fallback deterministic output.
@@ -144,6 +164,7 @@ def generate_grounded_recommendation(
             parsed = StructuredRecommendation(**raw_data)
 
         cited_sections = parsed.citations
+        usage = _extract_usage(response)
 
         # Enforce citation containment
         hallucinated = set(cited_sections) - valid_sections
@@ -158,12 +179,14 @@ def generate_grounded_recommendation(
                 "citations": valid_citations,
                 "llm_grounding_verified": False,
                 "warning": f"Pruned hallucinated citations: {list(hallucinated)}",
+                "usage": usage,
             }
 
         return {
             "recommendation": parsed.recommendation,
             "citations": cited_sections,
             "llm_grounding_verified": True,
+            "usage": usage,
         }
 
     except Exception as e:
