@@ -1,0 +1,82 @@
+{
+  "requests_measured": 50,
+  "window": {
+    "first": "2026-11-15T10:38:48.188526+00:00",
+    "last": "2026-11-15T10:46:21.480091+00:00"
+  },
+  "warmup_request": {
+    "latency_ms": 189809.14,
+    "classify_ms": 182864.59,
+    "retrieve_ms": 42.33,
+    "generate_ms": 6902.22,
+    "outcome": "ok",
+    "classifier_backend": "clinicalbert_vertex"
+  },
+  "latency_ms": {
+    "latency_ms": {
+      "p50": 6637.1,
+      "p95": 10354.4,
+      "max": 15698.2
+    },
+    "classify_ms": {
+      "p50": 188.2,
+      "p95": 230.4,
+      "max": 425.8
+    },
+    "retrieve_ms": {
+      "p50": 28.4,
+      "p95": 68.6,
+      "max": 101.3
+    },
+    "generate_ms": {
+      "p50": 6393.3,
+      "p95": 10159.6,
+      "max": 15542.7
+    }
+  },
+  "latency_ms_ok_requests_only": {
+    "latency_ms": {
+      "p50": 6667.1,
+      "p95": 10365.0,
+      "max": 15698.2
+    },
+    "classify_ms": {
+      "p50": 189.5,
+      "p95": 230.7,
+      "max": 425.8
+    },
+    "retrieve_ms": {
+      "p50": 28.3,
+      "p95": 68.9,
+      "max": 101.3
+    },
+    "generate_ms": {
+      "p50": 6409.8,
+      "p95": 10177.1,
+      "max": 15542.7
+    }
+  },
+  "outcomes": {
+    "ok": 49,
+    "degraded": 1,
+    "error": 0
+  },
+  "error_rate": 0.02,
+  "llm_status": {
+    "answered": 49,
+    "no_context": 1
+  },
+  "classifier_fallbacks": 0,
+  "classifier_cold_starts_over_10s": 0,
+  "cost_usd": {
+    "requests_with_llm_call": 49,
+    "mean": 0.001583,
+    "p50": 0.001588,
+    "p95": 0.002028,
+    "per_1000_requests": 1.58
+  },
+  "tokens": {
+    "mean_input": 1411,
+    "mean_output": 140
+  }
+}

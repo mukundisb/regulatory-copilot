@@ -115,6 +115,56 @@ python scripts/evaluate_faithfulness.py --judge anthropic   # faithfulness, need
 Per-item results are written to `reports/rag_eval.json` and `reports/faithfulness_eval.json`. Hand labels: [`eval/faithfulness_labels.csv`](eval/faithfulness_labels.csv). Method notes: [`eval/README.md`](eval/README.md).
 
 ---
+## Operations
+
+Every `/assess` request writes one structured JSON log line ([`telemetry.py`](telemetry.py)) with per-stage latency, the classifier backend, fallback flags, Gemini token counts and an estimated cost. Three log-based metrics and a Cloud Monitoring dashboard are built on those lines; their definitions are in [`ops/monitoring/`](ops/monitoring/).
+
+**Live measurement: 15 November 2026.** 50 golden-set inputs sent one at a time to the deployed Cloud Run service, after one warm-up request. Figures are read from the server-side log lines.
+
+| Stage | Median (p50) | 95th percentile | Max |
+| :--- | ---: | ---: | ---: |
+| Total request | 6.6 s | 10.4 s | 15.7 s |
+| Classify (ClinicalBERT on Vertex AI) | 188 ms | 230 ms | 426 ms |
+| Retrieve (ChromaDB) | 28 ms | 69 ms | 101 ms |
+| Generate (Gemini) | 6.4 s | 10.2 s | 15.5 s |
+
+| Measure | Result |
+| :--- | ---: |
+| Requests served cleanly | 49 of 50 |
+| Degraded or failed requests | 1 of 50 (2%) |
+| Classifier fallbacks to TF-IDF | 0 |
+| Mean Gemini cost per request | $0.00158 |
+| Cost per 1,000 requests | about $1.58 |
+| Mean tokens per request | 1,411 input, 140 output |
+| Cold-start warm-up request (excluded above) | 190 s |
+
+![Cloud Monitoring dashboard for /assess](docs/images/assess-dashboard.png)
+
+*Dashboard during the run. The spike in the 95th percentile latency line is the cold-start warm-up request.*
+
+### What the measurement shows
+
+* **Generation dominates latency.** Gemini accounts for about 96% of the median request. Classification and retrieval together take under 250 ms.
+* **The one degraded request was a retrieval gap, not an outage.** For one injury narrative no chunk passed the 0.45 similarity cut-off, so the service returned its "no regulatory context" response without calling the LLM.
+* **Telemetry found a production fault on its first day.** The first log lines showed the recommender returning its fallback template in under 1 ms: the Gemini API key was not reaching the Cloud Run service. The secret reference was corrected and the measurement above was taken afterwards.
+
+### Known limitations
+
+* **Cold starts are slow and excluded from the tables.** The service and the Vertex AI endpoint both scale to zero. The warm-up request of this run took 190 s, of which 183 s was the classifier endpoint starting. It still answered on ClinicalBERT without falling back, but a first visitor waits about three minutes.
+* **Sequential load.** Requests were sent one at a time; behaviour under concurrent load is not measured.
+* **Input mix.** 42 of the 50 inputs are regulatory questions and 8 are adverse event narratives.
+* **Cost is an estimate.** It is token counts multiplied by the published gemini-3.8-flash prices ($0.75 input, $3.75 output per million tokens), which are due to double on 1 January 2027. Vertex AI and Cloud Run compute costs are not included.
+
+### Reproduce
+
+```bash
+python scripts/measure_live.py send                        # warm-up, then the golden set against the live endpoint
+python scripts/measure_live.py summarise --logs <file>     # file = the run's entries downloaded from Logs Explorer as JSON
+```
+
+Results are written to `reports/live_run.json` and `reports/live_metrics.json`.
+
+---
 ## Local Development & Setup
 
 ### 1. Backend Service (GCP Cloud Run)

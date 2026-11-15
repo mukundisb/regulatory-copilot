@@ -1,0 +1,611 @@
+{
+  "url": "https://regulatory-copilot-679089218302.asia-south1.run.app",
+  "started_at": "2026-11-15T10:35:30+00:00",
+  "finished_at": "2026-11-15T10:46:22+00:00",
+  "warmup": {
+    "http_status": 200,
+    "client_latency_ms": 191058.3,
+    "backend_used": "clinicalbert_vertex",
+    "llm_grounding_verified": true,
+    "citations": [
+      "Article 87 - Reporting of serious incidents and field safety corrective actions",
+      "Article 2 - Definitions"
+    ],
+    "warning": null
+  },
+  "requests": [
+    {
+      "id": "Q01",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6334.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q02",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 17060.2,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q03",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9923.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q04",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6142.7,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q05",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 5343.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q06",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8848.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 88 - Trend reporting"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q07",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8665.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Preamble"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q08",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7429.7,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 90 - Analysis of vigilance data",
+        "Article 88 - Trend reporting"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q09",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7762.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 83 - Post-market surveillance system of the manufacturer"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q10",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8354.5,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 84 - Post-market surveillance plan",
+        "ANNEX III - TECHNICAL DOCUMENTATION ON POST-MARKET SURVEILLANCE"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q11",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7494.4,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 85 - Post-market surveillance report"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q12",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6164.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 86 - Periodic safety update report"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q13",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9133.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX III - TECHNICAL DOCUMENTATION ON POST-MARKET SURVEILLANCE",
+        "Article 83 - Post-market surveillance system of the manufacturer",
+        "Article 85 - Post-market surveillance report"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q14",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9029.6,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Preamble",
+        "ANNEX IX - CONFORMITY ASSESSMENT BASED ON A QUALITY MANAGEMENT SYSTEM AND ON ASSESSMENT OF"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q15",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7392.6,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 10 - General obligations of manufacturers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q16",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6676.6,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q17",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8106.6,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 13 - General obligations of importers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q18",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7044.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 14 - General obligations of distributors",
+        "Article 16 - Cases in which obligations of manufacturers apply to importers, distributors or other persons"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q19",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 5593.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 15 - Person responsible for regulatory compliance"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q20",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7978.8,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 17 - Single-use devices and their reprocessing"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q21",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6089.6,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 18 - Implant card and information to be supplied to the patient with an implanted device"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q22",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7923.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX IV - EU DECLARATION OF CONFORMITY",
+        "Article 19 - EU declaration of conformity"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q23",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 11984.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q24",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6791.8,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 27 - Unique Device Identification system"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q25",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9217.9,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q26",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 5935.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 30 - Electronic system for registration of economic operators",
+        "Article 31 - Registration of manufacturers, authorised representatives and importers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q27",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7008.8,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q28",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 11285.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q29",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6825.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q30",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9577.2,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX IX - CONFORMITY ASSESSMENT BASED ON A QUALITY MANAGEMENT SYSTEM AND ON ASSESSMENT OF",
+        "Article 55 - Mechanism for scrutiny of conformity assessments of certain class III and class IIb devices"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q31",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 11335.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 46 - Changes to designations and notifications",
+        "ANNEX VII - REQUIREMENTS TO BE MET BY NOTIFIED BODIES"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q32",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9240.9,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX VII - REQUIREMENTS TO BE MET BY NOTIFIED BODIES"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q33",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 11637.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q34",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 6984.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX XV - CLINICAL INVESTIGATIONS"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q35",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8105.7,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 80 - Recording and reporting of adverse events that occur during clinical investigations"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q36",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7698.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q37",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8516.9,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q38",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 7480.8,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q39",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9285.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q40",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 5905.9,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 94 - Evaluation of devices suspected of presenting an unacceptable risk or other non-compliance"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q41",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 9637.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [],
+      "warning": null
+    },
+    {
+      "id": "Q42",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 8404.2,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 113 - Penalties"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N01",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 8437.3,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 2 - Definitions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N02",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 11863.4,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 2 - Definitions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N03",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 10201.0,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N04",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1218.1,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": false,
+      "citations": [],
+      "warning": "No regulatory context chunks available"
+    },
+    {
+      "id": "N05",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 7796.2,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N06",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 9439.6,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 80 - Recording and reporting of adverse events that occur during clinical investigations"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N07",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 7591.7,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N08",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 6340.2,
+      "backend_used": "clinicalbert_vertex",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 22 - Systems and procedure packs",
+        "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS"
+      ],
+      "warning": null
+    }
+  ]
+}
