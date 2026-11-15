@@ -1,0 +1,16 @@
+# Log-based metric: total /assess latency, taken from the telemetry JSON line (telemetry.py).
+# Create with:
+#   gcloud logging metrics create assess_latency_ms --config-from-file=ops/monitoring/assess_latency_ms.yaml
+description: Total /assess request latency in milliseconds.
+filter: >-
+  resource.type="cloud_run_revision" AND resource.labels.service_name="regulatory-copilot" AND jsonPayload.event="assess_request"
+valueExtractor: EXTRACT(jsonPayload.latency_ms)
+metricDescriptor:
+  metricKind: DELTA
+  valueType: DISTRIBUTION
+  unit: ms
+bucketOptions:
+  exponentialBuckets:
+    numFiniteBuckets: 40
+    growthFactor: 1.5
+    scale: 10

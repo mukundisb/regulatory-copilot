@@ -383,10 +383,17 @@ def _assess_pipeline(data: ClassifyRequest, start_time: float) -> AssessResponse
 
     # 6. Structured telemetry: one JSON line per request for log-based metrics
     classifier_fallback = clf_result.get("backend_used") == "tfidf_fallback"
-    llm_fallback = (rec_result.get("warning") or "").startswith(("Degraded to deterministic", "No regulatory context"))
+    llm_warning = rec_result.get("warning") or ""
+    if llm_warning.startswith("No regulatory context"):
+        llm_status = "no_context"   # retrieval returned no chunks, so the LLM was never called
+    elif llm_warning.startswith("Degraded to deterministic"):
+        llm_status = "fallback"     # the LLM call was not possible or failed; template served instead
+    else:
+        llm_status = "answered"
+    llm_fallback = llm_status == "fallback"
     usage = rec_result.get("usage") or {}
     emit_assess_event(
-        outcome="degraded" if (classifier_fallback or llm_fallback or rag_grounding_degraded) else "ok",
+        outcome="ok" if (llm_status == "answered" and not classifier_fallback and not rag_grounding_degraded) else "degraded",
         latency_ms=round(latency_ms, 2),
         classify_ms=round((classify_done - start_time) * 1000, 2),
         retrieve_ms=round((retrieve_done - classify_done) * 1000, 2),
@@ -396,8 +403,11 @@ def _assess_pipeline(data: ClassifyRequest, start_time: float) -> AssessResponse
         classifier_fallback=classifier_fallback,
         retrieval_fallback=fallback_triggered,
         retrieval_top_score=round(top_score, 4),
+        retrieved_chunks=len(chunks),
         rag_grounding_degraded=rag_grounding_degraded,
+        llm_status=llm_status,
         llm_fallback=llm_fallback,
+        llm_warning=llm_warning[:300] or None,
         llm_grounding_verified=rec_result["llm_grounding_verified"],
         input_tokens=usage.get("input_tokens"),
         output_tokens=usage.get("output_tokens"),

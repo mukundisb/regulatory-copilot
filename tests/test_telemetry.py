@@ -73,6 +73,9 @@ def test_assess_emits_one_ok_telemetry_event(mock_classify, mock_query, mock_gen
     assert event["classifier_backend"] == "clinicalbert_vertex"
     assert event["classifier_fallback"] is False
     assert event["llm_fallback"] is False
+    assert event["llm_status"] == "answered"
+    assert event["llm_warning"] is None
+    assert event["retrieved_chunks"] == 1
     assert event["input_tokens"] == 2000
     assert event["output_tokens"] == 400
     assert event["est_cost_usd"] is not None and event["est_cost_usd"] > 0
@@ -104,7 +107,28 @@ def test_assess_marks_fallbacks_as_degraded(mock_classify, mock_query, mock_gena
     assert event["severity"] == "WARNING"
     assert event["classifier_fallback"] is True
     assert event["llm_fallback"] is True
+    assert event["llm_status"] == "fallback"
+    assert "503 unavailable" in event["llm_warning"]
+    assert event["retrieved_chunks"] == 1
     assert event["est_cost_usd"] is None
+
+
+@patch("app.query_store")
+@patch("app._classify_narrative")
+def test_assess_reports_no_context_when_retrieval_is_empty(mock_classify, mock_query, capsys):
+    mock_classify.return_value = {"predicted_label": "I", "confidence": 0.8, "backend_used": "clinicalbert_vertex"}
+    mock_query.return_value = []
+
+    response = client.post("/assess", json={"narrative": "Text that matches no EU-MDR section."})
+    assert response.status_code == 200
+
+    event = _telemetry_lines(capsys.readouterr().out)[0]
+    assert event["outcome"] == "degraded"
+    assert event["retrieved_chunks"] == 0
+    assert event["llm_status"] == "no_context"
+    # No context is not an LLM failure, so it is reported separately from a fallback.
+    assert event["llm_fallback"] is False
+    assert "No regulatory context" in event["llm_warning"]
 
 
 @patch("app._classify_narrative")
