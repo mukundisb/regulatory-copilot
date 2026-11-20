@@ -24,6 +24,8 @@ tests/
 docs/
 notebooks/
 *.md
+.env
+agent/runs/
 
 # Large Data Assets & Training Logs
 data/
