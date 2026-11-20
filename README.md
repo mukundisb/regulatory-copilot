@@ -164,6 +164,40 @@ python scripts/measure_live.py summarise --logs <file>     # file = the run's en
 
 Results are written to `reports/live_run.json` and `reports/live_metrics.json`.
 
+## Agent
+
+`agent/` is a LangGraph agent that handles one adverse-event narrative and stops for a person to approve the result. It reuses the severity classifier and the EU-MDR retrieval that `POST /assess` uses, and adds a lookup of FDA MAUDE reports.
+
+```
+plan -> act -> plan -> ... -> draft -> approval (a person decides) -> finalize
+```
+
+| Tool | What it does |
+|---|---|
+| `classify_severity` | Predicts death, injury, malfunction or other with the project's classifier (ClinicalBERT, TF-IDF fallback) |
+| `search_maude` | Counts MAUDE reports for a device name by event type through the public openFDA API, and returns the three most recent |
+| `retrieve_regulation` | Retrieves EU-MDR passages, with the query steered by the severity label |
+
+**Who decides what.** A planner (Gemini, or a fixed-order rule planner with `--planner rules`) picks the next tool. The graph does not trust the pick: it blocks repeated tools, always classifies before retrieving, never drafts before retrieval has run, skips a MAUDE lookup that has no device name, and caps the number of planner calls. If the planner fails, the rule planner takes over. A tool that fails is recorded in the review packet; it does not stop the run.
+
+**Human approval.** After the draft the run pauses and shows the severity, the MAUDE counts, the retrieved sections, the draft with its citations and any failed steps. The reviewer approves, edits or rejects. A rejection, or any unclear answer, produces no recommendation.
+
+```bash
+pip install -r requirements-agent.txt
+python scripts/run_agent.py "Patient with an ICD collapsed at home ..." --device "implantable defibrillator"
+python scripts/run_agent.py --maude-only "infusion pump"     # the openFDA tool on its own
+python -m pytest tests/test_agent.py                          # no network or API keys needed
+```
+
+Each run is saved to `agent/runs/` (not committed).
+
+### Limits
+
+* MAUDE is US data and voluntary reporting. A count is a signal about how a device type behaves in the field, not an incidence rate, and it is shown beside the EU-MDR recommendation without feeding into it.
+* The device name must match MAUDE's generic or brand name. A narrow or unusual term returns no reports.
+* The agent is a command-line tool and is not part of the Cloud Run service.
+* The tests use stand-ins for the planner, tools and recommender. They show that the guardrails and the approval step behave as designed, not that Gemini plans well.
+
 ---
 ## Local Development & Setup
 

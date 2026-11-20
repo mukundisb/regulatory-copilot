@@ -45,3 +45,6 @@ mlruns/
 
 # EU-MDR source file
 EU-MDR Guidance document.pdf
+
+# Saved agent runs (local review records)
+agent/runs/
