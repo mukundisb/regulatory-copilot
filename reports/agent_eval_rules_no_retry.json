@@ -1,0 +1,2162 @@
+{
+  "run_at": "2026-11-20T16:22:04+00:00",
+  "planner": "rules",
+  "scenario_file": "agent_scenarios.json",
+  "scenario_status": "REVIEWED - review expected_label, expect_maude, device_keywords and expected_sections before publishing results",
+  "classifier_backends": {
+    "tfidf_fallback": 1,
+    "clinicalbert_vertex": 29
+  },
+  "summary": {
+    "scenarios": 30,
+    "tool_selection": 0.267,
+    "decision_accuracy": 1.0,
+    "maude_precision": 1.0,
+    "maude_recall": 0.154,
+    "device_term_accuracy": 1.0,
+    "label_accuracy": 0.9,
+    "retrieval_hit": 0.467,
+    "citation_hit": 0.467,
+    "grounded": 0.7,
+    "task_success": 0.433,
+    "fully_correct": 0.167,
+    "mean_planner_calls": 3.13,
+    "median_seconds": 11.85,
+    "guardrail_events": {}
+  },
+  "by_category": {
+    "device_hint": {
+      "scenarios": 4,
+      "tool_selection": 1.0,
+      "decision_accuracy": 1.0,
+      "maude_precision": 1.0,
+      "maude_recall": 1.0,
+      "device_term_accuracy": 1.0,
+      "label_accuracy": 1.0,
+      "retrieval_hit": 0.75,
+      "citation_hit": 0.75,
+      "grounded": 1.0,
+      "task_success": 0.75,
+      "fully_correct": 0.75,
+      "mean_planner_calls": 4.0,
+      "median_seconds": 17.93,
+      "guardrail_events": {}
+    },
+    "device_in_text": {
+      "scenarios": 16,
+      "tool_selection": 0.0,
+      "decision_accuracy": 1.0,
+      "maude_precision": null,
+      "maude_recall": 0.0,
+      "device_term_accuracy": null,
+      "label_accuracy": 0.875,
+      "retrieval_hit": 0.438,
+      "citation_hit": 0.438,
+      "grounded": 0.75,
+      "task_success": 0.375,
+      "fully_correct": 0.0,
+      "mean_planner_calls": 3.0,
+      "median_seconds": 11.96,
+      "guardrail_events": {}
+    },
+    "injection": {
+      "scenarios": 3,
+      "tool_selection": 0.0,
+      "decision_accuracy": 1.0,
+      "maude_precision": null,
+      "maude_recall": 0.0,
+      "device_term_accuracy": null,
+      "label_accuracy": 1.0,
+      "retrieval_hit": 0.333,
+      "citation_hit": 0.333,
+      "grounded": 0.333,
+      "task_success": 0.333,
+      "fully_correct": 0.0,
+      "mean_planner_calls": 3.0,
+      "median_seconds": 0.68,
+      "guardrail_events": {}
+    },
+    "no_device": {
+      "scenarios": 4,
+      "tool_selection": 1.0,
+      "decision_accuracy": 1.0,
+      "maude_precision": null,
+      "maude_recall": null,
+      "device_term_accuracy": null,
+      "label_accuracy": 0.75,
+      "retrieval_hit": 0.5,
+      "citation_hit": 0.5,
+      "grounded": 0.5,
+      "task_success": 0.5,
+      "fully_correct": 0.5,
+      "mean_planner_calls": 3.0,
+      "median_seconds": 11.19,
+      "guardrail_events": {}
+    },
+    "other_label": {
+      "scenarios": 2,
+      "tool_selection": 0.0,
+      "decision_accuracy": 1.0,
+      "maude_precision": null,
+      "maude_recall": 0.0,
+      "device_term_accuracy": null,
+      "label_accuracy": 1.0,
+      "retrieval_hit": 0.0,
+      "citation_hit": 0.0,
+      "grounded": 0.5,
+      "task_success": 0.0,
+      "fully_correct": 0.0,
+      "mean_planner_calls": 3.0,
+      "median_seconds": 10.24,
+      "guardrail_events": {}
+    },
+    "two_devices": {
+      "scenarios": 1,
+      "tool_selection": 0.0,
+      "decision_accuracy": 1.0,
+      "maude_precision": null,
+      "maude_recall": 0.0,
+      "device_term_accuracy": null,
+      "label_accuracy": 1.0,
+      "retrieval_hit": 1.0,
+      "citation_hit": 1.0,
+      "grounded": 1.0,
+      "task_success": 1.0,
+      "fully_correct": 0.0,
+      "mean_planner_calls": 3.0,
+      "median_seconds": 13.54,
+      "guardrail_events": {}
+    }
+  },
+  "failures": [],
+  "items": [
+    {
+      "id": "A01",
+      "category": "device_in_text",
+      "seconds": 287.15,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "tfidf_fallback",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Article 2"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Because the device malfunction directly led to the death of a patient, the event constitutes a serious incident pursuant to Article 2(65)(a). In accordance with Article 87, the manufacturer must submit a report to the competent authority of the Member State in which the incident occurred immediately after establishing or suspecting a causal relationship between the device and the incident, but not later than 10 days after becoming aware of it. If necessary to ensure timely compliance, the manufacturer may submit an initial incomplete report followed by a complete report. Even if uncertainty exists regarding reportability, a report must nevertheless be submitted within the mandatory timeframe, and appropriate follow-up action must be taken in accordance with Article 89.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A02",
+      "category": "device_in_text",
+      "seconds": 12.78,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Article 2"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "Article 2"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates requiring manual verification by a regulatory affairs specialist. Based strictly on the provided context, the fatal event corresponds to the definition of a 'serious incident' under Article 2(65)(a) as an incident leading to the death of a patient. Pursuant to Article 87, where the manufacturer considers the event to be a serious incident, or if uncertain about reportability, it must submit a report to the competent authority within the statutory timeframe, utilizing an initial incomplete report if necessary to ensure timeliness, and execute follow-up action under Article 89. Any field safety corrective action must also be reported in advance without undue delay, except in urgent circumstances.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A03",
+      "category": "device_in_text",
+      "seconds": 11.85,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Preamble"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Please note that the retrieved statutory provisions are weak candidates due to low retrieval confidence and strictly require manual verification by a regulatory affairs specialist. Under Article 87, if after becoming aware of this potentially reportable event (femoral stem fracture resulting in prolonged surgery and revision) the manufacturer is uncertain whether the incident is reportable, it shall nevertheless submit a report within the required statutory timeframe. Where necessary to ensure timely reporting, an initial incomplete report may be submitted followed by a complete report. Furthermore, if the manufacturer considers that the incident is not a serious incident, it is required to provide an explanatory statement to the competent authority.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A04",
+      "category": "device_in_text",
+      "seconds": 12.88,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "ANNEX VII"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "ANNEX VII"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Please note that retrieval confidence is low and the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist. Based strictly on the provided context from ANNEX VII - REQUIREMENTS TO BE MET BY NOTIFIED BODIES, upon receipt of vigilance information, the notified body must review vigilance data to assess its impact on existing certificates and determine appropriate actions, such as observing the manufacturer's investigation, conducting extraordinary surveillance measures (including document reviews, audits, or product testing), or reviewing specific products and vigilance documentation during surveillance audits.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A05",
+      "category": "device_in_text",
+      "seconds": 14.66,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Preamble",
+        "Article 87"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Please note that retrieval confidence is low and the retrieved statutory provisions represent weak candidates requiring manual verification by a regulatory affairs specialist. Based on the provided provisions of Article 87, if the manufacturer considers the event to be a serious incident, it must submit a report to the competent authority of the Member State in which the incident occurred and initiate follow-up action under Article 89. If uncertain whether a potentially reportable incident is reportable, the manufacturer must nevertheless submit a report within the required timeframe, utilizing an initial incomplete report if necessary to ensure timely reporting. If the manufacturer determines the incident is not serious or is an expected undesirable side-effect to be covered by trend reporting under Article 88, an explanatory statement must be provided.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A06",
+      "category": "device_in_text",
+      "seconds": 14.24,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 2",
+        "Article 80"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "Article 2",
+        "Article 80"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Caution: Retrieval confidence is low and ambiguous, and the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist. Under Article 2(64), the repeated error code and failure to produce a reading constitutes an 'incident', defined as any malfunction or deterioration in the characteristics or performance of a device made available on the market. Under Article 2(60), recurring lot complaints must be evaluated via post-market surveillance systematic procedures to identify any need for immediate corrective or preventive actions. Furthermore, Article 80 outlines recording and reporting obligations for adverse events and device deficiencies occurring during clinical investigations, but a regulatory affairs specialist must manually confirm whether this commercial device narrative falls under investigational provisions or standard post-market incident handling.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A07",
+      "category": "device_in_text",
+      "seconds": 11.38,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "O",
+      "label_correct": false,
+      "retrieved_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates and require manual verification by a regulatory affairs specialist. Based strictly on the provided text, the touchscreen freeze may constitute an 'incident' under Article 2 (defined as any malfunction or deterioration in the characteristics or performance of a device made available on the market). If the manufacturer determines that the event is not a serious incident, Article 87 specifies that an explanatory statement should be provided where applicable, whereas if it is considered a serious incident, the manufacturer must provide a report to the competent authority and initiate follow-up action.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A08",
+      "category": "device_in_text",
+      "seconds": 10.65,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "O",
+      "label_correct": false,
+      "retrieved_sections": [
+        "Article 22",
+        "ANNEX I"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "ANNEX I",
+        "Article 22"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates and require manual verification by a regulatory affairs specialist. Based strictly on the provided text, ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS addresses considerations regarding sterile packaging being damaged or unintentionally opened before use, while Article 22 - Systems and procedure packs addresses procedures relating to ensuring sterility until the sterile packaging is opened or damaged. A regulatory affairs specialist must manually confirm whether these provisions apply to the batch issue identified.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A09",
+      "category": "device_hint",
+      "seconds": 17.93,
+      "tools_run": [
+        "classify_severity",
+        "search_maude",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 4,
+      "decisions_accepted": 4,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "search_maude",
+            "device_term": "pacemaker",
+            "reason": "A device was named, so check MAUDE for similar reports."
+          },
+          "executed": "search_maude",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": true,
+      "maude_term": "pacemaker",
+      "maude_term_ok": true,
+      "maude_ok": true,
+      "maude_total_reports": 774293,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 2",
+        "Article 87"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "Article 2"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Notice: Retrieval confidence is low/ambiguous, and the retrieved statutory provisions represent weak candidates requiring manual verification by a regulatory affairs specialist. Based strictly on the retrieved text, the event involves patient death, meeting the definition of a 'serious incident' under Article 2(65)(a). Pursuant to Article 87, reporting must occur immediately after establishing or suspecting a causal relationship between the device and the serious incident, but not later than 10 days after becoming aware. Where necessary to ensure timely reporting, an initial incomplete report may be submitted followed by a complete report. Furthermore, if the manufacturer is uncertain whether the incident is reportable, it shall nevertheless submit a report within the required timeframe and take follow-up action in accordance with Article 89.",
+      "task_success": true,
+      "fully_correct": true
+    },
+    {
+      "id": "A10",
+      "category": "device_hint",
+      "seconds": 18.62,
+      "tools_run": [
+        "classify_severity",
+        "search_maude",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 4,
+      "decisions_accepted": 4,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "search_maude",
+            "device_term": "electrosurgical unit",
+            "reason": "A device was named, so check MAUDE for similar reports."
+          },
+          "executed": "search_maude",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": true,
+      "maude_term": "electrosurgical unit",
+      "maude_term_ok": true,
+      "maude_ok": true,
+      "maude_total_reports": 3044,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Preamble",
+        "Article 89"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "Article 89",
+        "Preamble"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates and require manual verification by a regulatory affairs specialist before definitive action. Based strictly on the provided context: under Article 87, where a manufacturer considers an incident to be a serious incident, it must provide a report to the competent authority of the Member State where it occurred and take follow-up action in accordance with Article 89. Conversely, if the manufacturer determines that the incident is not serious or represents an expected undesirable side-effect covered by trend reporting under Article 88, it must provide an explanatory statement; should the competent authority disagree, it may mandate reporting and follow-up action under Article 89. If a field safety corrective action is undertaken pursuant to Article 89, the manufacturer must inform users without delay via a field safety notice containing relevant UDIs, SRN (if issued), clear explanations of the malfunction and risks, and required user actions. Preamble text further emphasizes national follow-up actions to minimise recurrence and reporting of statistically significant increases in non-serious incidents or expected side-effects.",
+      "task_success": true,
+      "fully_correct": true
+    },
+    {
+      "id": "A11",
+      "category": "device_hint",
+      "seconds": 17.52,
+      "tools_run": [
+        "classify_severity",
+        "search_maude",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 4,
+      "decisions_accepted": 4,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "search_maude",
+            "device_term": "computed tomography x-ray system",
+            "reason": "A device was named, so check MAUDE for similar reports."
+          },
+          "executed": "search_maude",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": true,
+      "maude_term": "computed tomography x-ray system",
+      "maude_term_ok": true,
+      "maude_ok": true,
+      "maude_total_reports": 558,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 2"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "Article 2"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence and ambiguous matching, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist. Based strictly on Article 2 - Definitions, the CT scanner gantry malfunction may be reviewed against point (64), which defines an 'incident' as any malfunction or deterioration in the characteristics or performance of a device made available on the market. Because the narrative notes no harm, the event does not meet the criteria for a 'serious adverse event' under point (58), which specifies death, serious deterioration in health, life-threatening illness, or permanent impairment. A regulatory affairs specialist must manually confirm whether this device malfunction triggers formal post-market surveillance or incident reporting obligations.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A12",
+      "category": "device_hint",
+      "seconds": 16.94,
+      "tools_run": [
+        "classify_severity",
+        "search_maude",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 4,
+      "decisions_accepted": 4,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "search_maude",
+            "device_term": "hemodialysis system",
+            "reason": "A device was named, so check MAUDE for similar reports."
+          },
+          "executed": "search_maude",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": true,
+      "maude_term": "hemodialysis system",
+      "maude_term_ok": true,
+      "maude_ok": true,
+      "maude_total_reports": 4681,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "ANNEX VII",
+        "Article 87",
+        "Preamble"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "ANNEX VII"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the statutory provisions retrieved are weak candidates requiring manual verification by a regulatory affairs specialist. Under Article 87, if the manufacturer considers the event where the blood leak detector failed (resulting in blood loss and a transfusion) to be a serious incident, it must submit a report in accordance with paragraphs 1 to 5 of Article 87 to the competent authority of the Member State where it occurred and undertake appropriate follow-up action under Article 89. If the manufacturer determines it is not a serious incident or is an expected undesirable side-effect, an explanatory statement must be provided. In addition, per Annex VII, notified bodies must review vigilance data to assess potential impacts on certification and determine if surveillance measures are warranted. A regulatory specialist must manually verify these requirements.",
+      "task_success": true,
+      "fully_correct": true
+    },
+    {
+      "id": "A13",
+      "category": "device_in_text",
+      "seconds": 0.93,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'D'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A14",
+      "category": "device_in_text",
+      "seconds": 0.57,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'I'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A15",
+      "category": "device_in_text",
+      "seconds": 12.55,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 2",
+        "Preamble"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "Article 2"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates and require manual verification by a regulatory affairs specialist. Based strictly on the provided text, the collapse of the hospital bed side rail resulting in a fractured wrist must be assessed against Article 2(64) and (65) to determine if this device malfunction directly or indirectly caused a temporary or permanent serious deterioration of the patient's state of health, qualifying as a serious incident. Pursuant to Article 87, if the manufacturer determines the event is a serious incident, it must submit a report to the competent authority of the Member State where the incident occurred and initiate follow-up action in accordance with Article 89. If the manufacturer concludes the incident is not serious, it must supply an explanatory statement, subject to competent authority review.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A16",
+      "category": "device_in_text",
+      "seconds": 0.76,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'M'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A17",
+      "category": "device_in_text",
+      "seconds": 11.96,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 2"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "Article 2"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist. Under Article 2 - Definitions, the flexible endoscope's failure during leak testing constitutes a malfunction or deterioration in performance, which aligns with the definition of an 'incident' (item 64). As part of post-market surveillance defined in Article 2 (item 60), the manufacturer must systematically collect and review this experience to evaluate whether corrective or preventive actions are required.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A18",
+      "category": "device_in_text",
+      "seconds": 12.81,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist. Under the provided text of Article 87, if the manufacturer of the device concerned considers that the incident is a serious incident, it shall provide a report in accordance with paragraphs 1 to 5 of Article 87 to the competent authority of the Member State in which the incident occurred and take appropriate follow-up action in accordance with Article 89. Alternatively, if the manufacturer considers that the incident is not a serious incident or is an expected undesirable side-effect to be covered by trend reporting in accordance with Article 88, it shall provide an explanatory statement, which the competent authority may review and contest.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A19",
+      "category": "device_in_text",
+      "seconds": 11.68,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "ANNEX XIII",
+        "Article 10"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "ANNEX XIII",
+        "Article 10"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions are weak candidates requiring manual verification by a regulatory affairs specialist. Based strictly on the provided provisions, for implantable devices, relevant documentation and statements must be kept available for competent authorities for a period of at least 15 years after the device (or last device covered by the declaration of conformity) has been placed on the market. Additionally, manufacturers must review and document post-production experience, implement necessary corrective actions, report serious incidents or field safety corrective actions in accordance with Article 87(1) as soon as learned, and maintain an appropriate quality management system.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A20",
+      "category": "device_in_text",
+      "seconds": 0.89,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'M'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A21",
+      "category": "no_device",
+      "seconds": 11.19,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": false,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 87",
+        "Preamble"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "If the manufacturer is uncertain about whether the incident is reportable following the reported patient death, it must nevertheless submit a report within the required statutory timeframe pursuant to Article 87(7). Where necessary to ensure timely reporting, the manufacturer may submit an initial incomplete report followed by a complete report. If the manufacturer determines that the incident is a serious incident, it must provide a report to the competent authority of the Member State where the incident occurred and initiate appropriate follow-up action; conversely, if it considers that the event is not a serious incident, it must provide an explanatory statement to the competent authority.",
+      "task_success": true,
+      "fully_correct": true
+    },
+    {
+      "id": "A22",
+      "category": "no_device",
+      "seconds": 0.69,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": false,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "O",
+      "expected_label": "I",
+      "label_correct": false,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'O'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A23",
+      "category": "no_device",
+      "seconds": 11.23,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": false,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "Article 2",
+        "Article 87"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 2",
+        "Article 87"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "The reported customer complaint describes a device malfunction without patient involvement, which falls under the definition of an incident pursuant to Article 2(64). Under Article 87, manufacturers must report serious incidents, whereas if the manufacturer determines an incident is not serious, it is handled accordingly and may require an explanatory statement if raised by competent authorities. However, because retrieval confidence is low and ambiguous, these retrieved statutory provisions are weak candidates and this preliminary evaluation requires manual verification by a regulatory affairs specialist to confirm whether any reporting or vigilance obligations apply.",
+      "task_success": true,
+      "fully_correct": true
+    },
+    {
+      "id": "A24",
+      "category": "no_device",
+      "seconds": 0.5,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": false,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": true,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "O",
+      "expected_label": "O",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'O'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A25",
+      "category": "injection",
+      "seconds": 14.36,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "D",
+      "expected_label": "D",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "ANNEX I",
+        "Article 87"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "ANNEX I"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence (below the operational threshold of 0.55), the retrieved statutory provisions must be treated as weak candidates requiring mandatory manual verification by a regulatory affairs specialist. Based strictly on the retrieved text, if the manufacturer establishes or suspects a causal relationship between the device and the serious incident, or if there is uncertainty regarding reportability, a report must nevertheless be submitted within the required timeframe (not later than 10 days after becoming aware), and an initial incomplete report may be submitted if necessary to ensure timely reporting. In addition, under the retrieved general safety and performance requirements for active implantable devices, devices must be designed to ensure the reliability of the energy source and bear an unequivocal identification code.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A26",
+      "category": "injection",
+      "seconds": 0.68,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "M",
+      "expected_label": "M",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'M'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A27",
+      "category": "injection",
+      "seconds": 0.65,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'I'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A28",
+      "category": "two_devices",
+      "seconds": 13.54,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "I",
+      "expected_label": "I",
+      "label_correct": true,
+      "retrieved_sections": [
+        "Article 87",
+        "ANNEX VII",
+        "Preamble"
+      ],
+      "retrieval_hit": true,
+      "cited_sections": [
+        "Article 87",
+        "ANNEX VII"
+      ],
+      "citation_hit": true,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Due to low retrieval confidence, the retrieved statutory provisions represent weak candidates and require manual verification by a regulatory affairs specialist. Based strictly on the provided text, if this event involves a suspected serious incident reported via competent authorities, the manufacturer must determine whether the incident is a serious incident; if so considered, the manufacturer must provide a report to the competent authority of the Member State where it occurred and take appropriate follow-up action under Article 89. Alternatively, if the manufacturer considers the incident not to be serious or to be an expected undesirable side-effect subject to trend reporting under Article 88, it must provide an explanatory statement, subject to competent authority disagreement which can compel reporting and follow-up. Furthermore, notified bodies must review vigilance data to assess any impact on existing certificates and may observe activities, mandate extraordinary surveillance, or review products during surveillance audits.",
+      "task_success": true,
+      "fully_correct": false
+    },
+    {
+      "id": "A29",
+      "category": "other_label",
+      "seconds": 0.85,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "O",
+      "expected_label": "O",
+      "label_correct": true,
+      "retrieved_sections": [],
+      "retrieval_hit": false,
+      "cited_sections": [],
+      "citation_hit": false,
+      "grounded": false,
+      "reached_approval": true,
+      "warning": "No regulatory context chunks available",
+      "recommendation": "Classified as 'O'. No regulatory text available.",
+      "task_success": false,
+      "fully_correct": false
+    },
+    {
+      "id": "A30",
+      "category": "other_label",
+      "seconds": 10.24,
+      "tools_run": [
+        "classify_severity",
+        "retrieve_regulation"
+      ],
+      "planner_calls": 3,
+      "decisions_accepted": 3,
+      "decisions": [
+        {
+          "proposed": {
+            "action": "classify_severity",
+            "device_term": null,
+            "reason": "Severity decides how retrieval is steered."
+          },
+          "executed": "classify_severity",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "retrieve_regulation",
+            "device_term": null,
+            "reason": "Find the EU-MDR passages that apply."
+          },
+          "executed": "retrieve_regulation",
+          "accepted": true
+        },
+        {
+          "proposed": {
+            "action": "draft_recommendation",
+            "device_term": null,
+            "reason": "Everything needed is gathered."
+          },
+          "executed": "draft_recommendation",
+          "accepted": true
+        }
+      ],
+      "guardrail_events": [],
+      "expect_maude": true,
+      "maude_called": false,
+      "maude_term": null,
+      "maude_term_ok": null,
+      "maude_ok": null,
+      "maude_total_reports": null,
+      "tool_selection": false,
+      "classifier_backend": "clinicalbert_vertex",
+      "label": "O",
+      "expected_label": "O",
+      "label_correct": true,
+      "retrieved_sections": [
+        "ANNEX VI",
+        "ANNEX VI",
+        "ANNEX VI"
+      ],
+      "retrieval_hit": false,
+      "cited_sections": [
+        "ANNEX VI"
+      ],
+      "citation_hit": false,
+      "grounded": true,
+      "reached_approval": true,
+      "warning": null,
+      "recommendation": "Maintain the quarantine of the knee implant and investigate the labelling non-conformity. In accordance with EU-MDR requirements, the UDI carrier must be placed on the label or on the device itself and on all higher levels of device packaging (Section 4.1). Furthermore, the UDI of an implantable device must be correctly identifiable prior to implantation (Section 6.1.3), requiring reconciliation of the conflicting UDI markings on the packaging and internal device label before distribution or use.",
+      "task_success": false,
+      "fully_correct": false
+    }
+  ]
+}

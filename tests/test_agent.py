@@ -325,3 +325,121 @@ def test_gemini_planner_rejects_unknown_actions():
     text = json.dumps({"action": "delete_everything", "reason": "x"})
     with pytest.raises(Exception):
         GeminiPlanner(client=stub_client(text=text))({"narrative": NARRATIVE, "trace": []})
+
+
+# --------------------------------------------------------------------------- decision record (used by the evaluation)
+
+def test_each_planner_call_is_recorded_with_whether_it_was_accepted():
+    planner = Scripted(Decision(action="draft_recommendation", reason="skip ahead"),
+                       Decision(action="retrieve_regulation", reason="ok"))
+    _, output, _ = run_to_pause(planner=planner)
+    first, second = output["decisions"][0], output["decisions"][1]
+    assert first["proposed"]["action"] == "draft_recommendation"
+    assert first["executed"] == "classify_severity" and first["accepted"] is False
+    assert second["proposed"]["action"] == "retrieve_regulation" and second["accepted"] is True
+
+
+def test_failed_planner_call_is_recorded_as_not_accepted():
+    def broken(state):
+        raise RuntimeError("quota")
+    _, output, _ = run_to_pause(planner=broken)
+    assert output["decisions"][0]["proposed"] is None and output["decisions"][0]["accepted"] is False
+
+
+def test_device_named_by_the_user_outranks_the_planner(monkeypatch):
+    from agent.graph import default_tools
+    seen = []
+    monkeypatch.setattr(agent_graph.agent_tools, "search_maude", lambda term: seen.append(term) or {"ok": True})
+    default_tools()["search_maude"]({"device_hint": "insulin pump"}, Decision(action="search_maude", device_term="pump", reason=""))
+    default_tools()["search_maude"]({}, Decision(action="search_maude", device_term="pump", reason=""))
+    assert seen == ["insulin pump", "pump"]
+
+
+def test_classifier_backend_is_reported_even_when_the_classifier_does_not_name_it(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+    from config import settings
+    monkeypatch.setitem(sys.modules, "app", SimpleNamespace(_classify_narrative=lambda text: {"predicted_label": "M"}))
+    result = classify_severity(NARRATIVE)
+    assert result["ok"] and result["backend_used"] == settings.classifier_backend
+
+
+# --------------------------------------------------------------------------- retrieval retry
+
+def retry_tools(log, second_finds=True):
+    """Retrieval finds nothing the first time; the retry (with a query) finds passages if second_finds."""
+    tools = make_tools(log)
+
+    def retrieve(state, decision):
+        attempt = sum(1 for e in log if isinstance(e, tuple) and e[0] == "retrieve_regulation") + 1
+        log.append(("retrieve_regulation", decision.query))
+        found = attempt > 1 and second_finds
+        chunks = CHUNKS if found else []
+        return {"ok": True, "chunks": chunks, "sections": [c["section"] for c in chunks],
+                "top_score": 0.71 if found else 0.0, "retrieval_fallback": True,
+                "query_from_planner": decision.query}
+    tools["retrieve_regulation"] = retrieve
+    return tools
+
+
+def run_retry(planner, second_finds=True):
+    log = []
+    graph = build_graph(planner=planner, tools=retry_tools(log, second_finds), recommender=stub_recommender)
+    return start_run(graph, NARRATIVE, "r1"), log
+
+
+CLASSIFY = Decision(action="classify_severity", reason=".")
+RETRIEVE = Decision(action="retrieve_regulation", reason=".")
+
+
+def test_planner_retry_with_its_own_query_after_empty_retrieval():
+    output, log = run_retry(Scripted(CLASSIFY, RETRIEVE, Decision(action="retrieve_regulation", query="serious incident reporting", reason="empty")))
+    assert log[1:] == [("retrieve_regulation", None), ("retrieve_regulation", "serious incident reporting")]
+    assert output["retrieval_log"] == [{"query_from_planner": None, "passages": 0},
+                                       {"query_from_planner": "serious incident reporting", "passages": 2}]
+    assert pending_packet(output)["retrieved_sections"][0].startswith("Article 87")
+    assert events_of(output) == []
+    assert "retry with query 'serious incident reporting'" in output["trace"][-1]["summary"]
+
+
+def test_retry_without_a_query_is_refused():
+    output, log = run_retry(Scripted(CLASSIFY, RETRIEVE, RETRIEVE))
+    assert sum(1 for e in log if isinstance(e, tuple) and e[0] == "retrieve_regulation") == 1
+    assert "retry_needs_query" in events_of(output)
+    assert pending_packet(output) is not None  # drafts with no passages; the reviewer sees it
+
+
+def test_only_one_retry():
+    retry = Decision(action="retrieve_regulation", query="q", reason=".")
+    output, log = run_retry(Scripted(CLASSIFY, RETRIEVE, retry, retry), second_finds=False)
+    assert sum(1 for e in log if isinstance(e, tuple) and e[0] == "retrieve_regulation") == 2
+    assert "repeat_blocked" in events_of(output)
+
+
+def test_no_retry_when_the_first_retrieval_found_passages():
+    log = []
+    graph = build_graph(planner=Scripted(CLASSIFY, RETRIEVE, Decision(action="retrieve_regulation", query="q", reason=".")),
+                        tools=make_tools(log), recommender=stub_recommender)
+    output = start_run(graph, NARRATIVE, "r2")
+    assert sum(1 for e in log if isinstance(e, tuple) and e[0] == "retrieve_regulation") == 1
+    assert "repeat_blocked" in events_of(output)
+
+
+def test_rule_planner_retries_with_the_fixed_query_for_the_label():
+    from agent.planner import RETRY_QUERIES
+    output, log = run_retry(RulePlanner())
+    assert log[-1] == ("retrieve_regulation", RETRY_QUERIES["D"])
+    assert pending_packet(output)["retrieved_sections"]
+
+
+def test_retrieve_tool_tries_the_planner_query_first():
+    seen = {}
+
+    def retrieve(primary, fallback, top_k):
+        seen["args"] = (primary, fallback)
+        return CHUNKS, primary, False
+
+    result = retrieve_regulation(NARRATIVE, "D", query="serious incident reporting",
+                                 retrieve_fn=retrieve, build_query_fn=lambda l, n: f"steered {n}")
+    assert seen["args"] == ("serious incident reporting", f"steered {NARRATIVE}")
+    assert result["query_from_planner"] == "serious incident reporting"

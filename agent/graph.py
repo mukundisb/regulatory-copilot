@@ -13,7 +13,8 @@ approval  pauses the run and hands a review packet to a person. Nothing leaves t
 finalize  records the outcome. A rejected draft produces no recommendation at all.
 
 Guardrails applied to whatever the planner returns, so a poor plan cannot skip a required step:
-  - a tool is never run twice;
+  - a tool is never run twice, with one exception: when retrieve_regulation returned no passages,
+    the planner may call it once more with a query it writes itself (a retry without a query is refused);
   - retrieve_regulation needs a severity label first, so classify_severity is run before it;
   - draft_recommendation needs both classify_severity and retrieve_regulation to have run;
   - search_maude without a device term is skipped;
@@ -42,10 +43,14 @@ class AgentState(TypedDict, total=False):
     device_hint: Optional[str]
     trace: list            # one entry per tool run: {action, ok, summary}
     events: list           # guardrail interventions and planner failures
+    decisions: list        # each planner call: what it proposed, what ran, and whether the graph changed it
     planner_calls: int
     next_action: str
     next_device_term: Optional[str]
+    next_query: Optional[str]
+    retrieval_log: list    # one entry per retrieval: {query_from_planner, passages}
     label: Optional[str]
+    classifier_backend: Optional[str]
     maude: Optional[dict]
     chunks: list
     retrieval_fallback: bool
@@ -61,8 +66,9 @@ class AgentState(TypedDict, total=False):
 def default_tools() -> dict[str, Callable[[AgentState, Decision], dict]]:
     return {
         "classify_severity": lambda s, d: agent_tools.classify_severity(s["narrative"]),
-        "search_maude": lambda s, d: agent_tools.search_maude(d.device_term or s.get("device_hint") or ""),
-        "retrieve_regulation": lambda s, d: agent_tools.retrieve_regulation(s["narrative"], s.get("label") or "O"),
+        # A device named by the user outranks the planner's reading of the narrative.
+        "search_maude": lambda s, d: agent_tools.search_maude(s.get("device_hint") or d.device_term or ""),
+        "retrieve_regulation": lambda s, d: agent_tools.retrieve_regulation(s["narrative"], s.get("label") or "O", query=d.query),
     }
 
 
@@ -76,7 +82,8 @@ def _summarise(action: str, result: dict) -> str:
             return f"no MAUDE reports match '{result['device_term']}'"
         return f"{result['total_reports']} reports for '{result['device_term']}': {result['by_event_type']}"
     if action == "retrieve_regulation":
-        return f"{len(result['chunks'])} passages {result['sections']}, top score {result['top_score']}"
+        prefix = f"retry with query '{result['query_from_planner']}': " if result.get("query_from_planner") else ""
+        return f"{prefix}{len(result['chunks'])} passages {result['sections']}, top score {result['top_score']}"
     return "done"
 
 
@@ -104,15 +111,24 @@ def build_graph(
             events.append({"type": "step_budget", "detail": f"more than {MAX_PLANNER_CALLS} planner calls; drafting now"})
             return {"next_action": "draft_recommendation", "planner_calls": calls, "events": events}
 
+        events_before = len(events)
+        proposed = None
         try:
             decision = planner(state)
+            proposed = {"action": decision.action, "device_term": decision.device_term, "reason": decision.reason}
         except Exception as err:
             events.append({"type": "planner_failed", "detail": f"{type(err).__name__}: {err}"[:200] + "; using the rule planner"})
             decision = fallback_planner(state)
 
-        action, device_term = decision.action, decision.device_term
+        action, device_term, query = decision.action, decision.device_term, (decision.query or "").strip() or None
+        retrievals = sum(1 for s in state.get("trace", []) if s["action"] == "retrieve_regulation")
+        retry_allowed = retrievals == 1 and not state.get("chunks")
 
-        if action in done and action != "draft_recommendation":
+        if action == "retrieve_regulation" and retry_allowed:
+            if not query:
+                events.append({"type": "retry_needs_query", "detail": "a second retrieval needs a query written by the planner"})
+                action = "draft_recommendation"
+        elif action in done and action != "draft_recommendation":
             events.append({"type": "repeat_blocked", "detail": f"planner asked for {action} again"})
             action = "draft_recommendation"  # re-resolved by the checks below
 
@@ -128,25 +144,41 @@ def build_graph(
             events.append({"type": "order_enforced", "detail": "draft needs retrieved passages; retrieving first"})
             action = "retrieve_regulation"
 
-        return {"next_action": action, "next_device_term": device_term, "planner_calls": calls, "events": events}
+        if proposed is not None:
+            proposed["query"] = decision.query
+        decisions = list(state.get("decisions", [])) + [{
+            "proposed": proposed,                        # None when the planner failed
+            "executed": action,
+            "accepted": len(events) == events_before,   # False when a guardrail changed or replaced the pick
+        }]
+        return {"next_action": action, "next_device_term": device_term,
+                "next_query": query if action == "retrieve_regulation" else None,
+                "planner_calls": calls, "events": events, "decisions": decisions}
 
     def route_after_plan(state: AgentState) -> str:
         return "draft" if state["next_action"] == "draft_recommendation" else "act"
 
     def act(state: AgentState) -> dict:
         action = state["next_action"]
-        decision = Decision(action=action, device_term=state.get("next_device_term"), reason="")
+        decision = Decision(action=action, device_term=state.get("next_device_term"),
+                            query=state.get("next_query"), reason="")
         result = tools[action](state, decision)
         trace = list(state.get("trace", [])) + [{"action": action, "ok": result.get("ok", False), "summary": _summarise(action, result)}]
 
         update: dict = {"trace": trace}
         if action == "classify_severity" and result.get("ok"):
             update["label"] = result["label"]
+            update["classifier_backend"] = result.get("backend_used")
         elif action == "search_maude":
             update["maude"] = result
-        elif action == "retrieve_regulation" and result.get("ok"):
-            update.update(chunks=result["chunks"], top_score=result["top_score"],
-                          retrieval_fallback=result["retrieval_fallback"])
+        elif action == "retrieve_regulation":
+            update["retrieval_log"] = list(state.get("retrieval_log", [])) + [{
+                "query_from_planner": result.get("query_from_planner"),
+                "passages": len(result.get("chunks", [])) if result.get("ok") else None,
+            }]
+            if result.get("ok"):
+                update.update(chunks=result["chunks"], top_score=result["top_score"],
+                              retrieval_fallback=result["retrieval_fallback"])
         return update
 
     def draft(state: AgentState) -> dict:
@@ -213,7 +245,8 @@ def build_graph(
 
 def start_run(graph, narrative: str, thread_id: str, device_hint: Optional[str] = None) -> dict:
     """Run until the approval pause (or the end). Returns the graph output; look for '__interrupt__'."""
-    initial = {"narrative": narrative, "device_hint": device_hint, "trace": [], "events": [], "planner_calls": 0}
+    initial = {"narrative": narrative, "device_hint": device_hint, "trace": [], "events": [], "decisions": [],
+               "retrieval_log": [], "planner_calls": 0}
     return graph.invoke(initial, {"configurable": {"thread_id": thread_id}})
 
 

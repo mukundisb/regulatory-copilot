@@ -28,12 +28,16 @@ classify_severity     Predict the event severity (D death, I injury, M malfuncti
 search_maude          Count FDA MAUDE reports for a device term (needs device_term: the generic device name,
                       e.g. "implantable defibrillator"). Optional; use it when the narrative names a device type.
 retrieve_regulation   Fetch the EU-MDR passages that apply to this event. Required before drafting.
+                      If it returned 0 passages, call it ONCE more with `query`: a short search written in the
+                      regulation's own wording for this kind of event (e.g. "reporting of serious incidents to the
+                      competent authority"), not the narrative. Never more than two retrievals.
 draft_recommendation  Write the grounded recommendation. Call it once classify_severity and retrieve_regulation are done."""
 
 
 class Decision(BaseModel):
     action: Action
     device_term: Optional[str] = Field(default=None, description="Only for search_maude: generic device name")
+    query: Optional[str] = Field(default=None, description="Only for a retry of retrieve_regulation after 0 passages")
     reason: str = Field(description="One sentence: why this is the next step")
 
 
@@ -49,11 +53,24 @@ def state_summary(state: dict) -> str:
     return "\n".join(lines)
 
 
+# The rule planner's retry: one fixed query per severity label.
+RETRY_QUERIES = {
+    "D": "reporting of serious incidents to the competent authority by the manufacturer",
+    "I": "reporting of serious incidents to the competent authority by the manufacturer",
+    "M": "trend reporting of incidents that are not serious incidents",
+    "O": "manufacturer obligations for labelling and instructions for use",
+}
+
+
 class RulePlanner:
     """Deterministic order. No network, no API key."""
 
     def __call__(self, state: dict) -> Decision:
         done = {s["action"] for s in state.get("trace", [])}
+        retrievals = sum(1 for s in state.get("trace", []) if s["action"] == "retrieve_regulation")
+        if retrievals == 1 and not state.get("chunks"):
+            return Decision(action="retrieve_regulation", query=RETRY_QUERIES.get(state.get("label") or "O", RETRY_QUERIES["O"]),
+                            reason="The first retrieval found nothing; retry with a fixed query for this severity.")
         if "classify_severity" not in done:
             return Decision(action="classify_severity", reason="Severity decides how retrieval is steered.")
         if "search_maude" not in done and state.get("device_hint"):
@@ -79,7 +96,8 @@ class GeminiPlanner:
             "Pick the single next action. Tools:\n"
             f"{TOOL_DESCRIPTIONS}\n\n"
             f"{state_summary(state)}\n\n"
-            "Do not repeat an action that is already in the list above."
+            "Do not repeat an action that is already in the list above, except the one retry of "
+            "retrieve_regulation described in the tools."
         )
         response = client.models.generate_content(
             model=self.model,

@@ -99,10 +99,13 @@ def classify_severity(narrative: str, classify_fn: Optional[Callable[[str], dict
     """Predict the severity label for an event narrative with the project's classifier."""
     if not (narrative or "").strip():
         return {"ok": False, "tool": "classify_severity", "error": "empty narrative"}
+    configured_backend = None
     try:
         if classify_fn is None:
             from app import _classify_narrative  # same function POST /assess uses, with its TF-IDF fallback
+            from config import settings
             classify_fn = _classify_narrative
+            configured_backend = settings.classifier_backend  # the direct TF-IDF path does not name itself
         result = classify_fn(narrative)
     except Exception as err:
         return {"ok": False, "tool": "classify_severity", "error": f"{type(err).__name__}: {err}"[:300]}
@@ -112,7 +115,7 @@ def classify_severity(narrative: str, classify_fn: Optional[Callable[[str], dict
         "ok": True, "tool": "classify_severity",
         "label": label,
         "label_name": LABEL_NAMES.get(label, str(label)),
-        "backend_used": result.get("backend_used"),
+        "backend_used": result.get("backend_used") or configured_backend,
         "warning": result.get("warning"),
     }
 
@@ -123,6 +126,7 @@ def retrieve_regulation(
     narrative: str,
     label: str,
     top_k: int = 3,
+    query: Optional[str] = None,
     retrieve_fn: Optional[Callable[..., tuple]] = None,
     build_query_fn: Optional[Callable[[str, str], str]] = None,
 ) -> dict:
@@ -130,6 +134,9 @@ def retrieve_regulation(
     Retrieve EU-MDR passages for the narrative. The query is steered by the severity label
     and falls back to the plain narrative when the steered query scores low, exactly as
     POST /assess does.
+
+    query: a search written by the planner for a retry after an empty first retrieval. It is
+    tried first, with the label-steered narrative query as its fallback.
     """
     try:
         if retrieve_fn is None or build_query_fn is None:
@@ -139,7 +146,10 @@ def retrieve_regulation(
             retrieve_fn = retrieve_fn or retrieve_with_fallback
             build_query_fn = build_query_fn or build_retrieval_query
         steered = build_query_fn(label, narrative)
-        chunks, query_used, fallback = retrieve_fn(steered, narrative, top_k)
+        if query:
+            chunks, query_used, fallback = retrieve_fn(query, steered, top_k)
+        else:
+            chunks, query_used, fallback = retrieve_fn(steered, narrative, top_k)
     except Exception as err:
         return {"ok": False, "tool": "retrieve_regulation", "error": f"{type(err).__name__}: {err}"[:300]}
 
@@ -150,4 +160,5 @@ def retrieve_regulation(
         "top_score": round(chunks[0]["similarity_score"], 4) if chunks else 0.0,
         "retrieval_fallback": fallback,
         "query_used": query_used,
+        "query_from_planner": query,
     }
