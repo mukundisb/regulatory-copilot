@@ -260,12 +260,18 @@ def main() -> int:
                         default=os.getenv("JUDGE_PROVIDER", "gemini"))
     parser.add_argument("--judge-model", default=os.getenv("JUDGE_MODEL"))
     parser.add_argument("--judge-base-url", default=os.getenv("JUDGE_BASE_URL"))
+    parser.add_argument("--input", default=str(RAG_REPORT),
+                        help="Report from evaluate_rag.py --with-llm (e.g. reports/rag_eval_azure_openai.json)")
+    parser.add_argument("--output", default=str(OUTPUT))
     args = parser.parse_args()
+    rag_report, output = Path(args.input), Path(args.output)
+    # The hand labels were made on the answers in the default report; they say nothing about another one.
+    use_human_labels = rag_report.resolve() == RAG_REPORT.resolve()
 
-    if not RAG_REPORT.exists():
-        print(f"[ERROR] {RAG_REPORT} not found. Run: python scripts/evaluate_rag.py --with-llm")
+    if not rag_report.exists():
+        print(f"[ERROR] {rag_report} not found. Run: python scripts/evaluate_rag.py --with-llm")
         return 2
-    rag = json.loads(RAG_REPORT.read_text(encoding="utf-8"))
+    rag = json.loads(rag_report.read_text(encoding="utf-8"))
     items = [i for i in rag["items"] if i.get("recommendation") and i.get("retrieved_chunks") and i.get("llm_used")]
     if not items:
         print("[ERROR] rag_eval.json has no recommendations or chunk text. "
@@ -273,6 +279,9 @@ def main() -> int:
         return 2
 
     if args.make_labels:
+        if not use_human_labels:
+            print("[STOP] --make-labels works on the default report only.")
+            return 2
         return make_label_files(items, args.force)
 
     if args.judge == "gemini":
@@ -294,7 +303,9 @@ def main() -> int:
             return 2
 
     print(f"Judge: {args.judge}:{args.judge_model}")
-    human = load_human_labels()
+    human = load_human_labels() if use_human_labels else {}
+    if not use_human_labels:
+        print(f"[NOTE] Judging {rag_report.name}: the hand labels belong to {RAG_REPORT.name}, so no agreement is computed.")
     labelled_ids = {item_id for item_id, _ in human}
     if args.only_labelled:
         items = [i for i in items if i["id"] in labelled_ids]
@@ -358,14 +369,17 @@ def main() -> int:
     }
     report = {
         "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "source_report": rag_report.name,
         "source_report_run_at": rag.get("run_at"),
+        "llm": rag.get("llm"),
         "judge": {"provider": args.judge, "model": args.judge_model},
         "summary": summary,
         "disagreements": disagreements,
         "errors": errors,
         "items": rows,
     }
-    OUTPUT.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
 
     print(f"\nFaithfulness evaluation, judge = {args.judge}:{args.judge_model}")
     for key, value in summary.items():
@@ -377,7 +391,7 @@ def main() -> int:
         print(f"  [DISAGREE] {d['id']} claim {d['claim_id']}: human={d['human']} judge={d['judge']}")
     for e in errors:
         print(f"  [ERROR] {e['id']}: {e['error']}")
-    print(f"\nFull report written to {OUTPUT}")
+    print(f"\nFull report written to {output}")
     return 0
 
 

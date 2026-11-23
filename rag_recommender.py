@@ -1,8 +1,12 @@
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
+
+import requests
+
+from config import settings
 
 try:
     from google import genai
@@ -13,6 +17,26 @@ except ImportError:
 
 
 logger = logging.getLogger("regulatory_copilot.llm")
+
+SYSTEM_INSTRUCTION = (
+    "You are an EU-MDR regulatory compliance engine. Return only strictly grounded JSON matching the schema."
+)
+
+# JSON schema for Azure OpenAI structured output. Strict mode needs every property required
+# and additionalProperties false; it mirrors StructuredRecommendation.
+RECOMMENDATION_JSON_SCHEMA = {
+    "name": "structured_recommendation",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "recommendation": {"type": "string"},
+            "citations": {"type": "array", "items": {"type": "string"}},
+        },
+        "required": ["recommendation", "citations"],
+        "additionalProperties": False,
+    },
+}
 
 
 class StructuredRecommendation(BaseModel):
@@ -92,6 +116,10 @@ def _extract_usage(response: Any) -> Dict[str, Optional[int]]:
     return {"input_tokens": input_tokens, "output_tokens": output_tokens}
 
 
+def _model_name(provider: str) -> Optional[str]:
+    return settings.azure_openai_deployment if provider == "azure_openai" else settings.gemini_model
+
+
 def _fallback_deterministic_template(predicted_label: str, chunks: List[Dict[str, Any]], reason: str) -> Dict[str, Any]:
     """
     Fallback deterministic output.
@@ -106,6 +134,79 @@ def _fallback_deterministic_template(predicted_label: str, chunks: List[Dict[str
     }
 
 
+def _call_gemini(prompt: str, client: Optional[Any]) -> Tuple[StructuredRecommendation, Dict[str, Optional[int]]]:
+    gemini_client = client or genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    response = gemini_client.models.generate_content(
+        model=settings.gemini_model,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=StructuredRecommendation,
+            temperature=0.0,
+            system_instruction=SYSTEM_INSTRUCTION,
+        ),
+    )
+    if hasattr(response, "parsed") and response.parsed is not None:
+        parsed: StructuredRecommendation = response.parsed
+    else:
+        parsed = StructuredRecommendation(**json.loads(response.text))
+    return parsed, _extract_usage(response)
+
+
+def _call_azure_openai(prompt: str, client: Optional[Any]) -> Tuple[StructuredRecommendation, Dict[str, Optional[int]]]:
+    """
+    Azure OpenAI through its v1 REST API (https://<resource>.openai.azure.com/openai/v1/chat/completions),
+    with structured output. `client` is anything with a requests-style .post(); requests is the default.
+    Temperature is not sent: reasoning models accept only the default.
+    """
+    http = client or requests
+    url = settings.azure_openai_endpoint.rstrip("/") + "/openai/v1/chat/completions"
+    response = http.post(
+        url,
+        headers={"api-key": os.getenv("AZURE_OPENAI_API_KEY", ""), "Content-Type": "application/json"},
+        json={
+            "model": settings.azure_openai_deployment,
+            "messages": [
+                {"role": "system", "content": SYSTEM_INSTRUCTION},
+                {"role": "user", "content": prompt},
+            ],
+            "response_format": {"type": "json_schema", "json_schema": RECOMMENDATION_JSON_SCHEMA},
+            "max_completion_tokens": settings.azure_openai_max_completion_tokens,
+        },
+        timeout=settings.azure_openai_timeout_seconds,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"Azure OpenAI HTTP {response.status_code}: {response.text[:300]}")
+    data = response.json()
+    choice = data["choices"][0]
+    content = choice["message"].get("content")
+    if not content:
+        # An empty answer usually means the token budget ran out during reasoning.
+        raise RuntimeError(f"Azure OpenAI returned no content (finish_reason={choice.get('finish_reason')})")
+    usage = data.get("usage") or {}
+
+    def count(name: str) -> Optional[int]:
+        value = usage.get(name)
+        return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+    # completion_tokens already includes reasoning tokens, which are billed as output.
+    return StructuredRecommendation(**json.loads(content)), {
+        "input_tokens": count("prompt_tokens"),
+        "output_tokens": count("completion_tokens"),
+    }
+
+
+def _missing_configuration(provider: str) -> Optional[str]:
+    if provider == "azure_openai":
+        missing = [name for name, value in (
+            ("AZURE_OPENAI_ENDPOINT", settings.azure_openai_endpoint),
+            ("AZURE_OPENAI_DEPLOYMENT", settings.azure_openai_deployment),
+            ("AZURE_OPENAI_API_KEY", os.getenv("AZURE_OPENAI_API_KEY")),
+        ) if not value]
+        return f"{', '.join(missing)} unset" if missing else None
+    return None if os.getenv("GEMINI_API_KEY") else "GEMINI_API_KEY unset"
+
+
 def generate_grounded_recommendation(
     narrative: str,
     predicted_label: str,
@@ -114,19 +215,29 @@ def generate_grounded_recommendation(
     top_score: float,
     threshold: float = 0.55,
     client: Optional[Any] = None,
+    provider: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Executes grounded recommendation generation using the Gemini API.
-    Validates that returned citations are a strict subset of retrieved chunk sections.
-    Falls back to deterministic templating if API key is missing or call fails.
+    Generates the grounded recommendation with the configured LLM provider (settings.llm_provider,
+    or `provider` to override): 'gemini' or 'azure_openai'. Both use the same prompt and structured
+    output, and both go through the same citation containment check: cited sections must be a strict
+    subset of the retrieved chunk sections.
+    Falls back to deterministic templating if the provider is not configured or the call fails.
+    `client` replaces the provider's client (tests).
     """
+    provider = provider or settings.llm_provider
+    model = _model_name(provider)
+
+    def tagged(result: Dict[str, Any]) -> Dict[str, Any]:
+        return {**result, "provider": provider, "model": model}
+
     if not chunks:
-        return {
+        return tagged({
             "recommendation": f"Classified as '{predicted_label}'. No regulatory text available.",
             "citations": [],
             "llm_grounding_verified": False,
             "warning": "No regulatory context chunks available",
-        }
+        })
 
     valid_sections = {c["section"] for c in chunks if "section" in c}
     prompt = build_recommendation_prompt(
@@ -138,33 +249,15 @@ def generate_grounded_recommendation(
         threshold=threshold,
     )
 
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key and client is None:
-        logger.warning("GEMINI_API_KEY is not set. Degrading to deterministic recommendation.")
-        return _fallback_deterministic_template(predicted_label, chunks, reason="GEMINI_API_KEY unset")
+    missing = _missing_configuration(provider)
+    if missing and client is None:
+        logger.warning(f"{missing}. Degrading to deterministic recommendation.")
+        return tagged(_fallback_deterministic_template(predicted_label, chunks, reason=missing))
 
     try:
-        gemini_client = client or genai.Client(api_key=api_key)
-
-        response = gemini_client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=StructuredRecommendation,
-                temperature=0.0,
-                system_instruction="You are an EU-MDR regulatory compliance engine. Return only strictly grounded JSON matching the schema.",
-            ),
-        )
-
-        if hasattr(response, "parsed") and response.parsed is not None:
-            parsed: StructuredRecommendation = response.parsed
-        else:
-            raw_data = json.loads(response.text)
-            parsed = StructuredRecommendation(**raw_data)
-
+        call = _call_azure_openai if provider == "azure_openai" else _call_gemini
+        parsed, usage = call(prompt, client)
         cited_sections = parsed.citations
-        usage = _extract_usage(response)
 
         # Enforce citation containment
         hallucinated = set(cited_sections) - valid_sections
@@ -174,21 +267,21 @@ def generate_grounded_recommendation(
                 "Pruning invalid citations."
             )
             valid_citations = [s for s in cited_sections if s in valid_sections]
-            return {
+            return tagged({
                 "recommendation": parsed.recommendation,
                 "citations": valid_citations,
                 "llm_grounding_verified": False,
                 "warning": f"Pruned hallucinated citations: {list(hallucinated)}",
                 "usage": usage,
-            }
+            })
 
-        return {
+        return tagged({
             "recommendation": parsed.recommendation,
             "citations": cited_sections,
             "llm_grounding_verified": True,
             "usage": usage,
-        }
+        })
 
     except Exception as e:
-        logger.error(f"Gemini API recommendation generation failed ({e}). Degrading to deterministic template.")
-        return _fallback_deterministic_template(predicted_label, chunks, reason=str(e))
+        logger.error(f"{provider} recommendation generation failed ({e}). Degrading to deterministic template.")
+        return tagged(_fallback_deterministic_template(predicted_label, chunks, reason=str(e)))

@@ -262,6 +262,52 @@ To add it to Claude Desktop, put this in `claude_desktop_config.json` (Settings 
 * The agent is a command-line tool and is not part of the Cloud Run service.
 * The unit tests use stand-ins for the planner, tools and recommender. They check the guardrails, the retry and the approval step; how well Gemini plans is measured by the evaluation above.
 
+## Second cloud and model provider (Azure)
+
+The same API also runs on Azure Container Apps, with Azure OpenAI writing the recommendation. The code is the same; configuration chooses the provider.
+
+| | Google Cloud | Azure |
+|---|---|---|
+| Runtime | Cloud Run | Container Apps (consumption plan, scales to zero) |
+| Image | Built by CI, in Artifact Registry | The same image, copied into Azure Container Registry |
+| Recommendation LLM | Gemini (`LLM_PROVIDER=gemini`) | Azure OpenAI deployment (`LLM_PROVIDER=azure_openai`) |
+| Severity classifier | ClinicalBERT on Vertex AI, TF-IDF fallback | TF-IDF only: no GCP credentials leave Google Cloud |
+| Telemetry | Cloud Logging, log-based metrics | Log Analytics (`ContainerAppConsoleLogs_CL`) |
+
+Both providers get the same prompt and structured output, and both answers pass through the same citation containment check. Azure OpenAI is called through its v1 REST API with a strict JSON schema; temperature is left at the default because reasoning models accept no other value. Every `/assess` response and telemetry line names the provider and model.
+
+**Configuration.** For local evaluation, put these in `.env` and choose the provider per command with `--provider`:
+
+```
+AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT=<deployment name>
+AZURE_OPENAI_API_KEY=<key>
+AZURE_OPENAI_INPUT_PRICE_PER_MTOK_USD=<price>     # optional, for cost estimates
+AZURE_OPENAI_OUTPUT_PRICE_PER_MTOK_USD=<price>
+```
+
+Leave `LLM_PROVIDER` out of `.env`: the deployment sets it, and the tests expect Gemini as the default.
+
+**Set up and deploy** (PowerShell, after `az login` and `gcloud auth login`):
+
+```powershell
+.\ops\azure\01_azure_openai.ps1 -Location centralindia -ListModels            # models you can deploy there
+.\ops\azure\01_azure_openai.ps1 -Location centralindia -AccountName <unique name> -ModelName <model> -ModelVersion <version>
+.\ops\azure\02_deploy_container_app.ps1 -AcrName <unique name> -ImageTag <git sha>
+.\ops\azure\03_teardown.ps1                                                   # deletes everything when done
+```
+
+**Compare the providers** on the 50-item golden set, with the same retrieval and the same Claude judge:
+
+```bash
+python scripts/evaluate_rag.py --with-llm --provider azure_openai     # reports/rag_eval_azure_openai.json
+python scripts/evaluate_faithfulness.py --judge anthropic --input reports/rag_eval_azure_openai.json --output reports/faithfulness_eval_azure_openai.json
+python scripts/measure_live.py send --url https://<azure app> --tag azure
+python scripts/measure_live.py summarise --logs azure-logs.json --tag azure
+```
+
+The Gemini answers in `reports/rag_eval.json` are not regenerated, because the hand labels in `eval/faithfulness_labels.csv` belong to them.
+
 ---
 ## Local Development & Setup
 
@@ -321,4 +367,4 @@ cd frontend
 
 npm run build
 # dist/ contains static HTML/JS/CSS assets ready for CDN deployment
-```
+```

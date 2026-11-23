@@ -31,8 +31,15 @@ import requests
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GOLDEN_SET = REPO_ROOT / "eval" / "golden_set.json"
-RUN_FILE = REPO_ROOT / "reports" / "live_run.json"
-METRICS_FILE = REPO_ROOT / "reports" / "live_metrics.json"
+
+
+def run_file(tag: str) -> Path:
+    return REPO_ROOT / "reports" / (f"live_run_{tag}.json" if tag else "live_run.json")
+
+
+def metrics_file(tag: str) -> Path:
+    return REPO_ROOT / "reports" / (f"live_metrics_{tag}.json" if tag else "live_metrics.json")
+
 
 DEFAULT_URL = "https://regulatory-copilot-679089218302.asia-south1.run.app"
 WARMUP_NARRATIVE = (
@@ -130,20 +137,30 @@ def send(args) -> int:
         time.sleep(args.pause)
     finished_at = utc_now()
 
-    RUN_FILE.parent.mkdir(parents=True, exist_ok=True)
-    RUN_FILE.write_text(json.dumps({
+    out = run_file(args.tag)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({
         "url": url, "started_at": started_at, "finished_at": finished_at,
         "warmup": warmup, "requests": results,
     }, indent=2), encoding="utf-8")
 
     failed = sum(1 for r in results if r["http_status"] != 200)
-    print(f"\nDone. {len(results)} requests, {failed} without HTTP 200. Saved {RUN_FILE}")
-    print("\nNext: wait about two minutes, open Logs Explorer and run this query:\n")
-    print('  jsonPayload.event="assess_request"')
-    print(f'  timestamp>="{started_at}"')
-    print(f'  timestamp<="{(parse_time(finished_at) + timedelta(minutes=1)).isoformat(timespec="seconds")}"')
-    print("\nThen choose Actions > Download logs > JSON, and run:")
-    print("  python scripts/measure_live.py summarise --logs <downloaded file>")
+    print(f"\nDone. {len(results)} requests, {failed} without HTTP 200. Saved {out}")
+    end = (parse_time(finished_at) + timedelta(minutes=1)).isoformat(timespec="seconds")
+    tag_arg = f" --tag {args.tag}" if args.tag else ""
+    if ".run.app" in url:
+        print("\nNext: wait about two minutes, open Logs Explorer and run this query:\n")
+        print('  jsonPayload.event="assess_request"')
+        print(f'  timestamp>="{started_at}"')
+        print(f'  timestamp<="{end}"')
+        print("\nThen choose Actions > Download logs > JSON, and run:")
+    else:
+        print("\nNext: wait about five minutes for Log Analytics, then export the entries with the Azure CLI:\n")
+        print('  az monitor log-analytics query --workspace <workspace customer id> --output json --analytics-query \\')
+        print(f'    "ContainerAppConsoleLogs_CL | where TimeGenerated between (datetime({started_at}) .. datetime({end})) '
+              f'| where Log_s has \'assess_request\' | project TimeGenerated, Log_s" > azure-logs.json')
+        print("\nThen run:")
+    print(f"  python scripts/measure_live.py summarise --logs <downloaded file>{tag_arg}")
     return 0
 
 
@@ -157,9 +174,19 @@ def load_log_entries(path: Path) -> list[dict]:
         entries = [json.loads(line) for line in text.splitlines() if line.strip()]
     events = []
     for entry in entries:
-        payload = entry.get("jsonPayload") or {}
-        if payload.get("event") == "assess_request" and entry.get("timestamp"):
-            events.append({"timestamp": parse_time(entry["timestamp"]), **payload})
+        if "jsonPayload" in entry:  # Google Cloud Logging export
+            payload, timestamp = entry.get("jsonPayload") or {}, entry.get("timestamp")
+        else:  # Azure Log Analytics row: the container's stdout line is a string column
+            raw = entry.get("Log_s") or entry.get("Log") or ""
+            if "assess_request" not in raw or "{" not in raw:
+                continue
+            try:
+                payload = json.loads(raw[raw.index("{"):])
+            except ValueError:
+                continue
+            timestamp = entry.get("TimeGenerated") or entry.get("TimeGenerated [UTC]")
+        if payload.get("event") == "assess_request" and timestamp:
+            events.append({"timestamp": parse_time(timestamp), **payload})
     return sorted(events, key=lambda e: e["timestamp"])
 
 
@@ -177,8 +204,8 @@ def stage_stats(events: list[dict]) -> dict:
 
 def summarise(args) -> int:
     events = load_log_entries(Path(args.logs))
-    if RUN_FILE.exists() and not args.all_entries:
-        run = json.loads(RUN_FILE.read_text(encoding="utf-8"))
+    if run_file(args.tag).exists() and not args.all_entries:
+        run = json.loads(run_file(args.tag).read_text(encoding="utf-8"))
         start = parse_time(run["started_at"])
         end = parse_time(run["finished_at"]) + timedelta(minutes=1)
         events = [e for e in events if start <= e["timestamp"] <= end]
@@ -226,7 +253,7 @@ def summarise(args) -> int:
             "mean_output": round(statistics.mean(out_tokens)) if out_tokens else None,
         },
     }
-    METRICS_FILE.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    metrics_file(args.tag).write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
     print(f"\nLive /assess metrics over {len(measured)} requests (warm-up excluded)")
     print(f"{'stage':<14}{'p50 ms':>10}{'p95 ms':>10}{'max ms':>10}")
@@ -242,7 +269,7 @@ def summarise(args) -> int:
     print(f"Cost per request with an LLM call: mean ${c['mean']}, p50 ${c['p50']}, p95 ${c['p95']} "
           f"(about ${c['per_1000_requests']} per 1,000 requests)")
     print(f"Tokens: mean input {summary['tokens']['mean_input']}, mean output {summary['tokens']['mean_output']}")
-    print(f"\nSaved {METRICS_FILE}")
+    print(f"\nSaved {metrics_file(args.tag)}")
     return 0
 
 
@@ -254,11 +281,13 @@ def main() -> int:
     p_send.add_argument("--url", default=DEFAULT_URL)
     p_send.add_argument("--limit", type=int, default=0, help="Send only the first N items (for a trial run)")
     p_send.add_argument("--pause", type=float, default=1.0, help="Seconds to wait between requests")
+    p_send.add_argument("--tag", default="", help="Suffix for the report files, e.g. azure -> reports/live_run_azure.json")
     p_send.set_defaults(func=send)
 
     p_sum = sub.add_parser("summarise", help="Summarise downloaded Cloud Logging entries")
-    p_sum.add_argument("--logs", required=True, help="JSON file downloaded from Logs Explorer")
+    p_sum.add_argument("--logs", required=True, help="JSON export from Cloud Logging or Azure Log Analytics")
     p_sum.add_argument("--all-entries", action="store_true", help="Do not restrict to the last run's time window")
+    p_sum.add_argument("--tag", default="", help="Same tag as the send step")
     p_sum.set_defaults(func=summarise)
 
     args = parser.parse_args()

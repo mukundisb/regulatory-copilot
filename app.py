@@ -15,7 +15,7 @@ from maude_classifier.text_cleaner import clean_text
 from maude_classifier.vertex_client import VertexClassifierClient, VertexColdStartException
 from rag_pipeline import init_store, query_store, ingest_document, verify_feature_registry, COLLECTION_NAME
 from rag_recommender import generate_grounded_recommendation
-from telemetry import emit_assess_event, estimate_gemini_cost_usd
+from telemetry import emit_assess_event, estimate_cost_usd
 from pathlib import Path
 
 logging.basicConfig(
@@ -164,6 +164,7 @@ class AssessResponse(BaseModel):
     llm_grounding_verified: bool = False
     fallback_triggered: bool = False
     backend_used: str | None = None
+    llm_provider: str | None = None
     warning: str | None = None
 
 
@@ -208,7 +209,7 @@ def _classify_narrative(raw_narrative: str) -> dict:
             return _degrade_to_tfidf(cleaned, warning_msg)
     else:
         pipeline = get_maude_pipeline()
-        return predict_tfidf(pipeline, cleaned)
+        return {**predict_tfidf(pipeline, cleaned), "backend_used": "tfidf"}
 
 
 def _degrade_to_tfidf(cleaned: str, reason: str) -> dict:
@@ -264,6 +265,7 @@ def health():
         "status": "ok",
         "service": settings.app_name,
         "backend": settings.classifier_backend,
+        "llm_provider": settings.llm_provider,
         "vertex_endpoint_ready": ml_models.get("vertex_client") is not None,
     }
 
@@ -409,9 +411,12 @@ def _assess_pipeline(data: ClassifyRequest, start_time: float) -> AssessResponse
         llm_fallback=llm_fallback,
         llm_warning=llm_warning[:300] or None,
         llm_grounding_verified=rec_result["llm_grounding_verified"],
+        llm_provider=rec_result.get("provider"),
+        llm_model=rec_result.get("model"),
         input_tokens=usage.get("input_tokens"),
         output_tokens=usage.get("output_tokens"),
-        est_cost_usd=estimate_gemini_cost_usd(usage.get("input_tokens"), usage.get("output_tokens")),
+        est_cost_usd=estimate_cost_usd(rec_result.get("provider") or settings.llm_provider,
+                                       usage.get("input_tokens"), usage.get("output_tokens")),
     )
 
     return AssessResponse(
@@ -424,8 +429,9 @@ def _assess_pipeline(data: ClassifyRequest, start_time: float) -> AssessResponse
         llm_grounding_verified=rec_result["llm_grounding_verified"],
         fallback_triggered=fallback_triggered,
         backend_used=clf_result.get("backend_used"),
+        llm_provider=rec_result.get("provider"),
         warning=combined_warning,
     )
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host=settings.host, port=settings.port, reload=True)
+    uvicorn.run("app:app", host=settings.host, port=settings.port, reload=True)

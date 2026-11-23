@@ -27,6 +27,20 @@ class Settings(BaseSettings):
     gemini_input_price_per_mtok_usd: float = 0.75
     gemini_output_price_per_mtok_usd: float = 3.75
 
+    # LLM provider for the grounded recommendation: 'gemini' (Google) or 'azure_openai' (Azure OpenAI)
+    llm_provider: Literal["gemini", "azure_openai"] = "gemini"
+    gemini_model: str = "gemini-3.8-flash"
+
+    # Azure OpenAI (used when llm_provider = 'azure_openai'). The API key is read from AZURE_OPENAI_API_KEY.
+    # Endpoint is the resource address, e.g. https://<resource-name>.openai.azure.com
+    azure_openai_endpoint: Optional[str] = None
+    azure_openai_deployment: Optional[str] = None      # the deployment name you chose, not the model name
+    azure_openai_max_completion_tokens: int = 4000     # reasoning models spend part of this on reasoning
+    azure_openai_timeout_seconds: float = 60.0
+    # USD per 1M tokens for your deployment, from the Azure pricing page or portal. Unset = cost not estimated.
+    azure_openai_input_price_per_mtok_usd: Optional[float] = None
+    azure_openai_output_price_per_mtok_usd: Optional[float] = None
+
     # OpenFDA Ingestion (Optional fields so they are recognized)
     openfda_base_url: Optional[str] = None
     openfda_api_key: Optional[str] = None
@@ -41,4 +55,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings = Settings()

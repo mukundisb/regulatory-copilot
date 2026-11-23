@@ -12,15 +12,23 @@ from typing import Any, Optional
 from config import settings
 
 
+def _prices(provider: str) -> tuple[Optional[float], Optional[float]]:
+    if provider == "azure_openai":
+        return settings.azure_openai_input_price_per_mtok_usd, settings.azure_openai_output_price_per_mtok_usd
+    return settings.gemini_input_price_per_mtok_usd, settings.gemini_output_price_per_mtok_usd
+
+
+def estimate_cost_usd(provider: str, input_tokens: Optional[int], output_tokens: Optional[int]) -> Optional[float]:
+    """Cost of one LLM call from its token counts. None when the counts or the provider's prices are unknown."""
+    input_price, output_price = _prices(provider)
+    if None in (input_tokens, output_tokens, input_price, output_price):
+        return None
+    return round((input_tokens * input_price + output_tokens * output_price) / 1_000_000, 8)
+
+
 def estimate_gemini_cost_usd(input_tokens: Optional[int], output_tokens: Optional[int]) -> Optional[float]:
     """Cost of one Gemini call from its token counts. None when the counts are unknown."""
-    if input_tokens is None or output_tokens is None:
-        return None
-    cost = (
-        input_tokens * settings.gemini_input_price_per_mtok_usd
-        + output_tokens * settings.gemini_output_price_per_mtok_usd
-    ) / 1_000_000
-    return round(cost, 8)
+    return estimate_cost_usd("gemini", input_tokens, output_tokens)
 
 
 def emit_assess_event(outcome: str, **fields: Any) -> None:

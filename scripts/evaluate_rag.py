@@ -28,7 +28,9 @@ import contextlib
 import io
 import json
 import os
+import statistics
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -99,16 +101,21 @@ def score_retrieval(chunks: list[dict], expected: set[str]) -> dict:
     }
 
 
-def score_citations(item: dict, chunks: list[dict], expected: set[str]) -> dict:
+def score_citations(item: dict, chunks: list[dict], expected: set[str], provider: str) -> dict:
     from rag_recommender import generate_grounded_recommendation
+    from telemetry import estimate_cost_usd
 
+    started = time.perf_counter()
     result = generate_grounded_recommendation(
         narrative=item["query"],
         predicted_label=item.get("label", "O"),
         chunks=chunks,
         retrieval_fallback_triggered=False,
         top_score=chunks[0]["similarity_score"] if chunks else 0.0,
+        provider=provider,
     )
+    generate_ms = round((time.perf_counter() - started) * 1000, 1)
+    usage = result.get("usage") or {}
     cited = [section_key(s) for s in result.get("citations", [])]
     warning = result.get("warning") or ""
     llm_used = not warning.startswith(("Degraded", "No regulatory context"))
@@ -121,17 +128,33 @@ def score_citations(item: dict, chunks: list[dict], expected: set[str]) -> dict:
         "citation_hit": any(s in expected for s in cited),
         "cited_expected": sum(1 for s in cited if s in expected),
         "cited_total": len(cited),
+        "generate_ms": generate_ms,
+        "input_tokens": usage.get("input_tokens"),
+        "output_tokens": usage.get("output_tokens"),
+        "est_cost_usd": estimate_cost_usd(provider, usage.get("input_tokens"), usage.get("output_tokens")),
     }
+
+
+def _model(provider: str):
+    from rag_recommender import _model_name
+    return _model_name(provider)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--golden-set", default=str(REPO_ROOT / "eval" / "golden_set.json"))
-    parser.add_argument("--output", default=str(REPO_ROOT / "reports" / "rag_eval.json"))
+    parser.add_argument("--output", help="Default: reports/rag_eval.json for Gemini, reports/rag_eval_<provider>.json otherwise")
+    parser.add_argument("--provider", choices=["gemini", "azure_openai"],
+                        help="LLM for --with-llm (default: LLM_PROVIDER from config, normally gemini)")
     parser.add_argument("--top-k", type=int, default=3, help="Chunks retrieved per item (the API uses 3)")
     parser.add_argument("--with-llm", action="store_true", help="Also generate answers and score citations")
     parser.add_argument("--min-hit-rate", type=float, default=0.0, help="Exit 1 if hit@k is below this value")
     args = parser.parse_args()
+    from config import settings
+    args.provider = args.provider or settings.llm_provider
+    if not args.output:
+        name = "rag_eval.json" if args.provider == "gemini" else f"rag_eval_{args.provider}.json"
+        args.output = str(REPO_ROOT / "reports" / name)
 
     golden = json.loads(Path(args.golden_set).read_text(encoding="utf-8"))
     items = golden["items"]
@@ -164,7 +187,7 @@ def main() -> int:
             **score_retrieval(chunks, expected),
         }
         if args.with_llm:
-            row.update(score_citations(item, chunks, expected))
+            row.update(score_citations(item, chunks, expected, args.provider))
             # Kept so that scripts/evaluate_faithfulness.py can check each answer against its sources.
             row["retrieved_chunks"] = [
                 {
@@ -195,6 +218,10 @@ def main() -> int:
                 "llm_unavailable": n - len(answered),
                 "citation_accuracy": round(sum(r["citation_hit"] for r in answered) / len(answered), 3) if answered else None,
                 "citation_precision": round(sum(r["cited_expected"] for r in answered) / cited_total, 3) if cited_total else None,
+                "grounding_verified": round(sum(r["llm_grounding_verified"] for r in answered) / len(answered), 3) if answered else None,
+                "median_generate_ms": round(statistics.median(r["generate_ms"] for r in answered), 1) if answered else None,
+                "mean_cost_usd": (round(statistics.mean(costs), 6) if (costs := [r["est_cost_usd"] for r in answered
+                                  if r["est_cost_usd"] is not None]) else None),
             })
         return out
 
@@ -208,6 +235,7 @@ def main() -> int:
         "golden_set": Path(args.golden_set).name,
         "golden_set_status": golden.get("status"),
         "top_k": args.top_k,
+        "llm": {"provider": args.provider, "model": _model(args.provider)} if args.with_llm else None,
         "index": {
             "chunk_count": chunk_count,
             "embedding_model": rag_pipeline.EMBEDDING_MODEL_NAME,
@@ -231,8 +259,10 @@ def main() -> int:
             print(f"{name:<10} {s['items']:>5} {s['hit_at_1']:>7.3f} {s[hit_key]:>7.3f} {s['mrr']:>7.3f} {s['no_result']:>10}")
     if args.with_llm:
         o = summary["overall"]
-        print(f"\nCitation accuracy: {o['citation_accuracy']}  precision: {o['citation_precision']}  "
-              f"LLM unavailable on {o['llm_unavailable']} items")
+        print(f"\nLLM: {args.provider} ({_model(args.provider)})")
+        print(f"Citation accuracy: {o['citation_accuracy']}  precision: {o['citation_precision']}  "
+              f"grounding verified: {o['grounding_verified']}  LLM unavailable on {o['llm_unavailable']} items")
+        print(f"Median generation: {o['median_generate_ms']} ms   mean cost per answer: ${o['mean_cost_usd']}")
         reasons = sorted({r["llm_warning"][:200] for r in rows if not r["llm_used"] and r["llm_warning"]})
         for reason in reasons:
             print(f"  [WARN] LLM not used: {reason}")
