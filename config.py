@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     azure_openai_deployment: Optional[str] = None      # the deployment name you chose, not the model name
     azure_openai_max_completion_tokens: int = 4000     # reasoning models spend part of this on reasoning
     azure_openai_timeout_seconds: float = 60.0
+    # Retries on HTTP 429 (rate limit) and 503, waiting as long as Azure's Retry-After says (capped).
+    azure_openai_max_retries: int = 3
+    azure_openai_max_retry_wait_seconds: float = 30.0
     # USD per 1M tokens for your deployment, from the Azure pricing page or portal. Unset = cost not estimated.
     azure_openai_input_price_per_mtok_usd: Optional[float] = None
     azure_openai_output_price_per_mtok_usd: Optional[float] = None

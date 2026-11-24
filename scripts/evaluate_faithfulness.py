@@ -171,15 +171,21 @@ def parse_judge_output(raw: str, n_claims: int) -> list[dict]:
     return [by_id[i] for i in range(1, n_claims + 1)]
 
 
-def judge_item(item: dict, claims: list[str], args) -> list[dict]:
+def judge_item(item: dict, claims: list[str], args, attempts: int = 2) -> list[dict]:
+    """Ask the judge; if its reply is not valid JSON covering every claim, ask once more."""
     prompt = build_prompt(item, claims)
-    if args.judge == "gemini":
-        raw = call_gemini(prompt, args.judge_model)
-    elif args.judge == "anthropic":
-        raw = call_anthropic(prompt, args.judge_model)
-    else:
-        raw = call_openai_compatible(prompt, args.judge_model, args.judge_base_url)
-    return parse_judge_output(raw, len(claims))
+    for attempt in range(attempts):
+        if args.judge == "gemini":
+            raw = call_gemini(prompt, args.judge_model)
+        elif args.judge == "anthropic":
+            raw = call_anthropic(prompt, args.judge_model)
+        else:
+            raw = call_openai_compatible(prompt, args.judge_model, args.judge_base_url)
+        try:
+            return parse_judge_output(raw, len(claims))
+        except (ValueError, KeyError, TypeError):  # json.JSONDecodeError is a ValueError
+            if attempt == attempts - 1:
+                raise
 
 
 # --------------------------------------------------------------------------- human labels

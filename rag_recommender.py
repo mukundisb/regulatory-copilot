@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+import re
+import time
 from typing import Any, Dict, List, Optional, Tuple
 from pydantic import BaseModel, Field
 
@@ -161,10 +163,10 @@ def _call_azure_openai(prompt: str, client: Optional[Any]) -> Tuple[StructuredRe
     """
     http = client or requests
     url = settings.azure_openai_endpoint.rstrip("/") + "/openai/v1/chat/completions"
-    response = http.post(
-        url,
-        headers={"api-key": os.getenv("AZURE_OPENAI_API_KEY", ""), "Content-Type": "application/json"},
-        json={
+    request = {
+        "url": url,
+        "headers": {"api-key": os.getenv("AZURE_OPENAI_API_KEY", ""), "Content-Type": "application/json"},
+        "json": {
             "model": settings.azure_openai_deployment,
             "messages": [
                 {"role": "system", "content": SYSTEM_INSTRUCTION},
@@ -173,8 +175,15 @@ def _call_azure_openai(prompt: str, client: Optional[Any]) -> Tuple[StructuredRe
             "response_format": {"type": "json_schema", "json_schema": RECOMMENDATION_JSON_SCHEMA},
             "max_completion_tokens": settings.azure_openai_max_completion_tokens,
         },
-        timeout=settings.azure_openai_timeout_seconds,
-    )
+        "timeout": settings.azure_openai_timeout_seconds,
+    }
+    for attempt in range(settings.azure_openai_max_retries + 1):
+        response = http.post(**request)
+        if response.status_code not in (429, 503) or attempt == settings.azure_openai_max_retries:
+            break
+        wait = _retry_wait_seconds(response, attempt)
+        logger.warning(f"Azure OpenAI HTTP {response.status_code}; retry {attempt + 1} in {wait:.1f} s")
+        time.sleep(wait)
     if response.status_code >= 400:
         raise RuntimeError(f"Azure OpenAI HTTP {response.status_code}: {response.text[:300]}")
     data = response.json()
@@ -194,6 +203,43 @@ def _call_azure_openai(prompt: str, client: Optional[Any]) -> Tuple[StructuredRe
         "input_tokens": count("prompt_tokens"),
         "output_tokens": count("completion_tokens"),
     }
+
+
+def _retry_wait_seconds(response: Any, attempt: int) -> float:
+    """Azure's Retry-After header (milliseconds or seconds) if present, else 2, 4, 8 ... s; capped."""
+    headers = {k.lower(): v for k, v in (getattr(response, "headers", None) or {}).items()}
+    try:
+        if "retry-after-ms" in headers:
+            wait = float(headers["retry-after-ms"]) / 1000
+        elif "retry-after" in headers:
+            wait = float(headers["retry-after"])
+        else:
+            wait = 2.0 ** (attempt + 1)
+    except ValueError:
+        wait = 2.0 ** (attempt + 1)
+    return max(0.0, min(wait, settings.azure_openai_max_retry_wait_seconds))
+
+
+def _normalise_section(title: str) -> str:
+    """'Article 30 - Electronic system ...' and 'Article 30 Electronic System ...' compare equal."""
+    return re.sub(r"[^a-z0-9]+", " ", title.lower()).strip()
+
+
+def _resolve_citations(cited: List[str], valid_sections: set) -> Tuple[List[str], List[str]]:
+    """
+    Map each cited title to the retrieved section it names, ignoring case, punctuation and spacing.
+    Returns (resolved canonical titles, citations that match no retrieved section). A title that is
+    only reformatted still points at a retrieved passage; one that names another section does not.
+    """
+    canonical = {_normalise_section(s): s for s in valid_sections}
+    resolved, unmatched = [], []
+    for citation in cited:
+        match = canonical.get(_normalise_section(citation))
+        if match is None:
+            unmatched.append(citation)
+        elif match not in resolved:
+            resolved.append(match)
+    return resolved, unmatched
 
 
 def _missing_configuration(provider: str) -> Optional[str]:
@@ -257,21 +303,18 @@ def generate_grounded_recommendation(
     try:
         call = _call_azure_openai if provider == "azure_openai" else _call_gemini
         parsed, usage = call(prompt, client)
-        cited_sections = parsed.citations
-
-        # Enforce citation containment
-        hallucinated = set(cited_sections) - valid_sections
+        # Enforce citation containment: every citation must name a retrieved section.
+        cited_sections, hallucinated = _resolve_citations(parsed.citations, valid_sections)
         if hallucinated:
             logger.error(
                 f"LLM hallucinated citations outside retrieved context: {hallucinated}. "
                 "Pruning invalid citations."
             )
-            valid_citations = [s for s in cited_sections if s in valid_sections]
             return tagged({
                 "recommendation": parsed.recommendation,
-                "citations": valid_citations,
+                "citations": cited_sections,
                 "llm_grounding_verified": False,
-                "warning": f"Pruned hallucinated citations: {list(hallucinated)}",
+                "warning": f"Pruned hallucinated citations: {hallucinated}",
                 "usage": usage,
             })
 

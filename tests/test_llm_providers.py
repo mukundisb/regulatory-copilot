@@ -21,17 +21,20 @@ CHUNKS = [{"chunk_id": "c1", "section": SECTION, "text": "Manufacturers shall re
 class FakeHTTP:
     """Records the request and returns a chat-completions style answer."""
 
-    def __init__(self, status=200, content=None, usage=None, finish_reason="stop"):
+    def __init__(self, status=200, content=None, usage=None, finish_reason="stop", statuses=None, headers=None):
         self.status, self.content, self.finish_reason = status, content, finish_reason
+        self.statuses = list(statuses or [])   # statuses for the first calls, then `status`
+        self.headers = headers or {}
         self.usage = usage if usage is not None else {"prompt_tokens": 1800, "completion_tokens": 350}
         self.calls = []
 
     def post(self, url, headers, json, timeout):
         self.calls.append({"url": url, "headers": headers, "json": json, "timeout": timeout})
+        status = self.statuses.pop(0) if self.statuses else self.status
         body = {"choices": [{"message": {"content": self.content}, "finish_reason": self.finish_reason}],
                 "usage": self.usage}
-        return SimpleNamespace(status_code=self.status, text="denied" if self.status >= 400 else "",
-                               json=lambda: body)
+        return SimpleNamespace(status_code=status, text="denied" if status >= 400 else "",
+                               headers=self.headers if status >= 400 else {}, json=lambda: body)
 
 
 def answer(recommendation="Report under Article 87.", citations=(SECTION,)):
@@ -91,6 +94,22 @@ def test_azure_citations_outside_the_context_are_pruned(azure_settings):
     assert "Pruned hallucinated citations" in result["warning"]
 
 
+def test_reformatted_title_of_a_retrieved_section_is_accepted(azure_settings):
+    # Seen with gpt-5.4-mini: the " - " separator dropped from a retrieved section's title.
+    http = FakeHTTP(content=answer(citations=(
+        "Article 87 Reporting of serious incidents and field safety corrective actions",
+        "article 87 - REPORTING of serious incidents and field-safety corrective actions")))
+    result = generate(http)
+    assert result["llm_grounding_verified"] is True
+    assert result["citations"] == [SECTION]  # canonical title, once
+
+
+def test_a_different_section_with_a_similar_name_is_still_rejected(azure_settings):
+    http = FakeHTTP(content=answer(citations=(SECTION, "Article 88 Reporting of serious incidents")))
+    result = generate(http)
+    assert result["llm_grounding_verified"] is False and result["citations"] == [SECTION]
+
+
 def test_azure_http_error_falls_back_to_the_template(azure_settings):
     result = generate(FakeHTTP(status=401))
     assert result["llm_grounding_verified"] is False
@@ -124,6 +143,48 @@ def test_gemini_results_are_tagged_with_provider_and_model():
 def test_no_chunks_is_tagged_too():
     result = generate_grounded_recommendation("n", "M", [], False, 0.0, provider="azure_openai")
     assert result["provider"] == "azure_openai" and result["warning"] == "No regulatory context chunks available"
+
+
+# --------------------------------------------------------------------------- rate limits
+
+@pytest.fixture
+def no_sleep(monkeypatch):
+    waits = []
+    monkeypatch.setattr(rag_recommender.time, "sleep", waits.append)
+    return waits
+
+
+def test_rate_limit_is_retried_with_azure_retry_after(azure_settings, no_sleep):
+    http = FakeHTTP(content=answer(), statuses=[429, 429], headers={"Retry-After": "7"})
+    result = generate(http)
+    assert result["llm_grounding_verified"] is True and len(http.calls) == 3
+    assert no_sleep == [7.0, 7.0]
+
+
+def test_retry_after_ms_is_preferred_and_waits_are_capped(azure_settings, no_sleep, monkeypatch):
+    monkeypatch.setattr(rag_recommender.settings, "azure_openai_max_retry_wait_seconds", 5.0)
+    generate(FakeHTTP(content=answer(), statuses=[429], headers={"retry-after-ms": "1500"}))
+    generate(FakeHTTP(content=answer(), statuses=[429], headers={"Retry-After": "120"}))
+    assert no_sleep == [1.5, 5.0]
+
+
+def test_backoff_without_a_header(azure_settings, no_sleep):
+    generate(FakeHTTP(content=answer(), statuses=[503, 429]))
+    assert no_sleep == [2.0, 4.0]
+
+
+def test_gives_up_after_the_retry_budget(azure_settings, no_sleep, monkeypatch):
+    monkeypatch.setattr(rag_recommender.settings, "azure_openai_max_retries", 2)
+    http = FakeHTTP(status=429)
+    result = generate(http)
+    assert len(http.calls) == 3 and len(no_sleep) == 2
+    assert "Azure OpenAI HTTP 429" in result["warning"]
+
+
+def test_other_errors_are_not_retried(azure_settings, no_sleep):
+    http = FakeHTTP(status=401)
+    generate(http)
+    assert len(http.calls) == 1 and no_sleep == []
 
 
 # --------------------------------------------------------------------------- cost
@@ -188,3 +249,19 @@ def test_rag_evaluation_records_provider_timing_tokens_and_cost(monkeypatch):
     assert seen["provider"] == "azure_openai"
     assert row["citation_hit"] and row["llm_used"] and row["generate_ms"] >= 0
     assert row["input_tokens"] == 1000 and row["est_cost_usd"] == telemetry.estimate_cost_usd("azure_openai", 1000, 200)
+
+
+def test_faithfulness_judge_retries_once_on_malformed_json(monkeypatch):
+    import importlib.util
+    from pathlib import Path
+    from types import SimpleNamespace as NS
+    path = Path(__file__).resolve().parent.parent / "scripts" / "evaluate_faithfulness.py"
+    spec = importlib.util.spec_from_file_location("evaluate_faithfulness", path)
+    ef = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ef)
+    replies = ['{"claims": [{"id": 1 "label": "supported"}]}',
+               '{"claims": [{"id": 1, "label": "supported", "reason": "ok"}]}']
+    monkeypatch.setattr(ef, "build_prompt", lambda item, claims: "p")
+    monkeypatch.setattr(ef, "call_anthropic", lambda prompt, model: replies.pop(0))
+    verdicts = ef.judge_item({}, ["claim"], NS(judge="anthropic", judge_model="m"))
+    assert verdicts[0]["label"] == "supported" and replies == []
