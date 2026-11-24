@@ -1,0 +1,649 @@
+{
+  "url": "https://regulatory-copilot.jollydune-8827822e.southindia.azurecontainerapps.io",
+  "started_at": "2026-11-24T16:03:32+00:00",
+  "finished_at": "2026-11-24T16:05:56+00:00",
+  "warmup": {
+    "http_status": 200,
+    "client_latency_ms": 2709.9,
+    "backend_used": "tfidf",
+    "llm_grounding_verified": true,
+    "citations": [
+      "Article 2 - Definitions",
+      "Article 87 - Reporting of serious incidents and field safety corrective actions"
+    ],
+    "warning": null
+  },
+  "requests": [
+    {
+      "id": "Q01",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1378.8,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q02",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1334.6,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q03",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1402.4,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q04",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1146.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q05",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1335.2,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q06",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1282.5,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 88 - Trend reporting"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q07",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1458.8,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 89 - Analysis of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q08",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1448.6,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 90 - Analysis of vigilance data"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q09",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1861.4,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 83 - Post-market surveillance system of the manufacturer",
+        "ANNEX III - TECHNICAL DOCUMENTATION ON POST-MARKET SURVEILLANCE"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q10",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2129.8,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX III - TECHNICAL DOCUMENTATION ON POST-MARKET SURVEILLANCE",
+        "Article 83 - Post-market surveillance system of the manufacturer"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q11",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2062.4,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 85 - Post-market surveillance report",
+        "Article 83 - Post-market surveillance system of the manufacturer",
+        "ANNEX III - TECHNICAL DOCUMENTATION ON POST-MARKET SURVEILLANCE"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q12",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2091.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 86 - Periodic safety update report"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q13",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2539.6,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX III - TECHNICAL DOCUMENTATION ON POST-MARKET SURVEILLANCE",
+        "Article 83 - Post-market surveillance system of the manufacturer"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q14",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1441.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX IX - CONFORMITY ASSESSMENT BASED ON A QUALITY MANAGEMENT SYSTEM AND ON ASSESSMENT OF"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q15",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1267.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 10 - General obligations of manufacturers",
+        "Article 11 - Authorised representative"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q16",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1933.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 89 - Analysis of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q17",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1802.6,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 13 - General obligations of importers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q18",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2151.8,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 14 - General obligations of distributors"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q19",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1754.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 15 - Person responsible for regulatory compliance"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q20",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1694.8,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 17 - Single-use devices and their reprocessing"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q21",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1795.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 18 - Implant card and information to be supplied to the patient with an implanted device"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q22",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1812.5,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX XI - CONFORMITY ASSESSMENT BASED ON PRODUCT CONFORMITY VERIFICATION",
+        "Article 10 - General obligations of manufacturers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q23",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1453.2,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Preamble",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q24",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1438.4,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Preamble",
+        "Article 27 - Unique Device Identification system"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q25",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1792.3,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 13 - General obligations of importers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q26",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2152.3,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 30 - Electronic system for registration of economic operators",
+        "Article 31 - Registration of manufacturers, authorised representatives and importers"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q27",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1653.6,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q28",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1476.2,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Preamble",
+        "ANNEX VIII - CLASSIFICATION RULES"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q29",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1701.1,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 88 - Trend reporting"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q30",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1583.6,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX IX - CONFORMITY ASSESSMENT BASED ON A QUALITY MANAGEMENT SYSTEM AND ON ASSESSMENT OF",
+        "ANNEX VII - REQUIREMENTS TO BE MET BY NOTIFIED BODIES"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q31",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2138.8,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 120 - Transitional provisions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q32",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1965.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 62 - General requirements regarding clinical investigations conducted to demonstrate conformity of"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q33",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2100.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Preamble",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q34",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2412.0,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 63 - Informed consent",
+        "Article 62 - General requirements regarding clinical investigations conducted to demonstrate conformity of"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q35",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2372.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 80 - Recording and reporting of adverse events that occur during clinical investigations"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q36",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2195.3,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS",
+        "Preamble"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q37",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1984.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS",
+        "Article 7 - Claims"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q38",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1715.0,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 88 - Trend reporting",
+        "Article 2 - Definitions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q39",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 1931.1,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 89 - Analysis of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q40",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2035.2,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 89 - Analysis of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q41",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2222.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 120 - Transitional provisions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "Q42",
+      "type": "question",
+      "http_status": 200,
+      "client_latency_ms": 2029.7,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 10 - General obligations of manufacturers",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 14 - General obligations of distributors"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N01",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 2133.1,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 2 - Definitions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N02",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1812.0,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions",
+        "Article 2 - Definitions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N03",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1762.5,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N04",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1923.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX VII - REQUIREMENTS TO BE MET BY NOTIFIED BODIES"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N05",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 2405.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N06",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1887.5,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 80 - Recording and reporting of adverse events that occur during clinical investigations"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N07",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1785.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "Article 2 - Definitions",
+        "Article 87 - Reporting of serious incidents and field safety corrective actions"
+      ],
+      "warning": null
+    },
+    {
+      "id": "N08",
+      "type": "narrative",
+      "http_status": 200,
+      "client_latency_ms": 1741.9,
+      "backend_used": "tfidf",
+      "llm_grounding_verified": true,
+      "citations": [
+        "ANNEX I - GENERAL SAFETY AND PERFORMANCE REQUIREMENTS",
+        "Article 22 - Systems and procedure packs"
+      ],
+      "warning": null
+    }
+  ]
+}

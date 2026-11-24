@@ -308,6 +308,39 @@ python scripts/measure_live.py summarise --logs azure-logs.json --tag azure
 
 The Gemini answers in `reports/rag_eval.json` are not regenerated, because the hand labels in `eval/faithfulness_labels.csv` belong to them.
 
+### Results: Gemini vs Azure OpenAI
+
+Answer quality is from the 50-item golden set, with the same retrieved passages and the same Claude judge for both. Speed and cost are from 50 requests to each live endpoint.
+
+| | Google Cloud: Gemini 3.8 Flash | Azure: GPT-5.4 mini (Data Zone) |
+|---|---|---|
+| Citation accuracy | 0.84 | 0.84 |
+| Citation precision | **0.65** | 0.61 |
+| Answers passing citation containment | 50/50 | 50/50 |
+| Faithfulness (Claude judge) | **0.963** (6 of 156 claims unsupported) | 0.935 (9 of 147) |
+| Faithfulness when retrieval missed the expected section | **0.94** | 0.89 |
+| Live `/assess`, median / p95 | 6.6 s / 10.4 s | **1.3 s / 1.8 s** |
+| Generation step only, median | 6.4 s | **1.3 s** |
+| Mean tokens per request, in / out | 1,411 / 140 | 1,445 / 150 |
+| Cost per 1,000 requests | **$1.58** | $1.76 |
+| Requests answered by the LLM in the live run | 49 of 50 (one retrieved no passages) | 50 of 50 |
+
+#### What the comparison shows
+
+* **Same accuracy, Gemini slightly more faithful.** Both cite an expected section in 84% of answers. Gemini makes fewer claims the passages do not support, and the gap is widest when retrieval misses: GPT-5.4 mini fills in from its own knowledge more often.
+* **Azure answered five times faster.** Both models used about the same number of tokens, so the difference is the provider's response time, not answer length.
+* **Cost is close today.** The Data Zone price premium makes Azure about 11% dearer per request. Gemini's prices double on 1 January 2027; at the same token counts it would cost about $3.17 per 1,000 requests, roughly 1.8 times Azure.
+* **Gemini stays the default.** For regulatory recommendations, faithfulness matters more than speed. Azure OpenAI is a tested second provider: switching is one setting.
+
+#### Known limitations
+
+* One run per provider, on different days (15 and 24 November 2026). Provider response times vary with load.
+* The two live services ran different classifiers: ClinicalBERT on Vertex AI (188 ms median) on Google Cloud, TF-IDF (3 ms) on Azure. Compare the generation step, which is like for like. TF-IDF labels less accurately (0.73 against 0.90 in the agent evaluation).
+* The Azure measurement started on a warm container, so its cold start was not measured.
+* Data Zone deployments keep processing within the APAC data zone; the Gemini calls are not region-bound.
+
+Reports: `reports/rag_eval_azure_openai.json`, `reports/faithfulness_eval_azure_openai.json`, `reports/live_run_azure.json`, `reports/live_metrics_azure.json`.
+
 ---
 ## Local Development & Setup
 
